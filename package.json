@@ -14,7 +14,7 @@
     "@hookform/resolvers": "^5.2.2",
     "@supabase/supabase-js": "^2.99.3",
     "@tailwindcss/vite": "^4.2.2",
-    "@tanstack/react-query": "^5.91.3",
+    "@tanstack/react-query": "^5.94.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.577.0",
