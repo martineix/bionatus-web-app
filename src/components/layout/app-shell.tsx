@@ -1,61 +1,33 @@
-import type { ReactNode } from "react"
-import { LayoutDashboard, Package, ShoppingCart, Users, LogOut } from "lucide-react"
-import { useNavigate } from "react-router-dom"
-import { Button } from "@/components/ui/button"
-import { signOut } from "@/lib/auth"
+import { useState, type ReactNode } from "react"
+import Sidebar from "./sidebar"
+import Topbar from "./topbar"
 
-type Props = {
+type AppShellProps = {
+  title: string
+  subtitle?: string
   children: ReactNode
 }
 
-export default function AppShell({ children }: Props) {
-  const navigate = useNavigate()
+export default function AppShell({ title, subtitle, children, }: AppShellProps) {
+  const [collapsed, setCollapsed] = useState(false)
 
-  async function handleLogout() {
-    await signOut()
-    navigate("/login")
+  function handleToggleSidebar() {
+    setCollapsed((prev) => !prev)
   }
 
   return (
-    <div className="min-h-screen bg-muted/20">
-      <div className="grid min-h-screen md:grid-cols-[240px_1fr]">
-        <aside className="border-r bg-background p-4">
-          <div className="mb-6">
-            <h2 className="text-lg font-bold">Bionatus</h2>
-            <p className="text-sm text-muted-foreground">Web App</p>
-          </div>
+    <div className="flex min-h-screen bg-[#F0F0F0]">
+      <Sidebar
+        collapsed={collapsed}
+        onToggleCollapse={handleToggleSidebar}
+      />
 
-          <nav className="space-y-2">
-            <button className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left hover:bg-muted">
-              <LayoutDashboard className="h-4 w-4" />
-              Dashboard
-            </button>
+      <div className="flex min-h-screen flex-1 flex-col">
+        <Topbar title={title} subtitle={subtitle} />
 
-            <button className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left hover:bg-muted">
-              <Users className="h-4 w-4" />
-              Usuários
-            </button>
-
-            <button className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left hover:bg-muted">
-              <Package className="h-4 w-4" />
-              Produtos
-            </button>
-
-            <button className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left hover:bg-muted">
-              <ShoppingCart className="h-4 w-4" />
-              Pedidos
-            </button>
-          </nav>
-
-          <div className="mt-8">
-            <Button variant="outline" className="w-full justify-start gap-2" onClick={handleLogout}>
-              <LogOut className="h-4 w-4" />
-              Sair
-            </Button>
-          </div>
-        </aside>
-
-        <main className="p-6">{children}</main>
+        <main className="flex-1 p-6">
+          {children}
+        </main>
       </div>
     </div>
   )

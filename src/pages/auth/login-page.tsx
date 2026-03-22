@@ -21,7 +21,9 @@ export default function LoginPage() {
     const { error } = await signInWithPassword(email, password)
 
     if (error) {
-      setError("E-mail ou senha inválidos.")
+      console.error("Erro no Login:", error)
+      setError(error.message)
+    //   setError("E-mail ou senha inválidos.")
       setLoading(false)
       return
     }
