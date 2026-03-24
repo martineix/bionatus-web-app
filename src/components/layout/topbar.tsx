@@ -16,7 +16,7 @@ export default function Topbar({ title, subtitle }: TopbarProps) {
   }
 
   return (
-    <header className="border-b bg-white px-6 py-4">
+    <header className="border-b bg-white px-6 py-2">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">
