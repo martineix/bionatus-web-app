@@ -8,13 +8,14 @@ export type DashboardKpis = {
 }
 
 export type DashboardFiltersInput = {
+  ano: number | null
+  mes: number | null
   dataInicio: string | null
   dataFim: string | null
   idRepresentante: number | null
   mercado: number | null
   contas: number | null
 }
-
 
 export async function getDashboardKpis(filters: DashboardFiltersInput): Promise<DashboardKpis> {
   const { data, error } = await supabase.rpc("get_dashboard_kpis", {
@@ -24,9 +25,6 @@ export async function getDashboardKpis(filters: DashboardFiltersInput): Promise<
     p_mercado: filters.mercado,
     p_contas: filters.contas,
   })
-
-  console.log("RPC get_dashboard_kpis - data:", data)
-  console.log("RPC get_dashboard_kpis - error:", error)
 
   if (error) {
     throw error
@@ -49,4 +47,32 @@ export async function getDashboardKpis(filters: DashboardFiltersInput): Promise<
     ticket_medio: Number(row.ticket_medio ?? 0),
     positivacoes: Number(row.positivacoes ?? 0),
   }
+}
+
+export async function getDashboardAvailableYears(): Promise<number[]> {
+  const { data, error } = await supabase.rpc("get_dashboard_available_years")
+
+  if (error) {
+    throw error
+  }
+
+  return (data ?? []).map((row: { ano: number | string }) => Number(row.ano))
+}
+
+export type DashboardMonthOption = {
+  mes: number
+  ano_mes: string
+}
+
+export async function getDashboardAvailableMonths(ano: number | null): Promise<DashboardMonthOption[]> {
+  const { data, error } = await supabase.rpc("get_dashboard_available_months", { p_ano: ano })
+
+  if (error) {
+    throw error
+  }
+
+  return (data ?? []).map((row: { mes: number | string; ano_mes: string }) => ({
+    mes: Number(row.mes),
+    ano_mes: row.ano_mes,
+  }))
 }

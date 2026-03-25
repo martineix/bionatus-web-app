@@ -4,8 +4,11 @@ import DashboardFilters from "@/components/ui/myComponents/dashboard-filters"
 import KpiCard from "@/components/ui/myComponents/kpi-card"
 import {
     getDashboardKpis,
+    getDashboardAvailableYears,
+    getDashboardAvailableMonths,
     type DashboardFiltersInput,
     type DashboardKpis,
+    type DashboardMonthOption,
 } from "@/lib/dashboard"
 import { formatCurrencyBRL, formatNumberBR } from "@/lib/format"
 import {
@@ -18,6 +21,8 @@ import {
 const FILTERS_STORAGE_KEY = "dashboard-filters"
 
 const defaultFilters: DashboardFiltersInput = {
+    ano: null,
+    mes: null,
     dataInicio: null,
     dataFim: null,
     idRepresentante: null,
@@ -27,6 +32,9 @@ const defaultFilters: DashboardFiltersInput = {
 
 export default function DashboardPage() {
     const [kpis, setKpis] = useState<DashboardKpis | null>(null)
+    const [availableYears, setAvailableYears] = useState<number[]>([])
+    const [availableMonths, setAvailableMonths] = useState<DashboardMonthOption[]>([])
+
     const [loading, setLoading] = useState(true)
 
     const [filters, setFilters] = useState<DashboardFiltersInput>(() => {
@@ -43,25 +51,79 @@ export default function DashboardPage() {
         return defaultFilters
     })
 
-    useEffect(() => {
-        localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(filters))
-    }, [filters])
+    // useEffect para resgatar os filtros no STORAGE_KEY
+    useEffect(() => { localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(filters)) }, [filters])
 
+    // useEffect para fazer load nos KPIs
     useEffect(() => {
         async function loadKpis() {
             try {
                 setLoading(true)
-                const data = await getDashboardKpis(filters)
+
+                let dataInicio: string | null = null
+                let dataFim: string | null = null
+
+                if (filters.ano && filters.mes) {
+                    const mes = String(filters.mes).padStart(2, "0")
+                    const ultimoDia = new Date(filters.ano, filters.mes, 0).getDate()
+
+                    dataInicio = `${filters.ano}-${mes}-01`
+                    dataFim = `${filters.ano}-${mes}-${String(ultimoDia).padStart(2, "0")}`
+                } else if (filters.ano) {
+                    dataInicio = `${filters.ano}-01-01`
+                    dataFim = `${filters.ano}-12-31`
+                }
+
+                const filtersToQuery: DashboardFiltersInput = {
+                    ...filters,
+                    dataInicio,
+                    dataFim
+                }
+
+                const data = await getDashboardKpis(filtersToQuery)
                 setKpis(data)
+                
             } catch (error) {
                 console.error("Erro ao buscar KPIs:", error)
             } finally {
                 setLoading(false)
             }
         }
-
         loadKpis()
     }, [filters])
+
+    // useEffect para fazer load de anos nos KPIs
+    useEffect(() => {
+        async function loadYears() {
+            try {
+                const years = await getDashboardAvailableYears()
+                setAvailableYears(years)
+            } catch (error) {
+                console.error("Erro ao buscar anos disponíveis:", error)
+            }
+        }
+
+        loadYears()
+    }, [])
+
+    // useEffect para fazer load de meses nos KPIs
+    useEffect(() => {
+        async function loadMonths() {
+            try {
+                if (!filters.ano) {
+                    setAvailableMonths([])
+                    return
+                }
+
+                const months = await getDashboardAvailableMonths(filters.ano)
+                setAvailableMonths(months)
+            } catch (error) {
+                console.error("Erro ao buscar meses disponíveis:", error)
+            }
+        }
+
+        loadMonths()
+    }, [filters.ano])
 
     return (
         <AppShell
@@ -69,7 +131,7 @@ export default function DashboardPage() {
         //   subtitle="Visão geral"
         >
             <div className="space-y-6">
-                <DashboardFilters filters={filters} onChange={setFilters} />
+                <DashboardFilters filters={filters} onChange={setFilters} availableYears={availableYears} availableMonths={availableMonths} />
 
                 <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
                     <KpiCard
