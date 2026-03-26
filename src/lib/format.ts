@@ -12,3 +12,8 @@ export function formatNumberBR(value: number) {
 export function formatPercentBR(value: number) {
     return `${value.toFixed(1).replace(".", ",")}%`
 }
+
+export function getPercentageChange(current: number, previous: number): number {
+  if (!previous) return 0
+  return ((current - previous) / previous) * 100
+}

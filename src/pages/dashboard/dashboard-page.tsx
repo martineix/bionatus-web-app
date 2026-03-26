@@ -3,230 +3,415 @@ import AppShell from "@/components/layout/app-shell"
 import DashboardFilters from "@/components/ui/myComponents/dashboard-filters"
 import KpiCard from "@/components/ui/myComponents/kpi-card"
 import {
-    getDashboardKpis,
-    getDashboardAvailableYears,
-    getDashboardAvailableMonths,
-    type DashboardFiltersInput,
-    type DashboardKpis,
-    type DashboardMonthOption,
+  getDashboardKpis,
+  getDashboardKpisComparison,
+  getDashboardAvailableYears,
+  getDashboardAvailableMonths,
+  getDashboardSalesDaily,
+  type DashboardFiltersInput,
+  type DashboardKpis,
+  type DashboardKpisComparison,
+  type DashboardMonthOption,
+  type DashboardDailySalesPoint,
 } from "@/lib/dashboard"
-import { formatCurrencyBRL, formatNumberBR } from "@/lib/format"
 import {
-    BadgeDollarSign,
-    ShoppingCart,
-    ReceiptText,
-    Handshake,
+  formatCurrencyBRL,
+  formatNumberBR,
+  formatPercentBR,
+  getPercentageChange,
+} from "@/lib/format"
+import {
+  BadgeDollarSign,
+  ShoppingCart,
+  ReceiptText,
+  Handshake,
 } from "lucide-react"
+import DashboardSalesChart from "@/components/ui/myComponents/dashboard-sales-chart"
 
 const FILTERS_STORAGE_KEY = "dashboard-filters"
 
 const defaultFilters: DashboardFiltersInput = {
-    ano: null,
-    mes: null,
-    dataInicio: null,
-    dataFim: null,
-    idRepresentante: null,
-    mercado: null,
-    contas: null,
+  ano: null,
+  mes: null,
+  dataInicio: null,
+  dataFim: null,
+  idRepresentante: null,
+  mercado: null,
+  contas: null,
 }
 
 export default function DashboardPage() {
-    const [kpis, setKpis] = useState<DashboardKpis | null>(null)
-    const [availableYears, setAvailableYears] = useState<number[]>([])
-    const [availableMonths, setAvailableMonths] = useState<DashboardMonthOption[]>([])
+  const [kpis, setKpis] = useState<DashboardKpis | null>(null)
+  const [kpisComparison, setKpisComparison] =
+    useState<DashboardKpisComparison | null>(null)
+  const [availableYears, setAvailableYears] = useState<number[]>([])
+  const [availableMonths, setAvailableMonths] = useState<DashboardMonthOption[]>(
+    []
+  )
+  const [salesDaily, setSalesDaily] = useState<DashboardDailySalesPoint[]>([])
+  const [salesPreviousDaily, setSalesPreviousDaily] = useState<
+    DashboardDailySalesPoint[]
+  >([])
 
-    const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(true)
 
-    const [filters, setFilters] = useState<DashboardFiltersInput>(() => {
-        const saved = localStorage.getItem(FILTERS_STORAGE_KEY)
+  const [filters, setFilters] = useState<DashboardFiltersInput>(() => {
+    const saved = localStorage.getItem(FILTERS_STORAGE_KEY)
 
-        if (saved) {
-            try {
-                return JSON.parse(saved)
-            } catch {
-                return defaultFilters
-            }
-        }
-
+    if (saved) {
+      try {
+        return JSON.parse(saved)
+      } catch {
         return defaultFilters
-    })
+      }
+    }
 
-    // useEffect para resgatar os filtros no STORAGE_KEY
-    useEffect(() => { localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(filters)) }, [filters])
+    return defaultFilters
+  })
 
-    // useEffect para fazer load nos KPIs
-    useEffect(() => {
-        async function loadKpis() {
-            try {
-                setLoading(true)
+  useEffect(() => {
+    localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(filters))
+  }, [filters])
 
-                let dataInicio: string | null = null
-                let dataFim: string | null = null
+  useEffect(() => {
+    async function loadDashboardData() {
+      try {
+        setLoading(true)
 
-                if (filters.ano && filters.mes) {
-                    const mes = String(filters.mes).padStart(2, "0")
-                    const ultimoDia = new Date(filters.ano, filters.mes, 0).getDate()
+        let dataInicio: string | null = null
+        let dataFim: string | null = null
 
-                    dataInicio = `${filters.ano}-${mes}-01`
-                    dataFim = `${filters.ano}-${mes}-${String(ultimoDia).padStart(2, "0")}`
-                } else if (filters.ano) {
-                    dataInicio = `${filters.ano}-01-01`
-                    dataFim = `${filters.ano}-12-31`
-                }
+        if (filters.ano && filters.mes) {
+          const mes = String(filters.mes).padStart(2, "0")
+          const ultimoDia = new Date(filters.ano, filters.mes, 0).getDate()
 
-                const filtersToQuery: DashboardFiltersInput = {
-                    ...filters,
-                    dataInicio,
-                    dataFim
-                }
-
-                const data = await getDashboardKpis(filtersToQuery)
-                setKpis(data)
-                
-            } catch (error) {
-                console.error("Erro ao buscar KPIs:", error)
-            } finally {
-                setLoading(false)
-            }
-        }
-        loadKpis()
-    }, [filters])
-
-    // useEffect para fazer load de anos nos KPIs
-    useEffect(() => {
-        async function loadYears() {
-            try {
-                const years = await getDashboardAvailableYears()
-                setAvailableYears(years)
-            } catch (error) {
-                console.error("Erro ao buscar anos disponíveis:", error)
-            }
+          dataInicio = `${filters.ano}-${mes}-01`
+          dataFim = `${filters.ano}-${mes}-${String(ultimoDia).padStart(2, "0")}`
+        } else if (filters.ano) {
+          dataInicio = `${filters.ano}-01-01`
+          dataFim = `${filters.ano}-12-31`
         }
 
-        loadYears()
-    }, [])
-
-    // useEffect para fazer load de meses nos KPIs
-    useEffect(() => {
-        async function loadMonths() {
-            try {
-                if (!filters.ano) {
-                    setAvailableMonths([])
-                    return
-                }
-
-                const months = await getDashboardAvailableMonths(filters.ano)
-                setAvailableMonths(months)
-            } catch (error) {
-                console.error("Erro ao buscar meses disponíveis:", error)
-            }
+        const filtersToQuery: DashboardFiltersInput = {
+          ...filters,
+          dataInicio,
+          dataFim,
         }
 
-        loadMonths()
-    }, [filters.ano])
+        let previousFilters: DashboardFiltersInput = {
+          ...filters,
+          dataInicio: null,
+          dataFim: null,
+        }
 
-    return (
-        <AppShell
-            title="Dashboard"
-        //   subtitle="Visão geral"
-        >
-            <div className="space-y-6">
-                <DashboardFilters filters={filters} onChange={setFilters} availableYears={availableYears} availableMonths={availableMonths} />
+        if (filters.ano && filters.mes) {
+          const currentDate = new Date(filters.ano, filters.mes - 1, 1)
+          const previousDate = new Date(
+            currentDate.getFullYear(),
+            currentDate.getMonth() - 1,
+            1
+          )
 
-                <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-                    <KpiCard
-                        title="Faturamento"
-                        value={loading ? "Carregando..." : formatCurrencyBRL(kpis?.faturamento ?? 0)}
-                        previousLabel="Ano Passado:"
-                        previousValue="R$ 4.751.450,97"
-                        change="44,2%"
-                        positive={false}
-                        icon={<BadgeDollarSign className="h-5 w-5" />}
-                        accentColor="#006426"
-                        accentBg="#D0D9D6"
-                    />
+          const previousYear = previousDate.getFullYear()
+          const previousMonth = previousDate.getMonth() + 1
+          const previousMonthPadded = String(previousMonth).padStart(2, "0")
+          const previousLastDay = new Date(
+            previousYear,
+            previousMonth,
+            0
+          ).getDate()
 
-                    <KpiCard
-                        title="Pedidos"
-                        value={loading ? "Carregando..." : formatNumberBR(kpis?.pedidos ?? 0)}
-                        previousLabel="Ano Passado:"
-                        previousValue="2.790"
-                        change="48,6%"
-                        positive={false}
-                        icon={<ShoppingCart className="h-5 w-5" />}
-                        accentColor="#9A6700"
-                        accentBg="#F6E7B8"
-                    />
+          previousFilters = {
+            ...filters,
+            dataInicio: `${previousYear}-${previousMonthPadded}-01`,
+            dataFim: `${previousYear}-${previousMonthPadded}-${String(
+              previousLastDay
+            ).padStart(2, "0")}`,
+          }
+        }
 
-                    <KpiCard
-                        title="Ticket Médio"
-                        value={loading ? "Carregando..." : formatCurrencyBRL(kpis?.ticket_medio ?? 0)}
-                        previousLabel="Ano Passado:"
-                        previousValue="R$ 1.638,51"
-                        change="8,6%"
-                        positive={true}
-                        icon={<ReceiptText className="h-5 w-5" />}
-                        accentColor="#2C5282"
-                        accentBg="#D6E6F8"
-                    />
+        const hasMonthComparison = !!filters.ano && !!filters.mes
 
-                    <KpiCard
-                        title="Positivações"
-                        value={loading ? "Carregando..." : formatNumberBR(kpis?.positivacoes ?? 0)}
-                        previousLabel="Ano Passado:"
-                        previousValue="1.852"
-                        change="35,9%"
-                        positive={false}
-                        icon={<Handshake className="h-5 w-5" />}
-                        accentColor="#7A4E0E"
-                        accentBg="#F3DFC3"
-                    />
-                </div>
+        const comparisonPromise = hasMonthComparison
+          ? getDashboardKpisComparison({
+              dataInicio: dataInicio!,
+              dataFim: dataFim!,
+              dataInicioMesAnterior: previousFilters.dataInicio!,
+              dataFimMesAnterior: previousFilters.dataFim!,
+              dataInicioAnoAnterior: `${filters.ano! - 1}-${String(
+                filters.mes!
+              ).padStart(2, "0")}-01`,
+              dataFimAnoAnterior: `${filters.ano! - 1}-${String(
+                filters.mes!
+              ).padStart(2, "0")}-${String(
+                new Date(filters.ano! - 1, filters.mes!, 0).getDate()
+              ).padStart(2, "0")}`,
+              idRepresentante: filters.idRepresentante,
+              mercado: filters.mercado,
+              contas: filters.contas,
+            })
+          : Promise.resolve(null)
 
-                <div className="grid gap-6 xl:grid-cols-3">
-                    <div className="rounded-2xl bg-white p-6 shadow-sm xl:col-span-2">
-                        <h2 className="text-lg font-semibold text-slate-900">
-                            Evolução de vendas
-                        </h2>
+        const previousSalesPromise =
+          hasMonthComparison
+            ? getDashboardSalesDaily(previousFilters)
+            : Promise.resolve([] as DashboardDailySalesPoint[])
 
-                        <div className="mt-6 flex h-72 items-center justify-center rounded-2xl border border-dashed border-slate-300 text-slate-400">
-                            Área do gráfico
-                        </div>
-                    </div>
+        const [kpisData, comparisonData, salesData, salesPreviousData] =
+          await Promise.all([
+            getDashboardKpis(filtersToQuery),
+            comparisonPromise,
+            getDashboardSalesDaily(filtersToQuery),
+            previousSalesPromise,
+          ])
 
-                    <div className="rounded-2xl bg-white p-6 shadow-sm">
-                        <h2 className="text-lg font-semibold text-slate-900">
-                            Resumo rápido
-                        </h2>
-                        <p className="mt-1 text-sm text-slate-500">
-                            Indicadores complementares da operação.
-                        </p>
+        setKpis(kpisData)
+        setKpisComparison(comparisonData)
+        setSalesDaily(salesData)
+        setSalesPreviousDaily(salesPreviousData)
+      } catch (error) {
+        console.error("Erro ao buscar dados do dashboard:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
 
-                        <div className="mt-6 space-y-4">
-                            <div className="rounded-xl bg-slate-50 p-4">
-                                <p className="text-sm text-slate-500">Ticket médio</p>
-                                <p className="mt-1 text-lg font-semibold text-slate-900">
-                                    {loading ? "Carregando..." : formatCurrencyBRL(kpis?.ticket_medio ?? 0)}
-                                </p>
-                            </div>
+    loadDashboardData()
+  }, [filters])
 
-                            <div className="rounded-xl bg-slate-50 p-4">
-                                <p className="text-sm text-slate-500">Pedidos</p>
-                                <p className="mt-1 text-lg font-semibold text-slate-900">
-                                    {loading ? "Carregando..." : formatNumberBR(kpis?.pedidos ?? 0)}
-                                </p>
-                            </div>
+  useEffect(() => {
+    async function loadYears() {
+      try {
+        const years = await getDashboardAvailableYears()
+        setAvailableYears(years)
+      } catch (error) {
+        console.error("Erro ao buscar anos disponíveis:", error)
+      }
+    }
 
-                            <div className="rounded-xl bg-slate-50 p-4">
-                                <p className="text-sm text-slate-500">Positivações</p>
-                                <p className="mt-1 text-lg font-semibold text-slate-900">
-                                    {loading ? "Carregando..." : formatNumberBR(kpis?.positivacoes ?? 0)}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </AppShell>
-    )
+    loadYears()
+  }, [])
+
+  useEffect(() => {
+    async function loadMonths() {
+      try {
+        if (!filters.ano) {
+          setAvailableMonths([])
+          return
+        }
+
+        const months = await getDashboardAvailableMonths(filters.ano)
+        setAvailableMonths(months)
+      } catch (error) {
+        console.error("Erro ao buscar meses disponíveis:", error)
+      }
+    }
+
+    loadMonths()
+  }, [filters.ano])
+
+  return (
+    <AppShell title="Dashboard">
+      <div className="space-y-6">
+        <DashboardFilters
+          filters={filters}
+          onChange={setFilters}
+          availableYears={availableYears}
+          availableMonths={availableMonths}
+        />
+
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+          <KpiCard
+            title="Faturamento"
+            value={
+              loading
+                ? "Carregando..."
+                : formatCurrencyBRL(
+                    kpisComparison?.faturamento_atual ?? kpis?.faturamento ?? 0
+                  )
+            }
+            icon={<BadgeDollarSign className="h-5 w-5" />}
+            accentColor="#006426"
+            accentBg="#D0D9D6"
+            comparisons={[
+              {
+                label: "vs mês anterior:",
+                value: formatCurrencyBRL(
+                  kpisComparison?.faturamento_mes_anterior ?? 0
+                ),
+                change: formatPercentBR(
+                  getPercentageChange(
+                    kpisComparison?.faturamento_atual ?? 0,
+                    kpisComparison?.faturamento_mes_anterior ?? 0
+                  )
+                ),
+                positive:
+                  (kpisComparison?.faturamento_atual ?? 0) >=
+                  (kpisComparison?.faturamento_mes_anterior ?? 0),
+              },
+              {
+                label: "vs ano anterior:",
+                value: formatCurrencyBRL(
+                  kpisComparison?.faturamento_ano_anterior ?? 0
+                ),
+                change: formatPercentBR(
+                  getPercentageChange(
+                    kpisComparison?.faturamento_atual ?? 0,
+                    kpisComparison?.faturamento_ano_anterior ?? 0
+                  )
+                ),
+                positive:
+                  (kpisComparison?.faturamento_atual ?? 0) >=
+                  (kpisComparison?.faturamento_ano_anterior ?? 0),
+              },
+            ]}
+          />
+
+          <KpiCard
+            title="Pedidos"
+            value={
+              loading
+                ? "Carregando..."
+                : formatNumberBR(
+                    kpisComparison?.pedidos_atual ?? kpis?.pedidos ?? 0
+                  )
+            }
+            icon={<ShoppingCart className="h-5 w-5" />}
+            accentColor="#297B49"
+            accentBg="#E3ECE6"
+            comparisons={[
+              {
+                label: "vs mês anterior:",
+                value: formatNumberBR(kpisComparison?.pedidos_mes_anterior ?? 0),
+                change: formatPercentBR(
+                  getPercentageChange(
+                    kpisComparison?.pedidos_atual ?? 0,
+                    kpisComparison?.pedidos_mes_anterior ?? 0
+                  )
+                ),
+                positive:
+                  (kpisComparison?.pedidos_atual ?? 0) >=
+                  (kpisComparison?.pedidos_mes_anterior ?? 0),
+              },
+              {
+                label: "vs ano anterior:",
+                value: formatNumberBR(kpisComparison?.pedidos_ano_anterior ?? 0),
+                change: formatPercentBR(
+                  getPercentageChange(
+                    kpisComparison?.pedidos_atual ?? 0,
+                    kpisComparison?.pedidos_ano_anterior ?? 0
+                  )
+                ),
+                positive:
+                  (kpisComparison?.pedidos_atual ?? 0) >=
+                  (kpisComparison?.pedidos_ano_anterior ?? 0),
+              },
+            ]}
+          />
+
+          <KpiCard
+            title="Ticket Médio"
+            value={
+              loading
+                ? "Carregando..."
+                : formatCurrencyBRL(
+                    kpisComparison?.ticket_medio_atual ??
+                      kpis?.ticket_medio ??
+                      0
+                  )
+            }
+            icon={<ReceiptText className="h-5 w-5" />}
+            accentColor="#53936C"
+            accentBg="#E8F0EB"
+            comparisons={[
+              {
+                label: "vs mês anterior:",
+                value: formatCurrencyBRL(
+                  kpisComparison?.ticket_medio_mes_anterior ?? 0
+                ),
+                change: formatPercentBR(
+                  getPercentageChange(
+                    kpisComparison?.ticket_medio_atual ?? 0,
+                    kpisComparison?.ticket_medio_mes_anterior ?? 0
+                  )
+                ),
+                positive:
+                  (kpisComparison?.ticket_medio_atual ?? 0) >=
+                  (kpisComparison?.ticket_medio_mes_anterior ?? 0),
+              },
+              {
+                label: "vs ano anterior:",
+                value: formatCurrencyBRL(
+                  kpisComparison?.ticket_medio_ano_anterior ?? 0
+                ),
+                change: formatPercentBR(
+                  getPercentageChange(
+                    kpisComparison?.ticket_medio_atual ?? 0,
+                    kpisComparison?.ticket_medio_ano_anterior ?? 0
+                  )
+                ),
+                positive:
+                  (kpisComparison?.ticket_medio_atual ?? 0) >=
+                  (kpisComparison?.ticket_medio_ano_anterior ?? 0),
+              },
+            ]}
+          />
+
+          <KpiCard
+            title="Positivações"
+            value={
+              loading
+                ? "Carregando..."
+                : formatNumberBR(
+                    kpisComparison?.positivacoes_atual ??
+                      kpis?.positivacoes ??
+                      0
+                  )
+            }
+            icon={<Handshake className="h-5 w-5" />}
+            accentColor="#7DAA90"
+            accentBg="#EEF3F0"
+            comparisons={[
+              {
+                label: "vs mês anterior:",
+                value: formatNumberBR(
+                  kpisComparison?.positivacoes_mes_anterior ?? 0
+                ),
+                change: formatPercentBR(
+                  getPercentageChange(
+                    kpisComparison?.positivacoes_atual ?? 0,
+                    kpisComparison?.positivacoes_mes_anterior ?? 0
+                  )
+                ),
+                positive:
+                  (kpisComparison?.positivacoes_atual ?? 0) >=
+                  (kpisComparison?.positivacoes_mes_anterior ?? 0),
+              },
+              {
+                label: "vs ano anterior:",
+                value: formatNumberBR(
+                  kpisComparison?.positivacoes_ano_anterior ?? 0
+                ),
+                change: formatPercentBR(
+                  getPercentageChange(
+                    kpisComparison?.positivacoes_atual ?? 0,
+                    kpisComparison?.positivacoes_ano_anterior ?? 0
+                  )
+                ),
+                positive:
+                  (kpisComparison?.positivacoes_atual ?? 0) >=
+                  (kpisComparison?.positivacoes_ano_anterior ?? 0),
+              },
+            ]}
+          />
+        </div>
+
+        <DashboardSalesChart
+          data={salesDaily}
+          previousData={salesPreviousDaily}
+          loading={loading}
+        />
+      </div>
+    </AppShell>
+  )
 }
