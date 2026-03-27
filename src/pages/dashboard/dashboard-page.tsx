@@ -41,17 +41,13 @@ const defaultFilters: DashboardFiltersInput = {
 }
 
 export default function DashboardPage() {
+
   const [kpis, setKpis] = useState<DashboardKpis | null>(null)
-  const [kpisComparison, setKpisComparison] =
-    useState<DashboardKpisComparison | null>(null)
+  const [kpisComparison, setKpisComparison] = useState<DashboardKpisComparison | null>(null)
   const [availableYears, setAvailableYears] = useState<number[]>([])
-  const [availableMonths, setAvailableMonths] = useState<DashboardMonthOption[]>(
-    []
-  )
+  const [availableMonths, setAvailableMonths] = useState<DashboardMonthOption[]>([])
   const [salesDaily, setSalesDaily] = useState<DashboardDailySalesPoint[]>([])
-  const [salesPreviousDaily, setSalesPreviousDaily] = useState<
-    DashboardDailySalesPoint[]
-  >([])
+  const [salesPreviousDaily, setSalesPreviousDaily] = useState<DashboardDailySalesPoint[]>([])
 
   const [loading, setLoading] = useState(true)
 
@@ -134,22 +130,22 @@ export default function DashboardPage() {
 
         const comparisonPromise = hasMonthComparison
           ? getDashboardKpisComparison({
-              dataInicio: dataInicio!,
-              dataFim: dataFim!,
-              dataInicioMesAnterior: previousFilters.dataInicio!,
-              dataFimMesAnterior: previousFilters.dataFim!,
-              dataInicioAnoAnterior: `${filters.ano! - 1}-${String(
-                filters.mes!
-              ).padStart(2, "0")}-01`,
-              dataFimAnoAnterior: `${filters.ano! - 1}-${String(
-                filters.mes!
-              ).padStart(2, "0")}-${String(
-                new Date(filters.ano! - 1, filters.mes!, 0).getDate()
-              ).padStart(2, "0")}`,
-              idRepresentante: filters.idRepresentante,
-              mercado: filters.mercado,
-              contas: filters.contas,
-            })
+            dataInicio: dataInicio!,
+            dataFim: dataFim!,
+            dataInicioMesAnterior: previousFilters.dataInicio!,
+            dataFimMesAnterior: previousFilters.dataFim!,
+            dataInicioAnoAnterior: `${filters.ano! - 1}-${String(
+              filters.mes!
+            ).padStart(2, "0")}-01`,
+            dataFimAnoAnterior: `${filters.ano! - 1}-${String(
+              filters.mes!
+            ).padStart(2, "0")}-${String(
+              new Date(filters.ano! - 1, filters.mes!, 0).getDate()
+            ).padStart(2, "0")}`,
+            idRepresentante: filters.idRepresentante,
+            mercado: filters.mercado,
+            contas: filters.contas,
+          })
           : Promise.resolve(null)
 
         const previousSalesPromise =
@@ -210,6 +206,8 @@ export default function DashboardPage() {
     loadMonths()
   }, [filters.ano])
 
+  const hasComparison = !!filters.ano && !!filters.mes
+
   return (
     <AppShell title="Dashboard">
       <div className="space-y-6">
@@ -227,44 +225,46 @@ export default function DashboardPage() {
               loading
                 ? "Carregando..."
                 : formatCurrencyBRL(
-                    kpisComparison?.faturamento_atual ?? kpis?.faturamento ?? 0
-                  )
+                  kpisComparison?.faturamento_atual ?? kpis?.faturamento ?? 0
+                )
             }
             icon={<BadgeDollarSign className="h-5 w-5" />}
             accentColor="#006426"
             accentBg="#D0D9D6"
-            comparisons={[
-              {
-                label: "vs mês anterior:",
-                value: formatCurrencyBRL(
-                  kpisComparison?.faturamento_mes_anterior ?? 0
-                ),
-                change: formatPercentBR(
-                  getPercentageChange(
-                    kpisComparison?.faturamento_atual ?? 0,
-                    kpisComparison?.faturamento_mes_anterior ?? 0
-                  )
-                ),
-                positive:
-                  (kpisComparison?.faturamento_atual ?? 0) >=
-                  (kpisComparison?.faturamento_mes_anterior ?? 0),
-              },
-              {
-                label: "vs ano anterior:",
-                value: formatCurrencyBRL(
-                  kpisComparison?.faturamento_ano_anterior ?? 0
-                ),
-                change: formatPercentBR(
-                  getPercentageChange(
-                    kpisComparison?.faturamento_atual ?? 0,
-                    kpisComparison?.faturamento_ano_anterior ?? 0
-                  )
-                ),
-                positive:
-                  (kpisComparison?.faturamento_atual ?? 0) >=
-                  (kpisComparison?.faturamento_ano_anterior ?? 0),
-              },
-            ]}
+            comparisons={
+              hasComparison ?
+                [
+                  {
+                    label: "vs Mês Anterior:",
+                    value: formatCurrencyBRL(
+                      kpisComparison?.faturamento_mes_anterior ?? 0
+                    ),
+                    change: formatPercentBR(
+                      getPercentageChange(
+                        kpisComparison?.faturamento_atual ?? 0,
+                        kpisComparison?.faturamento_mes_anterior ?? 0
+                      )
+                    ),
+                    positive:
+                      (kpisComparison?.faturamento_atual ?? 0) >=
+                      (kpisComparison?.faturamento_mes_anterior ?? 0),
+                  },
+                  {
+                    label: "vs Ano Anterior:",
+                    value: formatCurrencyBRL(
+                      kpisComparison?.faturamento_ano_anterior ?? 0
+                    ),
+                    change: formatPercentBR(
+                      getPercentageChange(
+                        kpisComparison?.faturamento_atual ?? 0,
+                        kpisComparison?.faturamento_ano_anterior ?? 0
+                      )
+                    ),
+                    positive:
+                      (kpisComparison?.faturamento_atual ?? 0) >=
+                      (kpisComparison?.faturamento_ano_anterior ?? 0),
+                  },
+                ] : []}
           />
 
           <KpiCard
@@ -273,40 +273,42 @@ export default function DashboardPage() {
               loading
                 ? "Carregando..."
                 : formatNumberBR(
-                    kpisComparison?.pedidos_atual ?? kpis?.pedidos ?? 0
-                  )
+                  kpisComparison?.pedidos_atual ?? kpis?.pedidos ?? 0
+                )
             }
             icon={<ShoppingCart className="h-5 w-5" />}
             accentColor="#297B49"
             accentBg="#E3ECE6"
-            comparisons={[
-              {
-                label: "vs mês anterior:",
-                value: formatNumberBR(kpisComparison?.pedidos_mes_anterior ?? 0),
-                change: formatPercentBR(
-                  getPercentageChange(
-                    kpisComparison?.pedidos_atual ?? 0,
-                    kpisComparison?.pedidos_mes_anterior ?? 0
-                  )
-                ),
-                positive:
-                  (kpisComparison?.pedidos_atual ?? 0) >=
-                  (kpisComparison?.pedidos_mes_anterior ?? 0),
-              },
-              {
-                label: "vs ano anterior:",
-                value: formatNumberBR(kpisComparison?.pedidos_ano_anterior ?? 0),
-                change: formatPercentBR(
-                  getPercentageChange(
-                    kpisComparison?.pedidos_atual ?? 0,
-                    kpisComparison?.pedidos_ano_anterior ?? 0
-                  )
-                ),
-                positive:
-                  (kpisComparison?.pedidos_atual ?? 0) >=
-                  (kpisComparison?.pedidos_ano_anterior ?? 0),
-              },
-            ]}
+            comparisons={
+              hasComparison ?
+                [
+                  {
+                    label: "vs Mês Anterior:",
+                    value: formatNumberBR(kpisComparison?.pedidos_mes_anterior ?? 0),
+                    change: formatPercentBR(
+                      getPercentageChange(
+                        kpisComparison?.pedidos_atual ?? 0,
+                        kpisComparison?.pedidos_mes_anterior ?? 0
+                      )
+                    ),
+                    positive:
+                      (kpisComparison?.pedidos_atual ?? 0) >=
+                      (kpisComparison?.pedidos_mes_anterior ?? 0),
+                  },
+                  {
+                    label: "vs Ano Anterior:",
+                    value: formatNumberBR(kpisComparison?.pedidos_ano_anterior ?? 0),
+                    change: formatPercentBR(
+                      getPercentageChange(
+                        kpisComparison?.pedidos_atual ?? 0,
+                        kpisComparison?.pedidos_ano_anterior ?? 0
+                      )
+                    ),
+                    positive:
+                      (kpisComparison?.pedidos_atual ?? 0) >=
+                      (kpisComparison?.pedidos_ano_anterior ?? 0),
+                  },
+                ] : []}
           />
 
           <KpiCard
@@ -315,46 +317,48 @@ export default function DashboardPage() {
               loading
                 ? "Carregando..."
                 : formatCurrencyBRL(
-                    kpisComparison?.ticket_medio_atual ??
-                      kpis?.ticket_medio ??
-                      0
-                  )
+                  kpisComparison?.ticket_medio_atual ??
+                  kpis?.ticket_medio ??
+                  0
+                )
             }
             icon={<ReceiptText className="h-5 w-5" />}
             accentColor="#53936C"
             accentBg="#E8F0EB"
-            comparisons={[
-              {
-                label: "vs mês anterior:",
-                value: formatCurrencyBRL(
-                  kpisComparison?.ticket_medio_mes_anterior ?? 0
-                ),
-                change: formatPercentBR(
-                  getPercentageChange(
-                    kpisComparison?.ticket_medio_atual ?? 0,
-                    kpisComparison?.ticket_medio_mes_anterior ?? 0
-                  )
-                ),
-                positive:
-                  (kpisComparison?.ticket_medio_atual ?? 0) >=
-                  (kpisComparison?.ticket_medio_mes_anterior ?? 0),
-              },
-              {
-                label: "vs ano anterior:",
-                value: formatCurrencyBRL(
-                  kpisComparison?.ticket_medio_ano_anterior ?? 0
-                ),
-                change: formatPercentBR(
-                  getPercentageChange(
-                    kpisComparison?.ticket_medio_atual ?? 0,
-                    kpisComparison?.ticket_medio_ano_anterior ?? 0
-                  )
-                ),
-                positive:
-                  (kpisComparison?.ticket_medio_atual ?? 0) >=
-                  (kpisComparison?.ticket_medio_ano_anterior ?? 0),
-              },
-            ]}
+            comparisons={
+              hasComparison ?
+                [
+                  {
+                    label: "vs Mês Anterior:",
+                    value: formatCurrencyBRL(
+                      kpisComparison?.ticket_medio_mes_anterior ?? 0
+                    ),
+                    change: formatPercentBR(
+                      getPercentageChange(
+                        kpisComparison?.ticket_medio_atual ?? 0,
+                        kpisComparison?.ticket_medio_mes_anterior ?? 0
+                      )
+                    ),
+                    positive:
+                      (kpisComparison?.ticket_medio_atual ?? 0) >=
+                      (kpisComparison?.ticket_medio_mes_anterior ?? 0),
+                  },
+                  {
+                    label: "vs Ano Anterior:",
+                    value: formatCurrencyBRL(
+                      kpisComparison?.ticket_medio_ano_anterior ?? 0
+                    ),
+                    change: formatPercentBR(
+                      getPercentageChange(
+                        kpisComparison?.ticket_medio_atual ?? 0,
+                        kpisComparison?.ticket_medio_ano_anterior ?? 0
+                      )
+                    ),
+                    positive:
+                      (kpisComparison?.ticket_medio_atual ?? 0) >=
+                      (kpisComparison?.ticket_medio_ano_anterior ?? 0),
+                  },
+                ] : []}
           />
 
           <KpiCard
@@ -363,46 +367,48 @@ export default function DashboardPage() {
               loading
                 ? "Carregando..."
                 : formatNumberBR(
-                    kpisComparison?.positivacoes_atual ??
-                      kpis?.positivacoes ??
-                      0
-                  )
+                  kpisComparison?.positivacoes_atual ??
+                  kpis?.positivacoes ??
+                  0
+                )
             }
             icon={<Handshake className="h-5 w-5" />}
             accentColor="#7DAA90"
             accentBg="#EEF3F0"
-            comparisons={[
-              {
-                label: "vs mês anterior:",
-                value: formatNumberBR(
-                  kpisComparison?.positivacoes_mes_anterior ?? 0
-                ),
-                change: formatPercentBR(
-                  getPercentageChange(
-                    kpisComparison?.positivacoes_atual ?? 0,
-                    kpisComparison?.positivacoes_mes_anterior ?? 0
-                  )
-                ),
-                positive:
-                  (kpisComparison?.positivacoes_atual ?? 0) >=
-                  (kpisComparison?.positivacoes_mes_anterior ?? 0),
-              },
-              {
-                label: "vs ano anterior:",
-                value: formatNumberBR(
-                  kpisComparison?.positivacoes_ano_anterior ?? 0
-                ),
-                change: formatPercentBR(
-                  getPercentageChange(
-                    kpisComparison?.positivacoes_atual ?? 0,
-                    kpisComparison?.positivacoes_ano_anterior ?? 0
-                  )
-                ),
-                positive:
-                  (kpisComparison?.positivacoes_atual ?? 0) >=
-                  (kpisComparison?.positivacoes_ano_anterior ?? 0),
-              },
-            ]}
+            comparisons={
+              hasComparison ?
+                [
+                  {
+                    label: "vs Mês Anterior:",
+                    value: formatNumberBR(
+                      kpisComparison?.positivacoes_mes_anterior ?? 0
+                    ),
+                    change: formatPercentBR(
+                      getPercentageChange(
+                        kpisComparison?.positivacoes_atual ?? 0,
+                        kpisComparison?.positivacoes_mes_anterior ?? 0
+                      )
+                    ),
+                    positive:
+                      (kpisComparison?.positivacoes_atual ?? 0) >=
+                      (kpisComparison?.positivacoes_mes_anterior ?? 0),
+                  },
+                  {
+                    label: "vs Ano Anterior:",
+                    value: formatNumberBR(
+                      kpisComparison?.positivacoes_ano_anterior ?? 0
+                    ),
+                    change: formatPercentBR(
+                      getPercentageChange(
+                        kpisComparison?.positivacoes_atual ?? 0,
+                        kpisComparison?.positivacoes_ano_anterior ?? 0
+                      )
+                    ),
+                    positive:
+                      (kpisComparison?.positivacoes_atual ?? 0) >=
+                      (kpisComparison?.positivacoes_ano_anterior ?? 0),
+                  },
+                ] : []}
           />
         </div>
 

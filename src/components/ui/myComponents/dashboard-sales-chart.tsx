@@ -7,6 +7,7 @@ import {
   Tooltip,
   XAxis,
   YAxis,
+  Legend,
 } from "recharts"
 import type { DashboardDailySalesPoint } from "@/lib/dashboard"
 import { formatCurrencyBRL } from "@/lib/format"
@@ -151,6 +152,8 @@ export default function DashboardSalesChart({
                 }}
                 labelFormatter={(label) => `Dia ${label}`}
               />
+
+              <Legend  align='right' verticalAlign='top'/>
 
               <Area
                 type="monotone"
