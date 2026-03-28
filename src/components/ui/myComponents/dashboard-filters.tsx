@@ -43,7 +43,7 @@ export default function DashboardFilters({ filters, onChange, availableYears, av
           <select
             value={filters.ano === null ? "" : String(filters.ano)}
             onChange={(e) => onChange({...filters, ano: e.target.value === "" ? null : Number(e.target.value), mes: null})}
-            className="h-8 rounded-sm border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-[#297B49]"
+            className="h-8 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-[#297B49]"
           >
             <option value="">Ano: Todos</option>
             {availableYears.map((year) => ( <option key={year} value={year}>{year}</option> ))}
@@ -53,7 +53,7 @@ export default function DashboardFilters({ filters, onChange, availableYears, av
             value={filters.mes ===  null ? "" : String(filters.mes)}
             onChange={(e) => onChange({...filters, mes: e.target.value === "" ? null : Number(e.target.value), })}
             disabled={!filters.ano}
-            className="h-8 rounded-sm border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-[#297B49]"
+            className="h-8 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-[#297B49]"
           >
             <option value="">Mês: Todos</option>
             { availableMonths.map((month) => (
@@ -64,7 +64,7 @@ export default function DashboardFilters({ filters, onChange, availableYears, av
           <select
             value={filters.contas === null ? "" : String(filters.contas)}
             onChange={(e) => updateFilter("contas", e.target.value === "" ? null : Number(e.target.value))}
-            className="h-8 rounded-sm border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-[#297B49]"
+            className="h-8 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-[#297B49]"
           >
             <option value="">Canal: Todos</option>
             <option value="1">Canal: Marcas Próprias</option>
@@ -79,7 +79,7 @@ export default function DashboardFilters({ filters, onChange, availableYears, av
           <select
             value={filters.mercado === null ? "" : String(filters.mercado)}
             onChange={(e) => updateFilter("mercado", e.target.value === "" ? null : Number(e.target.value))}
-            className="h-8 rounded-sm border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-[#297B49]"
+            className="h-8 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-[#297B49]"
           >
             <option value="">Mercado: Todos</option>
             <option value="1">Mercado: Marcas + Licitações</option>

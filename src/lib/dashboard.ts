@@ -17,12 +17,6 @@ export type DashboardFiltersInput = {
   contas: number | null
 }
 
-export type DashboardDailySalesPoint = {
-  data_ref: string
-  dia: number
-  faturamento: number
-}
-
 export type DashboardKpisComparison = {
   faturamento_atual: number
   faturamento_mes_anterior: number
@@ -38,7 +32,24 @@ export type DashboardKpisComparison = {
   positivacoes_ano_anterior: number
 }
 
-export async function getDashboardKpis(filters: DashboardFiltersInput): Promise<DashboardKpis> {
+export type DashboardMonthOption = {
+  mes: number
+  ano_mes: string
+}
+
+export type DashboardMetricDailyPoint = {
+  data_ref: string
+  dia: number
+  faturamento: number
+  pedidos: number
+  ticket_medio: number
+  positivacoes: number
+  positivacoes_acumuladas: number
+}
+
+export async function getDashboardKpis(
+  filters: DashboardFiltersInput
+): Promise<DashboardKpis> {
   const { data, error } = await supabase.rpc("get_dashboard_kpis", {
     p_data_inicio: filters.dataInicio,
     p_data_fim: filters.dataFim,
@@ -80,13 +91,12 @@ export async function getDashboardAvailableYears(): Promise<number[]> {
   return (data ?? []).map((row: { ano: number | string }) => Number(row.ano))
 }
 
-export type DashboardMonthOption = {
-  mes: number
-  ano_mes: string
-}
-
-export async function getDashboardAvailableMonths(ano: number | null): Promise<DashboardMonthOption[]> {
-  const { data, error } = await supabase.rpc("get_dashboard_available_months", { p_ano: ano })
+export async function getDashboardAvailableMonths(
+  ano: number | null
+): Promise<DashboardMonthOption[]> {
+  const { data, error } = await supabase.rpc("get_dashboard_available_months", {
+    p_ano: ano,
+  })
 
   if (error) {
     throw error
@@ -96,32 +106,6 @@ export async function getDashboardAvailableMonths(ano: number | null): Promise<D
     mes: Number(row.mes),
     ano_mes: row.ano_mes,
   }))
-}
-
-export async function getDashboardSalesDaily(filters: DashboardFiltersInput): Promise<DashboardDailySalesPoint[]> {
-  const { data, error } = await supabase.rpc("get_dashboard_sales_daily", {
-    p_data_inicio: filters.dataInicio,
-    p_data_fim: filters.dataFim,
-    p_id_representante: filters.idRepresentante,
-    p_mercado: filters.mercado,
-    p_contas: filters.contas,
-  })
-
-  if (error) {
-    throw error
-  }
-
-  return (data ?? []).map(
-    (row: {
-      data_ref: string
-      dia: number | string
-      faturamento: number | string
-    }) => ({
-      data_ref: row.data_ref,
-      dia: Number(row.dia),
-      faturamento: Number(row.faturamento ?? 0),
-    })
-  )
 }
 
 export async function getDashboardKpisComparison(params: {
@@ -147,7 +131,9 @@ export async function getDashboardKpisComparison(params: {
     p_contas: params.contas,
   })
 
-  if (error) throw error
+  if (error) {
+    throw error
+  }
 
   const row = data?.[0]
 
@@ -182,4 +168,40 @@ export async function getDashboardKpisComparison(params: {
     positivacoes_mes_anterior: Number(row.positivacoes_mes_anterior ?? 0),
     positivacoes_ano_anterior: Number(row.positivacoes_ano_anterior ?? 0),
   }
+}
+
+export async function getDashboardMetricsDaily(
+  filters: DashboardFiltersInput
+): Promise<DashboardMetricDailyPoint[]> {
+  const { data, error } = await supabase.rpc("get_dashboard_metrics_daily", {
+    p_data_inicio: filters.dataInicio,
+    p_data_fim: filters.dataFim,
+    p_id_representante: filters.idRepresentante,
+    p_mercado: filters.mercado,
+    p_contas: filters.contas,
+  })
+
+  if (error) {
+    throw error
+  }
+
+  return (data ?? []).map(
+    (row: {
+      data_ref: string
+      dia: number | string
+      faturamento: number | string
+      pedidos: number | string
+      ticket_medio: number | string
+      positivacoes: number | string
+      positivacoes_acumuladas: number | string
+    }) => ({
+      data_ref: row.data_ref,
+      dia: Number(row.dia),
+      faturamento: Number(row.faturamento ?? 0),
+      pedidos: Number(row.pedidos ?? 0),
+      ticket_medio: Number(row.ticket_medio ?? 0),
+      positivacoes: Number(row.positivacoes ?? 0),
+      positivacoes_acumuladas: Number(row.positivacoes_acumuladas ?? 0),
+    })
+  )
 }

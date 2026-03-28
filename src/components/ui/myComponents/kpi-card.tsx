@@ -37,7 +37,7 @@ export default function KpiCard({
           {icon}
         </div>
 
-        <p className="text-sm font-medium text-slate-500">{title}</p>
+        <p className="text-lg font-medium text-slate-500">{title}</p>
       </div>
 
       <h3 className="mt-4 text-3xl font-bold tracking-tight text-slate-900">
@@ -46,17 +46,11 @@ export default function KpiCard({
 
       <div className="mt-4 space-y-2">
         {comparisons.map((item) => (
-          <div
-            key={item.label}
-            className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm"
+          <div key={item.label} className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm"
           >
             <span className="text-slate-500">{item.label}</span>
             <span className="text-slate-700">{item.value}</span>
-            <span
-              className={`font-semibold ${
-                item.positive ? "text-[#297B49]" : "text-red-500"
-              }`}
-            >
+            <span className={`font-semibold ${item.positive ? "text-[#297B49]" : "text-red-500"}`}>
               {item.positive ? "↗" : "↘"} {item.change}
             </span>
           </div>

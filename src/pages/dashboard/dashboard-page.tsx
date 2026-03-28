@@ -1,32 +1,36 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import AppShell from "@/components/layout/app-shell"
 import DashboardFilters from "@/components/ui/myComponents/dashboard-filters"
 import KpiCard from "@/components/ui/myComponents/kpi-card"
+import DashboardSalesChart from "@/components/ui/myComponents/dashboard-sales-chart"
+
 import {
+  getDashboardAvailableMonths,
+  getDashboardAvailableYears,
   getDashboardKpis,
   getDashboardKpisComparison,
-  getDashboardAvailableYears,
-  getDashboardAvailableMonths,
-  getDashboardSalesDaily,
+  getDashboardMetricsDaily,
   type DashboardFiltersInput,
   type DashboardKpis,
   type DashboardKpisComparison,
+  type DashboardMetricDailyPoint,
   type DashboardMonthOption,
-  type DashboardDailySalesPoint,
 } from "@/lib/dashboard"
+
 import {
   formatCurrencyBRL,
   formatNumberBR,
   formatPercentBR,
   getPercentageChange,
 } from "@/lib/format"
+
 import {
   BadgeDollarSign,
   ShoppingCart,
   ReceiptText,
   Handshake,
+  RefreshCcw,
 } from "lucide-react"
-import DashboardSalesChart from "@/components/ui/myComponents/dashboard-sales-chart"
 
 const FILTERS_STORAGE_KEY = "dashboard-filters"
 
@@ -41,15 +45,15 @@ const defaultFilters: DashboardFiltersInput = {
 }
 
 export default function DashboardPage() {
-
   const [kpis, setKpis] = useState<DashboardKpis | null>(null)
   const [kpisComparison, setKpisComparison] = useState<DashboardKpisComparison | null>(null)
   const [availableYears, setAvailableYears] = useState<number[]>([])
   const [availableMonths, setAvailableMonths] = useState<DashboardMonthOption[]>([])
-  const [salesDaily, setSalesDaily] = useState<DashboardDailySalesPoint[]>([])
-  const [salesPreviousDaily, setSalesPreviousDaily] = useState<DashboardDailySalesPoint[]>([])
-
+  const [metricsDaily, setMetricsDaily] = useState<DashboardMetricDailyPoint[]>([])
+  const [metricsPreviousDaily, setMetricsPreviousDaily] = useState<DashboardMetricDailyPoint[]>([])
   const [loading, setLoading] = useState(true)
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  const [refreshing, setRefreshing] = useState(false)
 
   const [filters, setFilters] = useState<DashboardFiltersInput>(() => {
     const saved = localStorage.getItem(FILTERS_STORAGE_KEY)
@@ -65,115 +69,9 @@ export default function DashboardPage() {
     return defaultFilters
   })
 
-  useEffect(() => {
-    localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(filters))
-  }, [filters])
+  const hasComparison = !!filters.ano && !!filters.mes
 
-  useEffect(() => {
-    async function loadDashboardData() {
-      try {
-        setLoading(true)
-
-        let dataInicio: string | null = null
-        let dataFim: string | null = null
-
-        if (filters.ano && filters.mes) {
-          const mes = String(filters.mes).padStart(2, "0")
-          const ultimoDia = new Date(filters.ano, filters.mes, 0).getDate()
-
-          dataInicio = `${filters.ano}-${mes}-01`
-          dataFim = `${filters.ano}-${mes}-${String(ultimoDia).padStart(2, "0")}`
-        } else if (filters.ano) {
-          dataInicio = `${filters.ano}-01-01`
-          dataFim = `${filters.ano}-12-31`
-        }
-
-        const filtersToQuery: DashboardFiltersInput = {
-          ...filters,
-          dataInicio,
-          dataFim,
-        }
-
-        let previousFilters: DashboardFiltersInput = {
-          ...filters,
-          dataInicio: null,
-          dataFim: null,
-        }
-
-        if (filters.ano && filters.mes) {
-          const currentDate = new Date(filters.ano, filters.mes - 1, 1)
-          const previousDate = new Date(
-            currentDate.getFullYear(),
-            currentDate.getMonth() - 1,
-            1
-          )
-
-          const previousYear = previousDate.getFullYear()
-          const previousMonth = previousDate.getMonth() + 1
-          const previousMonthPadded = String(previousMonth).padStart(2, "0")
-          const previousLastDay = new Date(
-            previousYear,
-            previousMonth,
-            0
-          ).getDate()
-
-          previousFilters = {
-            ...filters,
-            dataInicio: `${previousYear}-${previousMonthPadded}-01`,
-            dataFim: `${previousYear}-${previousMonthPadded}-${String(
-              previousLastDay
-            ).padStart(2, "0")}`,
-          }
-        }
-
-        const hasMonthComparison = !!filters.ano && !!filters.mes
-
-        const comparisonPromise = hasMonthComparison
-          ? getDashboardKpisComparison({
-            dataInicio: dataInicio!,
-            dataFim: dataFim!,
-            dataInicioMesAnterior: previousFilters.dataInicio!,
-            dataFimMesAnterior: previousFilters.dataFim!,
-            dataInicioAnoAnterior: `${filters.ano! - 1}-${String(
-              filters.mes!
-            ).padStart(2, "0")}-01`,
-            dataFimAnoAnterior: `${filters.ano! - 1}-${String(
-              filters.mes!
-            ).padStart(2, "0")}-${String(
-              new Date(filters.ano! - 1, filters.mes!, 0).getDate()
-            ).padStart(2, "0")}`,
-            idRepresentante: filters.idRepresentante,
-            mercado: filters.mercado,
-            contas: filters.contas,
-          })
-          : Promise.resolve(null)
-
-        const previousSalesPromise =
-          hasMonthComparison
-            ? getDashboardSalesDaily(previousFilters)
-            : Promise.resolve([] as DashboardDailySalesPoint[])
-
-        const [kpisData, comparisonData, salesData, salesPreviousData] =
-          await Promise.all([
-            getDashboardKpis(filtersToQuery),
-            comparisonPromise,
-            getDashboardSalesDaily(filtersToQuery),
-            previousSalesPromise,
-          ])
-
-        setKpis(kpisData)
-        setKpisComparison(comparisonData)
-        setSalesDaily(salesData)
-        setSalesPreviousDaily(salesPreviousData)
-      } catch (error) {
-        console.error("Erro ao buscar dados do dashboard:", error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadDashboardData()
-  }, [filters])
+  useEffect(() => { localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(filters)) }, [filters])
 
   useEffect(() => {
     async function loadYears() {
@@ -206,17 +104,141 @@ export default function DashboardPage() {
     loadMonths()
   }, [filters.ano])
 
-  const hasComparison = !!filters.ano && !!filters.mes
+  const loadDashboardData = useCallback(
+    async (showLoading = true) => {
+      try {
+        if (showLoading) {
+          setLoading(true)
+        } else {
+          setRefreshing(true)
+        }
+
+        let dataInicio: string | null = null
+        let dataFim: string | null = null
+
+        if (filters.ano && filters.mes) {
+          const mes = String(filters.mes).padStart(2, "0")
+          const ultimoDia = new Date(filters.ano, filters.mes, 0).getDate()
+
+          dataInicio = `${filters.ano}-${mes}-01`
+          dataFim = `${filters.ano}-${mes}-${String(ultimoDia).padStart(2, "0")}`
+        } else if (filters.ano) {
+          dataInicio = `${filters.ano}-01-01`
+          dataFim = `${filters.ano}-12-31`
+        }
+
+        const filtersToQuery: DashboardFiltersInput = {
+          ...filters,
+          dataInicio,
+          dataFim,
+        }
+
+        let previousFilters: DashboardFiltersInput = {
+          ...filters,
+          dataInicio: null,
+          dataFim: null,
+        }
+
+        if (hasComparison) {
+          const currentDate = new Date(filters.ano!, filters.mes! - 1, 1)
+          const previousDate = new Date(
+            currentDate.getFullYear(),
+            currentDate.getMonth() - 1,
+            1
+          )
+
+          const previousYear = previousDate.getFullYear()
+          const previousMonth = previousDate.getMonth() + 1
+          const previousMonthPadded = String(previousMonth).padStart(2, "0")
+          const previousLastDay = new Date(previousYear, previousMonth, 0).getDate()
+
+          previousFilters = {
+            ...filters,
+            dataInicio: `${previousYear}-${previousMonthPadded}-01`,
+            dataFim: `${previousYear}-${previousMonthPadded}-${String(
+              previousLastDay
+            ).padStart(2, "0")}`,
+          }
+        }
+
+        const comparisonPromise = hasComparison
+          ? getDashboardKpisComparison({
+            dataInicio: dataInicio!,
+            dataFim: dataFim!,
+            dataInicioMesAnterior: previousFilters.dataInicio!,
+            dataFimMesAnterior: previousFilters.dataFim!,
+            dataInicioAnoAnterior: `${filters.ano! - 1}-${String(
+              filters.mes!
+            ).padStart(2, "0")}-01`,
+            dataFimAnoAnterior: `${filters.ano! - 1}-${String(
+              filters.mes!
+            ).padStart(2, "0")}-${String(
+              new Date(filters.ano! - 1, filters.mes!, 0).getDate()
+            ).padStart(2, "0")}`,
+            idRepresentante: filters.idRepresentante,
+            mercado: filters.mercado,
+            contas: filters.contas,
+          })
+          : Promise.resolve(null)
+
+        const previousMetricsPromise = hasComparison
+          ? getDashboardMetricsDaily(previousFilters)
+          : Promise.resolve([] as DashboardMetricDailyPoint[])
+
+        const [kpisData, comparisonData, metricsData, metricsPreviousData] =
+          await Promise.all([getDashboardKpis(filtersToQuery), comparisonPromise, getDashboardMetricsDaily(filtersToQuery), previousMetricsPromise,])
+
+        setKpis(kpisData)
+        setKpisComparison(comparisonData)
+        setMetricsDaily(metricsData)
+        setMetricsPreviousDaily(metricsPreviousData)
+        setLastUpdated(new Date())
+      } catch (error) {
+        console.error("Erro ao buscar dados do dashboard:", error)
+      } finally {
+        setLoading(false)
+        setRefreshing(false)
+      }
+    },
+    [filters, hasComparison]
+  )
+
+  useEffect(() => {
+    loadDashboardData(true)
+  }, [loadDashboardData])
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadDashboardData(false)
+    }, 15 * 60 * 1000)
+
+    return () => clearInterval(interval)
+  }, [loadDashboardData])
 
   return (
-    <AppShell title="Dashboard">
+    <AppShell title="Dashboard" subtitle="Visão geral do desempenho comercial">
       <div className="space-y-6">
-        <DashboardFilters
-          filters={filters}
-          onChange={setFilters}
-          availableYears={availableYears}
-          availableMonths={availableMonths}
-        />
+        <DashboardFilters filters={filters} onChange={setFilters} availableYears={availableYears} availableMonths={availableMonths} />
+
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#D0D9D6] bg-white px-4 py-3 shadow-sm">
+          <p className="text-sm text-slate-500">
+            {lastUpdated
+              ? `Última atualização: ${lastUpdated.toLocaleTimeString("pt-BR", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}`
+              : "Ainda não atualizado"}
+          </p>
+
+          <button
+            onClick={() => loadDashboardData(false)}
+            className="inline-flex items-center gap-2 rounded-lg bg-[#006426] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#297B49] disabled:cursor-not-allowed disabled:opacity-70"
+            disabled={loading || refreshing}
+          >
+            <RefreshCcw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+            {refreshing ? "Atualizando..." : "Atualizar"}
+          </button>
+        </div>
 
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
           <KpiCard
@@ -229,13 +251,13 @@ export default function DashboardPage() {
                 )
             }
             icon={<BadgeDollarSign className="h-5 w-5" />}
-            accentColor="#006426"
-            accentBg="#D0D9D6"
+            accentColor="#FFF"
+            accentBg="#006426"
             comparisons={
-              hasComparison ?
-                [
+              hasComparison
+                ? [
                   {
-                    label: "vs Mês Anterior:",
+                    label: "vs mês anterior:",
                     value: formatCurrencyBRL(
                       kpisComparison?.faturamento_mes_anterior ?? 0
                     ),
@@ -250,7 +272,7 @@ export default function DashboardPage() {
                       (kpisComparison?.faturamento_mes_anterior ?? 0),
                   },
                   {
-                    label: "vs Ano Anterior:",
+                    label: "vs ano anterior:",
                     value: formatCurrencyBRL(
                       kpisComparison?.faturamento_ano_anterior ?? 0
                     ),
@@ -264,7 +286,9 @@ export default function DashboardPage() {
                       (kpisComparison?.faturamento_atual ?? 0) >=
                       (kpisComparison?.faturamento_ano_anterior ?? 0),
                   },
-                ] : []}
+                ]
+                : []
+            }
           />
 
           <KpiCard
@@ -277,14 +301,16 @@ export default function DashboardPage() {
                 )
             }
             icon={<ShoppingCart className="h-5 w-5" />}
-            accentColor="#297B49"
-            accentBg="#E3ECE6"
+            accentColor="#FFF"
+            accentBg="#EFAF14"
             comparisons={
-              hasComparison ?
-                [
+              hasComparison
+                ? [
                   {
-                    label: "vs Mês Anterior:",
-                    value: formatNumberBR(kpisComparison?.pedidos_mes_anterior ?? 0),
+                    label: "vs mês anterior:",
+                    value: formatNumberBR(
+                      kpisComparison?.pedidos_mes_anterior ?? 0
+                    ),
                     change: formatPercentBR(
                       getPercentageChange(
                         kpisComparison?.pedidos_atual ?? 0,
@@ -296,8 +322,10 @@ export default function DashboardPage() {
                       (kpisComparison?.pedidos_mes_anterior ?? 0),
                   },
                   {
-                    label: "vs Ano Anterior:",
-                    value: formatNumberBR(kpisComparison?.pedidos_ano_anterior ?? 0),
+                    label: "vs ano anterior:",
+                    value: formatNumberBR(
+                      kpisComparison?.pedidos_ano_anterior ?? 0
+                    ),
                     change: formatPercentBR(
                       getPercentageChange(
                         kpisComparison?.pedidos_atual ?? 0,
@@ -308,7 +336,9 @@ export default function DashboardPage() {
                       (kpisComparison?.pedidos_atual ?? 0) >=
                       (kpisComparison?.pedidos_ano_anterior ?? 0),
                   },
-                ] : []}
+                ]
+                : []
+            }
           />
 
           <KpiCard
@@ -323,13 +353,13 @@ export default function DashboardPage() {
                 )
             }
             icon={<ReceiptText className="h-5 w-5" />}
-            accentColor="#53936C"
-            accentBg="#E8F0EB"
+            accentColor="#FFF"
+            accentBg="#00AFBE"
             comparisons={
-              hasComparison ?
-                [
+              hasComparison
+                ? [
                   {
-                    label: "vs Mês Anterior:",
+                    label: "vs mês anterior:",
                     value: formatCurrencyBRL(
                       kpisComparison?.ticket_medio_mes_anterior ?? 0
                     ),
@@ -344,7 +374,7 @@ export default function DashboardPage() {
                       (kpisComparison?.ticket_medio_mes_anterior ?? 0),
                   },
                   {
-                    label: "vs Ano Anterior:",
+                    label: "vs ano anterior:",
                     value: formatCurrencyBRL(
                       kpisComparison?.ticket_medio_ano_anterior ?? 0
                     ),
@@ -358,7 +388,9 @@ export default function DashboardPage() {
                       (kpisComparison?.ticket_medio_atual ?? 0) >=
                       (kpisComparison?.ticket_medio_ano_anterior ?? 0),
                   },
-                ] : []}
+                ]
+                : []
+            }
           />
 
           <KpiCard
@@ -373,13 +405,13 @@ export default function DashboardPage() {
                 )
             }
             icon={<Handshake className="h-5 w-5" />}
-            accentColor="#7DAA90"
-            accentBg="#EEF3F0"
+            accentColor="#FFF"
+            accentBg="#7832CD"
             comparisons={
-              hasComparison ?
-                [
+              hasComparison
+                ? [
                   {
-                    label: "vs Mês Anterior:",
+                    label: "vs mês anterior:",
                     value: formatNumberBR(
                       kpisComparison?.positivacoes_mes_anterior ?? 0
                     ),
@@ -394,7 +426,7 @@ export default function DashboardPage() {
                       (kpisComparison?.positivacoes_mes_anterior ?? 0),
                   },
                   {
-                    label: "vs Ano Anterior:",
+                    label: "vs ano anterior:",
                     value: formatNumberBR(
                       kpisComparison?.positivacoes_ano_anterior ?? 0
                     ),
@@ -408,14 +440,13 @@ export default function DashboardPage() {
                       (kpisComparison?.positivacoes_atual ?? 0) >=
                       (kpisComparison?.positivacoes_ano_anterior ?? 0),
                   },
-                ] : []}
+                ]
+                : []
+            }
           />
         </div>
 
-        <DashboardSalesChart
-          data={salesDaily}
-          previousData={salesPreviousDaily}
-          loading={loading}
+        <DashboardSalesChart data={metricsDaily} previousData={metricsPreviousDaily} loading={loading}
         />
       </div>
     </AppShell>
