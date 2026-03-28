@@ -189,27 +189,27 @@ export default function DashboardSalesChart({
   }, [data, previousData, metricMode, viewMode])
 
   return (
-    <div className="rounded-2xl border border-[#D0D9D6] bg-white p-6 shadow-sm xl:col-span-2">
+    <div className="rounded-2xl border border-[#D0D9D6] bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950 xl:col-span-2">
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
               Evolução de vendas
             </h2>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               Comparativo entre período atual e mês anterior
             </p>
           </div>
 
           <div className="flex flex-col gap-3 lg:items-end">
             <div className="flex flex-nowrap items-center gap-3 overflow-x-auto">
-              <div className="inline-flex shrink-0 rounded-lg border border-slate-200 p-1">
+              <div className="inline-flex shrink-0 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
                 <button
                   onClick={() => setViewMode("daily")}
                   className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                     viewMode === "daily"
-                      ? "bg-slate-900 text-white"
-                      : "text-slate-600 hover:bg-slate-100"
+                      ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                   }`}
                 >
                   Diário
@@ -219,15 +219,15 @@ export default function DashboardSalesChart({
                   onClick={() => setViewMode("cumulative")}
                   className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                     viewMode === "cumulative"
-                      ? "bg-slate-900 text-white"
-                      : "text-slate-600 hover:bg-slate-100"
+                      ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                   }`}
                 >
                   Acumulado
                 </button>
               </div>
 
-              <div className="flex shrink-0 items-center gap-2 rounded-lg border border-slate-200 p-1">
+              <div className="flex shrink-0 items-center gap-2 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
                 {(Object.keys(metricConfig) as Array<keyof typeof metricConfig>).map(
                   (metricKey) => {
                     const metric = metricConfig[metricKey]
@@ -247,12 +247,12 @@ export default function DashboardSalesChart({
                             ? metric.color
                             : isHovered
                             ? metric.hoverBg
-                            : "#ffffff",
+                            : "transparent",
                           color: isActive
                             ? "#ffffff"
                             : isHovered
                             ? metric.hoverText
-                            : "#475569",
+                            : undefined,
                         }}
                       >
                         {metric.label}
@@ -268,11 +268,11 @@ export default function DashboardSalesChart({
 
       <div className="mt-6 h-80">
         {loading ? (
-          <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-slate-300 text-slate-400">
+          <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-slate-300 text-slate-400 dark:border-slate-700 dark:text-slate-500">
             Carregando gráfico...
           </div>
         ) : chartData.length === 0 ? (
-          <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-slate-300 text-slate-400">
+          <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-slate-300 text-slate-400 dark:border-slate-700 dark:text-slate-500">
             Sem dados para o período selecionado
           </div>
         ) : (
