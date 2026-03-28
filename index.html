@@ -5,6 +5,16 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>bionatus-web-app</title>
+    <script>
+      (() => {
+        const saved = localStorage.getItem("app-theme");
+        const theme = saved === "dark" || saved === "light" ? saved : "light";
+        const root = document.documentElement;
+        root.classList.remove("light", "dark");
+        root.classList.add(theme);
+        root.style.colorScheme = theme;
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

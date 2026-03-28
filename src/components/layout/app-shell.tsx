@@ -53,7 +53,7 @@ export default function AppShell({
       />
 
       <div
-        className={`ml-0 flex min-h-screen flex-col transition-all duration-300 ${
+        className={`ml-0 flex min-h-screen flex-col transition-[margin] duration-300 ${
           collapsed ? "lg:ml-20" : "lg:ml-64"
         }`}
       >

@@ -1,7 +1,7 @@
 import { LogOut, Menu, Moon, RefreshCcw, Sun } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { signOut } from "@/lib/auth"
-import { useTheme } from "@/hooks/use-theme"
+import { useTheme } from "@/providers/theme-provider"
 
 type TopbarProps = {
   title: string

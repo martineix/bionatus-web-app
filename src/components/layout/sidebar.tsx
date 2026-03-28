@@ -31,7 +31,7 @@ export default function Sidebar({
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex h-screen flex-col border-r border-slate-200 bg-white p-4 transition-all duration-300 dark:border-slate-800 dark:bg-slate-950
+        className={`fixed inset-y-0 left-0 z-50 flex h-screen flex-col border-r border-slate-200 bg-white p-4 transition-[width, transform] duration-300 dark:border-slate-800 dark:bg-slate-950
         ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
         w-72 lg:translate-x-0
         ${collapsed ? "lg:w-20" : "lg:w-64"}`}
