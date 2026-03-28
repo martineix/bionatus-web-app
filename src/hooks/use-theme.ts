@@ -1,39 +1,40 @@
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react"
 
 type Theme = "light" | "dark"
 
 const THEME_STORAGE_KEY = "app-theme"
 
+function getInitialTheme(): Theme {
+  if (typeof window === "undefined") return "light"
+
+  const saved = localStorage.getItem(THEME_STORAGE_KEY)
+
+  if (saved === "light" || saved === "dark") {
+    return saved
+  }
+
+  return "light"
+}
+
 export function useTheme() {
-    const [theme, setTheme] = useState<Theme>(() => {
-        const saved = localStorage.getItem(THEME_STORAGE_KEY)
+  const [theme, setTheme] = useState<Theme>(getInitialTheme)
 
-        if (saved === "light" || saved === "dark") {
-            return saved
-        }
+  useLayoutEffect(() => {
+    const root = document.documentElement
 
-        return "light"
-    })
+    root.classList.remove("light", "dark")
+    root.classList.add(theme)
 
-    useEffect(() => {
-        const root = document.documentElement
+    localStorage.setItem(THEME_STORAGE_KEY, theme)
+  }, [theme])
 
-        if (theme === "dark") {
-            root.classList.add("dark")
-        } else {
-            root.classList.remove("dark")
-        }
+  function toggleTheme() {
+    setTheme((prev) => (prev === "light" ? "dark" : "light"))
+  }
 
-        localStorage.setItem(THEME_STORAGE_KEY, theme)
-    }, [theme])
-
-    function toggleTheme() {
-        setTheme((prev) => (prev === "light" ? "dark" : "light"))
-    }
-
-    return {
-        theme,
-        setTheme,
-        toggleTheme
-    }
+  return {
+    theme,
+    setTheme,
+    toggleTheme,
+  }
 }
