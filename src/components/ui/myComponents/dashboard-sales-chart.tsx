@@ -23,6 +23,7 @@ type MetricMode = "faturamento" | "pedidos" | "ticket_medio" | "positivacoes"
 const metricConfig = {
   faturamento: {
     label: "Faturamento",
+    shortLabel: "Fat",
     color: "#006426",
     hoverBg: "#E4F1E8",
     hoverText: "#006426",
@@ -30,6 +31,7 @@ const metricConfig = {
   },
   pedidos: {
     label: "Pedidos",
+    shortLabel: "Ped",
     color: "#EFAF14",
     hoverBg: "#FFF4CF",
     hoverText: "#A56F00",
@@ -37,6 +39,7 @@ const metricConfig = {
   },
   ticket_medio: {
     label: "Ticket Médio",
+    shortLabel: "Tkt",
     color: "#00AFBE",
     hoverBg: "#DDF7FA",
     hoverText: "#007C87",
@@ -44,12 +47,19 @@ const metricConfig = {
   },
   positivacoes: {
     label: "Positivações",
+    shortLabel: "Pos",
     color: "#7832CD",
     hoverBg: "#EEE3FB",
     hoverText: "#7832CD",
     format: (value: number) => formatNumberBR(value),
   },
 } as const
+
+type MobileTableRow = {
+  dia: string
+  atual: number
+  anterior: number
+}
 
 export default function DashboardSalesChart({
   data,
@@ -58,7 +68,7 @@ export default function DashboardSalesChart({
 }: DashboardSalesChartProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("daily")
   const [metricMode, setMetricMode] = useState<MetricMode>("faturamento")
-  const [hoveredMetric, setHoveredMetric] = useState<MetricMode | null>(null)
+
 
   const currentMetric = metricConfig[metricMode]
 
@@ -188,8 +198,12 @@ export default function DashboardSalesChart({
     })
   }, [data, previousData, metricMode, viewMode])
 
+  const mobileTableData = useMemo<MobileTableRow[]>(() => {
+    return [...chartData].reverse()
+  }, [chartData])
+
   return (
-    <div className="rounded-2xl border border-[#D0D9D6] bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950 xl:col-span-2">
+    <div className="rounded-2xl border border-[#D0D9D6] bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 sm:p-6 xl:col-span-2">
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -197,76 +211,66 @@ export default function DashboardSalesChart({
               Evolução de vendas
             </h2>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              Comparativo entre período atual e mês anterior
+              <span className="hidden md:inline">
+                Comparativo entre período atual e mês anterior
+              </span>
+              <span className="md:hidden">
+                Comparativo diário entre mês atual e mês anterior
+              </span>
             </p>
           </div>
 
-          <div className="flex flex-col gap-3 lg:items-end">
-            <div className="flex flex-nowrap items-center gap-3 overflow-x-auto">
-              <div className="inline-flex shrink-0 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
-                <button
-                  onClick={() => setViewMode("daily")}
-                  className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                    viewMode === "daily"
-                      ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+          <div className="grid grid-cols-[auto_1fr] items-center gap-2 md:hidden">
+            <div className="inline-flex rounded-lg border border-slate-200 p-1 dark:border-slate-700">
+              <button
+                onClick={() => setViewMode("daily")}
+                className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${viewMode === "daily"
+                    ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                    : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                   }`}
-                >
-                  Diário
-                </button>
+              >
+                Diário
+              </button>
 
-                <button
-                  onClick={() => setViewMode("cumulative")}
-                  className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                    viewMode === "cumulative"
-                      ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+              <button
+                onClick={() => setViewMode("cumulative")}
+                className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${viewMode === "cumulative"
+                    ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                    : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                   }`}
-                >
-                  Acumulado
-                </button>
-              </div>
+              >
+                Acumulado
+              </button>
+            </div>
 
-              <div className="flex shrink-0 items-center gap-2 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
-                {(Object.keys(metricConfig) as Array<keyof typeof metricConfig>).map(
-                  (metricKey) => {
-                    const metric = metricConfig[metricKey]
-                    const isActive = metricMode === metricKey
-                    const isHovered = hoveredMetric === metricKey && !isActive
+            <div className="grid grid-cols-4 gap-2">
+              {(Object.keys(metricConfig) as Array<keyof typeof metricConfig>).map(
+                (metricKey) => {
+                  const metric = metricConfig[metricKey]
+                  const isActive = metricMode === metricKey
 
-                    return (
-                      <button
-                        key={metricKey}
-                        onClick={() => setMetricMode(metricKey)}
-                        onMouseEnter={() => setHoveredMetric(metricKey)}
-                        onMouseLeave={() => setHoveredMetric(null)}
-                        className="whitespace-nowrap rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors"
-                        style={{
-                          borderColor: isActive ? metric.color : "#e2e8f0",
-                          backgroundColor: isActive
-                            ? metric.color
-                            : isHovered
-                            ? metric.hoverBg
-                            : "transparent",
-                          color: isActive
-                            ? "#ffffff"
-                            : isHovered
-                            ? metric.hoverText
-                            : undefined,
-                        }}
-                      >
-                        {metric.label}
-                      </button>
-                    )
-                  }
-                )}
-              </div>
+                  return (
+                    <button
+                      key={metricKey}
+                      onClick={() => setMetricMode(metricKey)}
+                      className="min-w-0 rounded-lg border px-2 py-2 text-xs font-semibold transition-colors"
+                      style={{
+                        borderColor: isActive ? metric.color : "#e2e8f0",
+                        backgroundColor: isActive ? metric.color : "transparent",
+                        color: isActive ? "#ffffff" : "#475569",
+                      }}
+                    >
+                      {metric.shortLabel}
+                    </button>
+                  )
+                }
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="mt-6 h-80">
+      <div className="mt-6 hidden h-80 md:block">
         {loading ? (
           <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-slate-300 text-slate-400 dark:border-slate-700 dark:text-slate-500">
             Carregando gráfico...
@@ -337,6 +341,55 @@ export default function DashboardSalesChart({
               />
             </AreaChart>
           </ResponsiveContainer>
+        )}
+      </div>
+
+      <div className="mt-6 md:hidden">
+        {loading ? (
+          <div className="flex min-h-48 items-center justify-center rounded-2xl border border-dashed border-slate-300 px-4 text-center text-slate-400 dark:border-slate-700 dark:text-slate-500">
+            Carregando tabela...
+          </div>
+        ) : mobileTableData.length === 0 ? (
+          <div className="flex min-h-48 items-center justify-center rounded-2xl border border-dashed border-slate-300 px-4 text-center text-slate-400 dark:border-slate-700 dark:text-slate-500">
+            Sem dados para o período selecionado
+          </div>
+        ) : (
+          <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800">
+            <table className="w-full table-fixed border-collapse">
+              <thead className="bg-slate-50 dark:bg-slate-900">
+                <tr>
+                  <th className="w-14 px-2 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                    Dia
+                  </th>
+                  <th className="px-2 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                    Mês Atual
+                  </th>
+                  <th className="px-2 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                    Mês Anterior
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {mobileTableData.map((row) => (
+                  <tr
+                    key={row.dia}
+                    className="border-t border-slate-100 dark:border-slate-800"
+                  >
+                    <td className="whitespace-nowrap px-2 py-3 text-sm font-semibold text-slate-700 dark:text-slate-200">
+                      {row.dia}
+                    </td>
+                    <td className="wwrap-break-word px-2 py-3 text-sm text-slate-600 dark:text-slate-300">
+                      {currentMetric.format(row.atual)}
+                    </td>
+                    <td className="wrap-break-word px-2 py-3 text-sm text-slate-600 dark:text-slate-300">
+                      {currentMetric.format(row.anterior)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

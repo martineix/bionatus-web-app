@@ -53,9 +53,8 @@ export default function AppShell({
       />
 
       <div
-        className={`ml-0 flex min-h-screen flex-col transition-[margin] duration-300 ${
-          collapsed ? "lg:ml-20" : "lg:ml-64"
-        }`}
+        className={`ml-0 flex min-h-screen flex-col transition-[margin] duration-300 ${collapsed ? "lg:ml-20" : "lg:ml-64"
+          }`}
       >
         <Topbar
           title={title}
@@ -66,7 +65,9 @@ export default function AppShell({
           onOpenMobileMenu={() => setMobileOpen(true)}
         />
 
-        <main className="flex-1 p-4 sm:p-6">{children}</main>
+        <main className="flex-1 px-4 pb-4 pt-24 sm:px-6 sm:pb-6 lg:pt-4">
+          {children}
+        </main>
       </div>
     </div>
   )
