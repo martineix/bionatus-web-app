@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Eye, EyeOff } from "lucide-react"
 import { Input } from "@/components/ui/input"
@@ -14,6 +14,28 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+
+  useEffect(() => {
+    const root = document.documentElement
+    const body = document.body
+
+    const previousColorScheme = root.style.colorScheme
+    const previousBodyBg = body.style.backgroundColor
+    const hadDarkClass = root.classList.contains("dark")
+
+    root.classList.remove("dark")
+    root.style.colorScheme = "light"
+    body.style.backgroundColor = "#F0F0F0"
+
+    return () => {
+      root.style.colorScheme = previousColorScheme
+      body.style.backgroundColor = previousBodyBg
+
+      if (hadDarkClass) {
+        root.classList.add("dark")
+      }
+    }
+  }, [])
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -33,9 +55,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F0F0F0]">
+    <div className="min-h-screen bg-[#F0F0F0] text-slate-900">
       <div className="grid min-h-screen lg:grid-cols-[1.85fr_1fr]">
-        {/* Imagem / institucional */}
         <section className="relative hidden lg:block">
           <div
             className="absolute inset-0 bg-cover bg-center"
@@ -66,10 +87,9 @@ export default function LoginPage() {
           </div>
         </section>
 
-        {/* Login */}
         <section className="flex items-center justify-center px-6 py-8 sm:px-10 lg:px-12 xl:px-16">
           <div className="w-full max-w-md">
-            <div className="rounded-[28px] border border-[#D0D9D6] bg-white p-8 shadow-[0_10px_30px_rgba(0,0,0,0.06)] sm:p-10">
+            <div className="rounded-[28px] border border-[#D0D9D6] bg-white p-8 text-slate-900 shadow-[0_10px_30px_rgba(0,0,0,0.06)] sm:p-10">
               <div className="mb-8">
                 <img
                   src={logoBionatus}
@@ -88,19 +108,23 @@ export default function LoginPage() {
 
               <form onSubmit={handleLogin} className="space-y-5">
                 <div className="space-y-2">
-                  <Label htmlFor="email">E-mail</Label>
+                  <Label htmlFor="email" className="text-slate-700">
+                    E-mail
+                  </Label>
                   <Input
                     id="email"
                     type="email"
                     placeholder="seuemail@empresa.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="h-11 rounded-xl border-slate-200"
+                    className="h-11 rounded-xl border-slate-200 bg-white text-slate-900 placeholder:text-slate-400"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="password">Senha</Label>
+                  <Label htmlFor="password" className="text-slate-700">
+                    Senha
+                  </Label>
 
                   <div className="relative">
                     <Input
@@ -109,7 +133,7 @@ export default function LoginPage() {
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="h-11 rounded-xl border-slate-200 pr-11"
+                      className="h-11 rounded-xl border-slate-200 bg-white pr-11 text-slate-900 placeholder:text-slate-400"
                     />
 
                     <button
@@ -144,16 +168,14 @@ export default function LoginPage() {
                 </Button>
               </form>
 
-              
-                <p className="mt-6 pt-5 text-center text-xs text-slate-400 leading-4">
-                  Bionatus • Ambiente Interno <br/>
-                  por David Martinez
-                </p>
-              
+              <p className="mt-6 pt-5 text-center text-xs leading-4 text-slate-400">
+                Bionatus • Ambiente Interno <br />
+                por David Martinez
+              </p>
             </div>
           </div>
         </section>
       </div>
     </div>
   )
-}
+} 
