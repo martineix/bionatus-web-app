@@ -6,7 +6,6 @@ import {
   useState,
   type ReactNode,
 } from "react"
-import { flushSync } from "react-dom"
 
 type Theme = "light" | "dark"
 
@@ -37,6 +36,19 @@ function applyTheme(theme: Theme) {
   localStorage.setItem(THEME_STORAGE_KEY, theme)
 }
 
+function withoutTransitions(callback: () => void) {
+  const root = document.documentElement
+  root.classList.add("theme-switching")
+
+  callback()
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      root.classList.remove("theme-switching")
+    })
+  })
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(getInitialTheme)
 
@@ -45,16 +57,17 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [theme])
 
   function setTheme(nextTheme: Theme) {
-    applyTheme(nextTheme)
-    flushSync(() => {
+    withoutTransitions(() => {
+      applyTheme(nextTheme)
       setThemeState(nextTheme)
     })
   }
 
   function toggleTheme() {
     const nextTheme: Theme = theme === "light" ? "dark" : "light"
-    applyTheme(nextTheme)
-    flushSync(() => {
+
+    withoutTransitions(() => {
+      applyTheme(nextTheme)
       setThemeState(nextTheme)
     })
   }

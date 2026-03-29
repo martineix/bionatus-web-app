@@ -128,3 +128,10 @@
     @apply font-sans;
     }
 }
+
+.theme-switching *,
+.theme-switching *::before,
+.theme-switching *::after {
+  transition: none !important;
+  animation: none !important;
+}
