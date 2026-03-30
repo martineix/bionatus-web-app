@@ -55,6 +55,12 @@ const metricConfig = {
   },
 } as const
 
+type ChartRow = {
+  dia: string
+  atual: number
+  anterior: number
+}
+
 type MobileTableRow = {
   dia: string
   atual: number
@@ -68,11 +74,11 @@ export default function DashboardSalesChart({
 }: DashboardSalesChartProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("daily")
   const [metricMode, setMetricMode] = useState<MetricMode>("faturamento")
-
+  const [hoveredMetric, setHoveredMetric] = useState<MetricMode | null>(null)
 
   const currentMetric = metricConfig[metricMode]
 
-  const chartData = useMemo(() => {
+  const chartData = useMemo<ChartRow[]>(() => {
     const maxDay = Math.max(
       ...data.map((item) => item.dia),
       ...previousData.map((item) => item.dia),
@@ -209,6 +215,7 @@ export default function DashboardSalesChart({
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
             Evolução de vendas
           </h2>
+
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             <span className="hidden md:inline">
               Comparativo entre período atual e mês anterior
@@ -220,30 +227,84 @@ export default function DashboardSalesChart({
         </div>
 
         <div className="flex flex-col gap-3 lg:items-end">
-          <div className="flex flex-nowrap items-center gap-3 overflow-x-auto">
+          <div className="flex flex-col gap-2 md:hidden">
+            <div className="grid grid-cols-[auto_1fr] items-center gap-2">
+              <div className="inline-flex rounded-lg border border-slate-200 p-1 dark:border-slate-700">
+                <button
+                  onClick={() => setViewMode("daily")}
+                  className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                    viewMode === "daily"
+                      ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                  }`}
+                >
+                  Diário
+                </button>
+
+                <button
+                  onClick={() => setViewMode("cumulative")}
+                  className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                    viewMode === "cumulative"
+                      ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                  }`}
+                >
+                  Acumulado
+                </button>
+              </div>
+
+              <div className="grid grid-cols-4 gap-2">
+                {(Object.keys(metricConfig) as Array<keyof typeof metricConfig>).map(
+                  (metricKey) => {
+                    const metric = metricConfig[metricKey]
+                    const isActive = metricMode === metricKey
+
+                    return (
+                      <button
+                        key={metricKey}
+                        onClick={() => setMetricMode(metricKey)}
+                        className="min-w-0 rounded-lg border px-2 py-1.5 text-[11px] font-semibold transition-colors"
+                        style={{
+                          borderColor: isActive ? metric.color : "#e2e8f0",
+                          backgroundColor: isActive ? metric.color : "transparent",
+                          color: isActive ? "#ffffff" : "#475569",
+                        }}
+                      >
+                        {metric.shortLabel}
+                      </button>
+                    )
+                  }
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="hidden md:flex md:flex-wrap md:items-center md:gap-3">
             <div className="inline-flex shrink-0 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
               <button
                 onClick={() => setViewMode("daily")}
-                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === "daily"
+                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                  viewMode === "daily"
                     ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
                     : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                  }`}
+                }`}
               >
                 Diário
               </button>
 
               <button
                 onClick={() => setViewMode("cumulative")}
-                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === "cumulative"
+                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                  viewMode === "cumulative"
                     ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
                     : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                  }`}
+                }`}
               >
                 Acumulado
               </button>
             </div>
 
-            <div className="hidden md:flex shrink-0 items-center gap-2 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
+            <div className="flex shrink-0 items-center gap-2 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
               {(Object.keys(metricConfig) as Array<keyof typeof metricConfig>).map(
                 (metricKey) => {
                   const metric = metricConfig[metricKey]
@@ -262,44 +323,16 @@ export default function DashboardSalesChart({
                         backgroundColor: isActive
                           ? metric.color
                           : isHovered
-                            ? metric.hoverBg
-                            : "transparent",
+                          ? metric.hoverBg
+                          : "transparent",
                         color: isActive
                           ? "#ffffff"
                           : isHovered
-                            ? metric.hoverText
-                            : undefined,
+                          ? metric.hoverText
+                          : undefined,
                       }}
                     >
                       {metric.label}
-                    </button>
-                  )
-                }
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-[auto_1fr] items-center gap-2 md:hidden">
-            <div className="sr-only" />
-
-            <div className="grid grid-cols-4 gap-2">
-              {(Object.keys(metricConfig) as Array<keyof typeof metricConfig>).map(
-                (metricKey) => {
-                  const metric = metricConfig[metricKey]
-                  const isActive = metricMode === metricKey
-
-                  return (
-                    <button
-                      key={metricKey}
-                      onClick={() => setMetricMode(metricKey)}
-                      className="min-w-0 rounded-lg border px-2 py-2 text-xs font-semibold transition-colors"
-                      style={{
-                        borderColor: isActive ? metric.color : "#e2e8f0",
-                        backgroundColor: isActive ? metric.color : "transparent",
-                        color: isActive ? "#ffffff" : "#475569",
-                      }}
-                    >
-                      {metric.shortLabel}
                     </button>
                   )
                 }
@@ -404,7 +437,7 @@ export default function DashboardSalesChart({
                     Mês Atual
                   </th>
                   <th className="px-2 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                    Mês Anterior
+                    Mês Ant.
                   </th>
                 </tr>
               </thead>
@@ -418,7 +451,7 @@ export default function DashboardSalesChart({
                     <td className="whitespace-nowrap px-2 py-3 text-sm font-semibold text-slate-700 dark:text-slate-200">
                       {row.dia}
                     </td>
-                    <td className="wwrap-break-word px-2 py-3 text-sm text-slate-600 dark:text-slate-300">
+                    <td className="wrap-break-word px-2 py-3 text-sm text-slate-600 dark:text-slate-300">
                       {currentMetric.format(row.atual)}
                     </td>
                     <td className="wrap-break-word px-2 py-3 text-sm text-slate-600 dark:text-slate-300">
