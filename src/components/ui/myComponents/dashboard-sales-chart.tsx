@@ -204,27 +204,27 @@ export default function DashboardSalesChart({
 
   return (
     <div className="rounded-2xl border border-[#D0D9D6] bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 sm:p-6 xl:col-span-2">
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-              Evolução de vendas
-            </h2>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              <span className="hidden md:inline">
-                Comparativo entre período atual e mês anterior
-              </span>
-              <span className="md:hidden">
-                Comparativo diário entre mês atual e mês anterior
-              </span>
-            </p>
-          </div>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+            Evolução de vendas
+          </h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            <span className="hidden md:inline">
+              Comparativo entre período atual e mês anterior
+            </span>
+            <span className="md:hidden">
+              Comparativo diário entre mês atual e mês anterior
+            </span>
+          </p>
+        </div>
 
-          <div className="grid grid-cols-[auto_1fr] items-center gap-2 md:hidden">
-            <div className="inline-flex rounded-lg border border-slate-200 p-1 dark:border-slate-700">
+        <div className="flex flex-col gap-3 lg:items-end">
+          <div className="flex flex-nowrap items-center gap-3 overflow-x-auto">
+            <div className="inline-flex shrink-0 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
               <button
                 onClick={() => setViewMode("daily")}
-                className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${viewMode === "daily"
+                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === "daily"
                     ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
                     : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                   }`}
@@ -234,7 +234,7 @@ export default function DashboardSalesChart({
 
               <button
                 onClick={() => setViewMode("cumulative")}
-                className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${viewMode === "cumulative"
+                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === "cumulative"
                     ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
                     : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                   }`}
@@ -242,6 +242,45 @@ export default function DashboardSalesChart({
                 Acumulado
               </button>
             </div>
+
+            <div className="hidden md:flex shrink-0 items-center gap-2 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
+              {(Object.keys(metricConfig) as Array<keyof typeof metricConfig>).map(
+                (metricKey) => {
+                  const metric = metricConfig[metricKey]
+                  const isActive = metricMode === metricKey
+                  const isHovered = hoveredMetric === metricKey && !isActive
+
+                  return (
+                    <button
+                      key={metricKey}
+                      onClick={() => setMetricMode(metricKey)}
+                      onMouseEnter={() => setHoveredMetric(metricKey)}
+                      onMouseLeave={() => setHoveredMetric(null)}
+                      className="whitespace-nowrap rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors"
+                      style={{
+                        borderColor: isActive ? metric.color : "#e2e8f0",
+                        backgroundColor: isActive
+                          ? metric.color
+                          : isHovered
+                            ? metric.hoverBg
+                            : "transparent",
+                        color: isActive
+                          ? "#ffffff"
+                          : isHovered
+                            ? metric.hoverText
+                            : undefined,
+                      }}
+                    >
+                      {metric.label}
+                    </button>
+                  )
+                }
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-[auto_1fr] items-center gap-2 md:hidden">
+            <div className="sr-only" />
 
             <div className="grid grid-cols-4 gap-2">
               {(Object.keys(metricConfig) as Array<keyof typeof metricConfig>).map(
