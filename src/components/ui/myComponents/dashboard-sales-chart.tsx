@@ -67,34 +67,21 @@ type MobileTableRow = {
   anterior: number
 }
 
-export default function DashboardSalesChart({
-  data,
-  previousData,
-  loading = false,
-}: DashboardSalesChartProps) {
+export default function DashboardSalesChart({ data, previousData, loading = false, }: DashboardSalesChartProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("daily")
   const [metricMode, setMetricMode] = useState<MetricMode>("faturamento")
   const [hoveredMetric, setHoveredMetric] = useState<MetricMode | null>(null)
 
   const currentMetric = metricConfig[metricMode]
 
-  const chartData = useMemo<ChartRow[]>(() => {
-    const maxDay = Math.max(
-      ...data.map((item) => item.dia),
-      ...previousData.map((item) => item.dia),
-      31
-    )
+  const chartData = useMemo<ChartRow[]>(() => { const maxDay = Math.max(...data.map((item) => item.dia), ...previousData.map((item) => item.dia), 31)
 
     const currentMap = new Map<number, DashboardMetricDailyPoint>()
     const previousMap = new Map<number, DashboardMetricDailyPoint>()
 
-    data.forEach((item) => {
-      currentMap.set(item.dia, item)
-    })
+    data.forEach((item) => { currentMap.set(item.dia, item) })
 
-    previousData.forEach((item) => {
-      previousMap.set(item.dia, item)
-    })
+    previousData.forEach((item) => { previousMap.set(item.dia, item) })
 
     let faturamentoAcumuladoAtual = 0
     let faturamentoAcumuladoAnterior = 0
@@ -118,10 +105,8 @@ export default function DashboardSalesChart({
       const positivacoesAtual = atualItem?.positivacoes ?? 0
       const positivacoesAnterior = anteriorItem?.positivacoes ?? 0
 
-      const positivacoesAcumuladasAtual =
-        atualItem?.positivacoes_acumuladas ?? 0
-      const positivacoesAcumuladasAnterior =
-        anteriorItem?.positivacoes_acumuladas ?? 0
+      const positivacoesAcumuladasAtual = atualItem?.positivacoes_acumuladas ?? 0
+      const positivacoesAcumuladasAnterior = anteriorItem?.positivacoes_acumuladas ?? 0
 
       if (viewMode === "cumulative") {
         if (metricMode === "faturamento") {
@@ -154,14 +139,8 @@ export default function DashboardSalesChart({
 
           return {
             dia: String(day).padStart(2, "0"),
-            atual:
-              pedidosAcumuladosAtual > 0
-                ? faturamentoAcumuladoAtual / pedidosAcumuladosAtual
-                : 0,
-            anterior:
-              pedidosAcumuladosAnterior > 0
-                ? faturamentoAcumuladoAnterior / pedidosAcumuladosAnterior
-                : 0,
+            atual: pedidosAcumuladosAtual > 0 ? faturamentoAcumuladoAtual / pedidosAcumuladosAtual : 0,
+            anterior: pedidosAcumuladosAnterior > 0 ? faturamentoAcumuladoAnterior / pedidosAcumuladosAnterior : 0,
           }
         }
 
