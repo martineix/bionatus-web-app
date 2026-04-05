@@ -45,6 +45,8 @@ export type DashboardMetricDailyPoint = {
   ticket_medio: number
   positivacoes: number
   positivacoes_acumuladas: number
+  dia_util: boolean
+  dia_util_numero_mes: number | null
 }
 
 export async function getDashboardKpis(
@@ -194,6 +196,8 @@ export async function getDashboardMetricsDaily(
       ticket_medio: number | string
       positivacoes: number | string
       positivacoes_acumuladas: number | string
+      dia_util: boolean | null
+      dia_util_numero_mes: number | string | null
     }) => ({
       data_ref: row.data_ref,
       dia: Number(row.dia),
@@ -202,6 +206,11 @@ export async function getDashboardMetricsDaily(
       ticket_medio: Number(row.ticket_medio ?? 0),
       positivacoes: Number(row.positivacoes ?? 0),
       positivacoes_acumuladas: Number(row.positivacoes_acumuladas ?? 0),
+      dia_util: Boolean(row.dia_util),
+      dia_util_numero_mes:
+        row.dia_util_numero_mes === null || row.dia_util_numero_mes === undefined
+          ? null
+          : Number(row.dia_util_numero_mes),
     })
   )
 }

@@ -19,6 +19,7 @@ type DashboardSalesChartProps = {
 
 type ViewMode = "daily" | "cumulative"
 type MetricMode = "faturamento" | "pedidos" | "ticket_medio" | "positivacoes"
+type DayMode = "calendar" | "business"
 
 const metricConfig = {
   faturamento: {
@@ -57,6 +58,7 @@ const metricConfig = {
 
 type ChartRow = {
   dia: string
+  label: string
   atual: number
   anterior: number
 }
@@ -67,31 +69,77 @@ type MobileTableRow = {
   anterior: number
 }
 
-export default function DashboardSalesChart({ data, previousData, loading = false, }: DashboardSalesChartProps) {
+export default function DashboardSalesChart({
+  data,
+  previousData,
+  loading = false,
+}: DashboardSalesChartProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("daily")
   const [metricMode, setMetricMode] = useState<MetricMode>("faturamento")
   const [hoveredMetric, setHoveredMetric] = useState<MetricMode | null>(null)
+  const [dayMode, setDayMode] = useState<DayMode>("calendar")
 
   const currentMetric = metricConfig[metricMode]
 
-  const chartData = useMemo<ChartRow[]>(() => { const maxDay = Math.max(...data.map((item) => item.dia), ...previousData.map((item) => item.dia), 31)
+  const chartData = useMemo<ChartRow[]>(() => {
+    const filteredData =
+      dayMode === "business"
+        ? data.filter((item) => item.dia_util)
+        : data
+
+    const filteredPreviousData =
+      dayMode === "business"
+        ? previousData.filter((item) => item.dia_util)
+        : previousData
 
     const currentMap = new Map<number, DashboardMetricDailyPoint>()
     const previousMap = new Map<number, DashboardMetricDailyPoint>()
 
-    data.forEach((item) => { currentMap.set(item.dia, item) })
+    if (dayMode === "business") {
+      filteredData.forEach((item) => {
+        if (item.dia_util_numero_mes !== null) {
+          currentMap.set(item.dia_util_numero_mes, item)
+        }
+      })
 
-    previousData.forEach((item) => { previousMap.set(item.dia, item) })
+      filteredPreviousData.forEach((item) => {
+        if (item.dia_util_numero_mes !== null) {
+          previousMap.set(item.dia_util_numero_mes, item)
+        }
+      })
+    } else {
+      filteredData.forEach((item) => {
+        currentMap.set(item.dia, item)
+      })
+
+      filteredPreviousData.forEach((item) => {
+        previousMap.set(item.dia, item)
+      })
+    }
+
+    const allKeys = Array.from(
+      new Set([
+        ...(dayMode === "business"
+          ? filteredData
+              .map((item) => item.dia_util_numero_mes)
+              .filter((value): value is number => value !== null)
+          : filteredData.map((item) => item.dia)),
+        ...(dayMode === "business"
+          ? filteredPreviousData
+              .map((item) => item.dia_util_numero_mes)
+              .filter((value): value is number => value !== null)
+          : filteredPreviousData.map((item) => item.dia)),
+      ])
+    ).sort((a, b) => a - b)
 
     let faturamentoAcumuladoAtual = 0
     let faturamentoAcumuladoAnterior = 0
     let pedidosAcumuladosAtual = 0
     let pedidosAcumuladosAnterior = 0
 
-    return Array.from({ length: maxDay }, (_, index) => {
-      const day = index + 1
-      const atualItem = currentMap.get(day)
-      const anteriorItem = previousMap.get(day)
+    return allKeys.map((key) => {
+      const atualItem = currentMap.get(key)
+      const anteriorItem = previousMap.get(key)
 
       const faturamentoAtual = atualItem?.faturamento ?? 0
       const faturamentoAnterior = anteriorItem?.faturamento ?? 0
@@ -105,8 +153,16 @@ export default function DashboardSalesChart({ data, previousData, loading = fals
       const positivacoesAtual = atualItem?.positivacoes ?? 0
       const positivacoesAnterior = anteriorItem?.positivacoes ?? 0
 
-      const positivacoesAcumuladasAtual = atualItem?.positivacoes_acumuladas ?? 0
-      const positivacoesAcumuladasAnterior = anteriorItem?.positivacoes_acumuladas ?? 0
+      const positivacoesAcumuladasAtual =
+        atualItem?.positivacoes_acumuladas ?? 0
+      const positivacoesAcumuladasAnterior =
+        anteriorItem?.positivacoes_acumuladas ?? 0
+
+      const diaReal = atualItem?.dia ?? anteriorItem?.dia ?? 0
+      const label =
+        dayMode === "business"
+          ? String(key)
+          : String(key).padStart(2, "0")
 
       if (viewMode === "cumulative") {
         if (metricMode === "faturamento") {
@@ -114,7 +170,8 @@ export default function DashboardSalesChart({ data, previousData, loading = fals
           faturamentoAcumuladoAnterior += faturamentoAnterior
 
           return {
-            dia: String(day).padStart(2, "0"),
+            dia: String(diaReal).padStart(2, "0"),
+            label,
             atual: faturamentoAcumuladoAtual,
             anterior: faturamentoAcumuladoAnterior,
           }
@@ -125,7 +182,8 @@ export default function DashboardSalesChart({ data, previousData, loading = fals
           pedidosAcumuladosAnterior += pedidosAnterior
 
           return {
-            dia: String(day).padStart(2, "0"),
+            dia: String(diaReal).padStart(2, "0"),
+            label,
             atual: pedidosAcumuladosAtual,
             anterior: pedidosAcumuladosAnterior,
           }
@@ -138,14 +196,22 @@ export default function DashboardSalesChart({ data, previousData, loading = fals
           pedidosAcumuladosAnterior += pedidosAnterior
 
           return {
-            dia: String(day).padStart(2, "0"),
-            atual: pedidosAcumuladosAtual > 0 ? faturamentoAcumuladoAtual / pedidosAcumuladosAtual : 0,
-            anterior: pedidosAcumuladosAnterior > 0 ? faturamentoAcumuladoAnterior / pedidosAcumuladosAnterior : 0,
+            dia: String(diaReal).padStart(2, "0"),
+            label,
+            atual:
+              pedidosAcumuladosAtual > 0
+                ? faturamentoAcumuladoAtual / pedidosAcumuladosAtual
+                : 0,
+            anterior:
+              pedidosAcumuladosAnterior > 0
+                ? faturamentoAcumuladoAnterior / pedidosAcumuladosAnterior
+                : 0,
           }
         }
 
         return {
-          dia: String(day).padStart(2, "0"),
+          dia: String(diaReal).padStart(2, "0"),
+          label,
           atual: positivacoesAcumuladasAtual,
           anterior: positivacoesAcumuladasAnterior,
         }
@@ -153,7 +219,8 @@ export default function DashboardSalesChart({ data, previousData, loading = fals
 
       if (metricMode === "faturamento") {
         return {
-          dia: String(day).padStart(2, "0"),
+          dia: String(diaReal).padStart(2, "0"),
+          label,
           atual: faturamentoAtual,
           anterior: faturamentoAnterior,
         }
@@ -161,7 +228,8 @@ export default function DashboardSalesChart({ data, previousData, loading = fals
 
       if (metricMode === "pedidos") {
         return {
-          dia: String(day).padStart(2, "0"),
+          dia: String(diaReal).padStart(2, "0"),
+          label,
           atual: pedidosAtual,
           anterior: pedidosAnterior,
         }
@@ -169,22 +237,28 @@ export default function DashboardSalesChart({ data, previousData, loading = fals
 
       if (metricMode === "ticket_medio") {
         return {
-          dia: String(day).padStart(2, "0"),
+          dia: String(diaReal).padStart(2, "0"),
+          label,
           atual: ticketAtual,
           anterior: ticketAnterior,
         }
       }
 
       return {
-        dia: String(day).padStart(2, "0"),
+        dia: String(diaReal).padStart(2, "0"),
+        label,
         atual: positivacoesAtual,
         anterior: positivacoesAnterior,
       }
     })
-  }, [data, previousData, metricMode, viewMode])
+  }, [data, previousData, metricMode, viewMode, dayMode])
 
   const mobileTableData = useMemo<MobileTableRow[]>(() => {
-    return [...chartData].reverse()
+    return [...chartData].reverse().map((item) => ({
+      dia: item.dia,
+      atual: item.atual,
+      anterior: item.anterior,
+    }))
   }, [chartData])
 
   return (
@@ -207,29 +281,55 @@ export default function DashboardSalesChart({ data, previousData, loading = fals
 
         <div className="flex flex-col gap-3 lg:items-end">
           <div className="flex flex-col gap-2 md:hidden">
-            <div className="grid grid-cols-[auto_1fr] items-center gap-2">
-              <div className="inline-flex rounded-lg border border-slate-200 p-1 dark:border-slate-700">
-                <button
-                  onClick={() => setViewMode("daily")}
-                  className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                    viewMode === "daily"
-                      ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                  }`}
-                >
-                  Diário
-                </button>
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="inline-flex shrink-0 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
+                  <button
+                    onClick={() => setDayMode("calendar")}
+                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                      dayMode === "calendar"
+                        ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                        : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    Corridos
+                  </button>
 
-                <button
-                  onClick={() => setViewMode("cumulative")}
-                  className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                    viewMode === "cumulative"
-                      ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                  }`}
-                >
-                  Acumulado
-                </button>
+                  <button
+                    onClick={() => setDayMode("business")}
+                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                      dayMode === "business"
+                        ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                        : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    Úteis
+                  </button>
+                </div>
+
+                <div className="inline-flex shrink-0 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
+                  <button
+                    onClick={() => setViewMode("daily")}
+                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                      viewMode === "daily"
+                        ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                        : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    Diário
+                  </button>
+
+                  <button
+                    onClick={() => setViewMode("cumulative")}
+                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                      viewMode === "cumulative"
+                        ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                        : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    Acumulado
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-4 gap-2">
@@ -280,6 +380,30 @@ export default function DashboardSalesChart({ data, previousData, loading = fals
                 }`}
               >
                 Acumulado
+              </button>
+            </div>
+
+            <div className="inline-flex shrink-0 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
+              <button
+                onClick={() => setDayMode("calendar")}
+                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                  dayMode === "calendar"
+                    ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                    : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                }`}
+              >
+                Corridos
+              </button>
+
+              <button
+                onClick={() => setDayMode("business")}
+                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                  dayMode === "business"
+                    ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                    : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                }`}
+              >
+                Úteis
               </button>
             </div>
 
@@ -354,7 +478,7 @@ export default function DashboardSalesChart({ data, previousData, loading = fals
               </defs>
 
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="dia" tick={{ fontSize: 12 }} />
+              <XAxis dataKey="label" tick={{ fontSize: 12 }} />
               <YAxis
                 tick={{ fontSize: 12 }}
                 tickFormatter={(value) =>
@@ -366,11 +490,14 @@ export default function DashboardSalesChart({ data, previousData, loading = fals
               />
               <Tooltip
                 formatter={(value, name) => {
-                  const label =
+                  const legend =
                     name === "atual" ? "Período atual" : "Mês anterior"
-                  return [currentMetric.format(Number(value ?? 0)), label]
+                  return [currentMetric.format(Number(value ?? 0)), legend]
                 }}
-                labelFormatter={(label) => `Dia ${label}`}
+                labelFormatter={(_, payload) => {
+                  const row = payload?.[0]?.payload as ChartRow | undefined
+                  return row ? `Dia ${row.dia}` : ""
+                }}
               />
 
               <Area
