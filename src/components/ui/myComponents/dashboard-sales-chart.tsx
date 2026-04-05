@@ -84,12 +84,14 @@ export default function DashboardSalesChart({
   const chartData = useMemo<ChartRow[]>(() => {
     const filteredData =
       dayMode === "business"
-        ? data.filter((item) => item.dia_util)
+        ? data.filter((item) => item.dia_util && item.dia_util_numero_mes !== null)
         : data
 
     const filteredPreviousData =
       dayMode === "business"
-        ? previousData.filter((item) => item.dia_util)
+        ? previousData.filter(
+          (item) => item.dia_util && item.dia_util_numero_mes !== null
+        )
         : previousData
 
     const currentMap = new Map<number, DashboardMetricDailyPoint>()
@@ -97,15 +99,11 @@ export default function DashboardSalesChart({
 
     if (dayMode === "business") {
       filteredData.forEach((item) => {
-        if (item.dia_util_numero_mes !== null) {
-          currentMap.set(item.dia_util_numero_mes, item)
-        }
+        currentMap.set(item.dia_util_numero_mes as number, item)
       })
 
       filteredPreviousData.forEach((item) => {
-        if (item.dia_util_numero_mes !== null) {
-          previousMap.set(item.dia_util_numero_mes, item)
-        }
+        previousMap.set(item.dia_util_numero_mes as number, item)
       })
     } else {
       filteredData.forEach((item) => {
@@ -120,14 +118,10 @@ export default function DashboardSalesChart({
     const allKeys = Array.from(
       new Set([
         ...(dayMode === "business"
-          ? filteredData
-              .map((item) => item.dia_util_numero_mes)
-              .filter((value): value is number => value !== null)
+          ? filteredData.map((item) => item.dia_util_numero_mes as number)
           : filteredData.map((item) => item.dia)),
         ...(dayMode === "business"
-          ? filteredPreviousData
-              .map((item) => item.dia_util_numero_mes)
-              .filter((value): value is number => value !== null)
+          ? filteredPreviousData.map((item) => item.dia_util_numero_mes as number)
           : filteredPreviousData.map((item) => item.dia)),
       ])
     ).sort((a, b) => a - b)
@@ -286,22 +280,20 @@ export default function DashboardSalesChart({
                 <div className="inline-flex shrink-0 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
                   <button
                     onClick={() => setDayMode("calendar")}
-                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                      dayMode === "calendar"
+                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${dayMode === "calendar"
                         ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
                         : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                    }`}
+                      }`}
                   >
                     Corridos
                   </button>
 
                   <button
                     onClick={() => setDayMode("business")}
-                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                      dayMode === "business"
+                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${dayMode === "business"
                         ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
                         : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                    }`}
+                      }`}
                   >
                     Úteis
                   </button>
@@ -310,22 +302,20 @@ export default function DashboardSalesChart({
                 <div className="inline-flex shrink-0 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
                   <button
                     onClick={() => setViewMode("daily")}
-                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                      viewMode === "daily"
+                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === "daily"
                         ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
                         : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                    }`}
+                      }`}
                   >
                     Diário
                   </button>
 
                   <button
                     onClick={() => setViewMode("cumulative")}
-                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                      viewMode === "cumulative"
+                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === "cumulative"
                         ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
                         : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                    }`}
+                      }`}
                   >
                     Acumulado
                   </button>
@@ -362,22 +352,20 @@ export default function DashboardSalesChart({
             <div className="inline-flex shrink-0 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
               <button
                 onClick={() => setViewMode("daily")}
-                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                  viewMode === "daily"
+                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === "daily"
                     ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
                     : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                }`}
+                  }`}
               >
                 Diário
               </button>
 
               <button
                 onClick={() => setViewMode("cumulative")}
-                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                  viewMode === "cumulative"
+                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === "cumulative"
                     ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
                     : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                }`}
+                  }`}
               >
                 Acumulado
               </button>
@@ -386,22 +374,20 @@ export default function DashboardSalesChart({
             <div className="inline-flex shrink-0 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
               <button
                 onClick={() => setDayMode("calendar")}
-                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                  dayMode === "calendar"
+                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${dayMode === "calendar"
                     ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
                     : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                }`}
+                  }`}
               >
                 Corridos
               </button>
 
               <button
                 onClick={() => setDayMode("business")}
-                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                  dayMode === "business"
+                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${dayMode === "business"
                     ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
                     : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                }`}
+                  }`}
               >
                 Úteis
               </button>
@@ -426,13 +412,13 @@ export default function DashboardSalesChart({
                         backgroundColor: isActive
                           ? metric.color
                           : isHovered
-                          ? metric.hoverBg
-                          : "transparent",
+                            ? metric.hoverBg
+                            : "transparent",
                         color: isActive
                           ? "#ffffff"
                           : isHovered
-                          ? metric.hoverText
-                          : undefined,
+                            ? metric.hoverText
+                            : undefined,
                       }}
                     >
                       {metric.label}
@@ -539,10 +525,10 @@ export default function DashboardSalesChart({
                   <th className="w-14 px-2 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                     Dia
                   </th>
-                  <th className="px-2 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                  <th className="px-2 py-3 text-right text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                     Mês Atual
                   </th>
-                  <th className="px-2 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                  <th className="px-2 py-3 text-right text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                     Mês Ant.
                   </th>
                 </tr>
@@ -554,13 +540,13 @@ export default function DashboardSalesChart({
                     key={row.dia}
                     className="border-t border-slate-100 dark:border-slate-800"
                   >
-                    <td className="whitespace-nowrap px-2 py-3 text-sm font-semibold text-slate-700 dark:text-slate-200">
+                    <td className="whitespace-nowrap px-2 py-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-200">
                       {row.dia}
                     </td>
-                    <td className="wrap-break-word px-2 py-3 text-sm text-slate-600 dark:text-slate-300">
+                    <td className="wrap-break-word px-2 py-3 text-right text-sm text-slate-600 dark:text-slate-300">
                       {currentMetric.format(row.atual)}
                     </td>
-                    <td className="wrap-break-word px-2 py-3 text-sm text-slate-600 dark:text-slate-300">
+                    <td className="wrap-break-word px-2 py-3 text-right text-sm text-slate-600 dark:text-slate-300">
                       {currentMetric.format(row.anterior)}
                     </td>
                   </tr>
