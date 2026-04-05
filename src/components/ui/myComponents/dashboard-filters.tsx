@@ -1,4 +1,11 @@
 import { Filter } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import type {
   DashboardFiltersInput,
   DashboardMonthOption,
@@ -10,6 +17,16 @@ type DashboardFiltersProps = {
   availableYears: number[]
   availableMonths: DashboardMonthOption[]
 }
+
+const canalOptions = [
+  { value: 1, label: "Marcas Próprias" },
+  { value: 2, label: "Licitações" },
+  { value: 3, label: "Varejo" },
+  { value: 4, label: "Redes" },
+  { value: 5, label: "Distribuição" },
+  { value: 6, label: "Televendas" },
+  { value: 7, label: "Outros" },
+]
 
 export default function DashboardFilters({
   filters,
@@ -26,6 +43,35 @@ export default function DashboardFilters({
       [key]: value,
     })
   }
+
+  function toggleConta(value: number) {
+    const contas = filters.contas ?? []
+    const exists = contas.includes(value)
+
+    updateFilter(
+      "contas",
+      exists
+        ? contas.filter((item) => item !== value)
+        : [...contas, value]
+    )
+  }
+
+  function getContasLabel() {
+    const contas = filters.contas ?? []
+
+    if (contas.length === 0) return "Canal: Todos"
+    if (contas.length <= 2) {
+      const labels = canalOptions
+        .filter((item) => contas.includes(item.value))
+        .map((item) => item.label)
+      return `Canal: ${labels.join(", ")}`
+    }
+
+    return `Canal: ${contas.length} selecionados`
+  }
+
+  const filterControlClass =
+    "h-8 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition-colors hover:border-slate-300 hover:bg-slate-50 focus:border-[#297B49] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
 
   return (
     <div className="rounded-2xl border border-[#D0D9D6] bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
@@ -54,7 +100,7 @@ export default function DashboardFilters({
                 mes: null,
               })
             }
-            className="h-8 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-[#297B49] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+            className={filterControlClass}
           >
             <option value="">Ano: Todos</option>
             {availableYears.map((year) => (
@@ -73,7 +119,7 @@ export default function DashboardFilters({
               })
             }
             disabled={!filters.ano}
-            className="h-8 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-[#297B49] disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+            className={`${filterControlClass} disabled:opacity-60`}
           >
             <option value="">Mês: Todos</option>
             {availableMonths.map((month) => (
@@ -83,25 +129,53 @@ export default function DashboardFilters({
             ))}
           </select>
 
-          <select
-            value={filters.contas === null ? "" : String(filters.contas)}
-            onChange={(e) =>
-              updateFilter(
-                "contas",
-                e.target.value === "" ? null : Number(e.target.value)
-              )
-            }
-            className="h-8 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-[#297B49] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-          >
-            <option value="">Canal: Todos</option>
-            <option value="1">Canal: Marcas Próprias</option>
-            <option value="2">Canal: Licitações</option>
-            <option value="3">Canal: Varejo</option>
-            <option value="4">Canal: Redes</option>
-            <option value="5">Canal: Distribuição</option>
-            <option value="6">Canal: Televendas</option>
-            <option value="7">Canal: Outros</option>
-          </select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="h-8 min-w-55 justify-between rounded-lg border-slate-200 bg-white px-3 text-sm font-normal text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+              >
+                <span className="truncate">{getContasLabel()}</span>
+              </Button>
+            </PopoverTrigger>
+
+            <PopoverContent
+              align="start"
+              className="w-65 rounded-xl border border-slate-200 p-3 dark:border-slate-700"
+            >
+              <div className="mb-2 flex items-center justify-between">
+                <p className="text-sm font-semibold">Canais</p>
+                <button
+                  type="button"
+                  onClick={() => updateFilter("contas", [])}
+                  className="text-xs text-slate-500 transition-colors hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                >
+                  Limpar
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                {canalOptions.map((option) => {
+                  const checked = (filters.contas ?? []).includes(option.value)
+
+                  return (
+                    <label
+                      key={option.value}
+                      className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
+                    >
+                      <Checkbox
+                        checked={checked}
+                        onCheckedChange={() => toggleConta(option.value)}
+                      />
+                      <span className="text-sm text-slate-700 dark:text-slate-200">
+                        {option.label}
+                      </span>
+                    </label>
+                  )
+                })}
+              </div>
+            </PopoverContent>
+          </Popover>
 
           <select
             value={filters.mercado === null ? "" : String(filters.mercado)}
@@ -111,7 +185,7 @@ export default function DashboardFilters({
                 e.target.value === "" ? null : Number(e.target.value)
               )
             }
-            className="h-8 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-[#297B49] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+            className={filterControlClass}
           >
             <option value="">Mercado: Todos</option>
             <option value="1">Mercado: Marcas + Licitações</option>

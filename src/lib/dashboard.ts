@@ -14,7 +14,7 @@ export type DashboardFiltersInput = {
   dataFim: string | null
   idRepresentante: number | null
   mercado: number | null
-  contas: number | null
+  contas: number[]
 }
 
 export type DashboardKpisComparison = {
@@ -117,7 +117,7 @@ export async function getDashboardKpisComparison(params: {
   dataFimAnoAnterior: string
   idRepresentante: number | null
   mercado: number | null
-  contas: number | null
+  contas: number[]
 }): Promise<DashboardKpisComparison> {
   const { data, error } = await supabase.rpc("get_dashboard_kpis_comparison", {
     p_data_inicio: params.dataInicio,

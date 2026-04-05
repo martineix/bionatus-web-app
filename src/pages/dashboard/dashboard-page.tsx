@@ -40,7 +40,7 @@ const defaultFilters: DashboardFiltersInput = {
   dataFim: null,
   idRepresentante: null,
   mercado: null,
-  contas: null,
+  contas: [],
 }
 
 export default function DashboardPage() {
