@@ -1,15 +1,8 @@
 import { Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import type {
-  DashboardFiltersInput,
-  DashboardMonthOption,
-} from "@/lib/dashboard"
+import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover"
+import type { DashboardFiltersInput, DashboardMonthOption, } from "@/lib/dashboard"
 
 type DashboardFiltersProps = {
   filters: DashboardFiltersInput
@@ -190,6 +183,23 @@ export default function DashboardFilters({
             <option value="">Mercado: Todos</option>
             <option value="1">Mercado: Marcas + Licitações</option>
             <option value="2">Mercado: Farma</option>
+          </select>
+
+          <select
+            value={
+              filters.isBionatus === null ? "" : String(filters.isBionatus)
+            }
+            onChange={(e) =>
+              updateFilter(
+                "isBionatus",
+                e.target.value === "" ? null : Number(e.target.value)
+              )
+            }
+            className={filterControlClass}
+          >
+            <option value="">Fabricante: Todos</option>
+            <option value="1">Fabricante: Bionatus</option>
+            <option value="0">Fabricante: Terceiros</option>
           </select>
         </div>
       </div>

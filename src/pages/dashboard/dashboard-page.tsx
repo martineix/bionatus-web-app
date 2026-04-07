@@ -41,22 +41,16 @@ const defaultFilters: DashboardFiltersInput = {
   idRepresentante: null,
   mercado: null,
   contas: [],
+  isBionatus: null,
 }
 
 export default function DashboardPage() {
   const [kpis, setKpis] = useState<DashboardKpis | null>(null)
-  const [kpisComparison, setKpisComparison] =
-    useState<DashboardKpisComparison | null>(null)
+  const [kpisComparison, setKpisComparison] = useState<DashboardKpisComparison | null>(null)
   const [availableYears, setAvailableYears] = useState<number[]>([])
-  const [availableMonths, setAvailableMonths] = useState<DashboardMonthOption[]>(
-    []
-  )
-  const [metricsDaily, setMetricsDaily] = useState<DashboardMetricDailyPoint[]>(
-    []
-  )
-  const [metricsPreviousDaily, setMetricsPreviousDaily] = useState<
-    DashboardMetricDailyPoint[]
-  >([])
+  const [availableMonths, setAvailableMonths] = useState<DashboardMonthOption[]>([])
+  const [metricsDaily, setMetricsDaily] = useState<DashboardMetricDailyPoint[]>([])
+  const [metricsPreviousDaily, setMetricsPreviousDaily] = useState<DashboardMetricDailyPoint[]>([])
   const [loading, setLoading] = useState(true)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [refreshing, setRefreshing] = useState(false)
@@ -66,7 +60,17 @@ export default function DashboardPage() {
 
     if (saved) {
       try {
-        return JSON.parse(saved)
+        const parsed = JSON.parse(saved)
+
+        return {
+          ...defaultFilters,
+          ...parsed,
+          contas: Array.isArray(parsed.contas) ? parsed.contas : [],
+          isBionatus:
+            parsed.isBionatus === 0 || parsed.isBionatus === 1
+            ? parsed.isBionatus
+            : null,
+        }
       } catch {
         return defaultFilters
       }
@@ -186,6 +190,7 @@ export default function DashboardPage() {
               idRepresentante: filters.idRepresentante,
               mercado: filters.mercado,
               contas: filters.contas,
+              isBionatus: filters.isBionatus,
             })
           : Promise.resolve(null)
 

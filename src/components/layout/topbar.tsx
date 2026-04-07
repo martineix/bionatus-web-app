@@ -2,6 +2,7 @@ import { LogOut, Menu, Moon, RefreshCcw, Sun } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { signOut } from "@/lib/auth"
 import { useTheme } from "@/providers/theme-provider"
+import UpdatesBell from "../ui/myComponents/updates-bell"
 
 type TopbarProps = {
   title: string
@@ -64,6 +65,7 @@ export default function Topbar({
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
+            <UpdatesBell />
             {onRefresh && (
               <button
                 onClick={onRefresh}

@@ -15,6 +15,7 @@ export type DashboardFiltersInput = {
   idRepresentante: number | null
   mercado: number | null
   contas: number[]
+  isBionatus: number | null
 }
 
 export type DashboardKpisComparison = {
@@ -58,6 +59,7 @@ export async function getDashboardKpis(
     p_id_representante: filters.idRepresentante,
     p_mercado: filters.mercado,
     p_contas: filters.contas,
+    p_is_bionatus: filters.isBionatus,
   })
 
   if (error) {
@@ -120,6 +122,7 @@ export async function getDashboardKpisComparison(params: {
   idRepresentante: number | null
   mercado: number | null
   contas: number[]
+  isBionatus: number | null
 }): Promise<DashboardKpisComparison> {
   const { data, error } = await supabase.rpc("get_dashboard_kpis_comparison", {
     p_data_inicio: params.dataInicio,
@@ -131,6 +134,7 @@ export async function getDashboardKpisComparison(params: {
     p_id_representante: params.idRepresentante,
     p_mercado: params.mercado,
     p_contas: params.contas,
+    p_is_bionatus: params.isBionatus,
   })
 
   if (error) {
@@ -181,6 +185,7 @@ export async function getDashboardMetricsDaily(
     p_id_representante: filters.idRepresentante,
     p_mercado: filters.mercado,
     p_contas: filters.contas,
+    p_is_bionatus: filters.isBionatus,
   })
 
   if (error) {
@@ -213,4 +218,32 @@ export async function getDashboardMetricsDaily(
           : Number(row.dia_util_numero_mes),
     })
   )
+}
+
+// Busca as informações de atualização do GITHUB
+
+export type GithubUpdate = {
+  id: string
+  sha: string
+  title: string
+  date: string
+  author: string
+}
+
+export async function getGithubUpdates(): Promise<GithubUpdate[]> {
+  const response = await fetch(
+    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/github-updates`,
+    {
+      headers: {
+        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+      },
+    }
+  )
+
+  if (!response.ok) {
+    throw new Error("Erro ao buscar updates do GitHub.")
+  }
+
+  const json = await response.json()
+  return json.updates ?? []
 }
