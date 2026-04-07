@@ -531,7 +531,7 @@ export default function DashboardSalesChart({
               <Tooltip
                 formatter={(value, name) => {
                   const legend =
-                    name === "atual" ? "Mês atual" : name === "anterior" ? "Mês anterior" : "Ano Anterior"
+                    name === "atual" ? "Mês atual" : name === "anterior" ? "Mês anterior" : "Ano anterior"
                   return [currentMetric.format(Number(value ?? 0)), legend]
                 }}
                 labelFormatter={(_, payload) => {
