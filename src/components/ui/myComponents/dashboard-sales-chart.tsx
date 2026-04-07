@@ -14,6 +14,7 @@ import { formatCurrencyBRL, formatNumberBR } from "@/lib/format"
 type DashboardSalesChartProps = {
   data: DashboardMetricDailyPoint[]
   previousData: DashboardMetricDailyPoint[]
+  lastYearData: DashboardMetricDailyPoint[]
   loading?: boolean
 }
 
@@ -61,23 +62,29 @@ type ChartRow = {
   label: string
   atual: number
   anterior: number
+  anoAnterior: number
 }
 
 type MobileTableRow = {
   dia: string
   atual: number
   anterior: number
+  anoAnterior: number
 }
 
 export default function DashboardSalesChart({
   data,
   previousData,
+  lastYearData,
   loading = false,
 }: DashboardSalesChartProps) {
+
   const [viewMode, setViewMode] = useState<ViewMode>("daily")
   const [metricMode, setMetricMode] = useState<MetricMode>("faturamento")
   const [hoveredMetric, setHoveredMetric] = useState<MetricMode | null>(null)
   const [dayMode, setDayMode] = useState<DayMode>("calendar")
+
+  const [showAnoAnterior, setShowAnoAnterior] = useState(false)
 
   const currentMetric = metricConfig[metricMode]
 
@@ -94,8 +101,16 @@ export default function DashboardSalesChart({
         )
         : previousData
 
+    const filteredLastYearData =
+      dayMode === "business"
+        ? lastYearData.filter(
+          (item) => item.dia_util && item.dia_util_numero_mes !== null
+        )
+        : lastYearData
+
     const currentMap = new Map<number, DashboardMetricDailyPoint>()
     const previousMap = new Map<number, DashboardMetricDailyPoint>()
+    const lastYearMap = new Map<number, DashboardMetricDailyPoint>()
 
     if (dayMode === "business") {
       filteredData.forEach((item) => {
@@ -105,6 +120,11 @@ export default function DashboardSalesChart({
       filteredPreviousData.forEach((item) => {
         previousMap.set(item.dia_util_numero_mes as number, item)
       })
+
+      filteredLastYearData.forEach((item) => {
+        lastYearMap.set(item.dia_util_numero_mes as number, item)
+      })
+
     } else {
       filteredData.forEach((item) => {
         currentMap.set(item.dia, item)
@@ -112,6 +132,10 @@ export default function DashboardSalesChart({
 
       filteredPreviousData.forEach((item) => {
         previousMap.set(item.dia, item)
+      })
+
+      filteredLastYearData.forEach((item) => {
+        lastYearMap.set(item.dia, item)
       })
     }
 
@@ -123,36 +147,45 @@ export default function DashboardSalesChart({
         ...(dayMode === "business"
           ? filteredPreviousData.map((item) => item.dia_util_numero_mes as number)
           : filteredPreviousData.map((item) => item.dia)),
+        ...(dayMode === "business"
+          ? filteredLastYearData.map((item) => item.dia_util_numero_mes as number)
+          : filteredLastYearData.map((item) => item.dia))
       ])
     ).sort((a, b) => a - b)
 
     let faturamentoAcumuladoAtual = 0
     let faturamentoAcumuladoAnterior = 0
+    let faturamentoAcumuladoAnoAnterior = 0
     let pedidosAcumuladosAtual = 0
     let pedidosAcumuladosAnterior = 0
+    let pedidosAcumuladosAnoAnterior = 0
 
     return allKeys.map((key) => {
       const atualItem = currentMap.get(key)
       const anteriorItem = previousMap.get(key)
+      const anoAnteriorItem = lastYearMap.get(key)
 
       const faturamentoAtual = atualItem?.faturamento ?? 0
       const faturamentoAnterior = anteriorItem?.faturamento ?? 0
+      const faturamentoAnoAnterior = anoAnteriorItem?.faturamento ?? 0
 
       const pedidosAtual = atualItem?.pedidos ?? 0
       const pedidosAnterior = anteriorItem?.pedidos ?? 0
+      const pedidosAnoAnterior = anoAnteriorItem?.pedidos ?? 0
 
       const ticketAtual = atualItem?.ticket_medio ?? 0
       const ticketAnterior = anteriorItem?.ticket_medio ?? 0
+      const ticketAnoAnterior = anoAnteriorItem?.ticket_medio ?? 0
 
       const positivacoesAtual = atualItem?.positivacoes ?? 0
       const positivacoesAnterior = anteriorItem?.positivacoes ?? 0
+      const positivacoesAnoAnterior = anoAnteriorItem?.positivacoes ?? 0
 
-      const positivacoesAcumuladasAtual =
-        atualItem?.positivacoes_acumuladas ?? 0
-      const positivacoesAcumuladasAnterior =
-        anteriorItem?.positivacoes_acumuladas ?? 0
+      const positivacoesAcumuladasAtual = atualItem?.positivacoes_acumuladas ?? 0
+      const positivacoesAcumuladasAnterior = anteriorItem?.positivacoes_acumuladas ?? 0
+      const positivacoesAcumuladasAnoAnterior = anoAnteriorItem?.positivacoes_acumuladas ?? 0
 
-      const diaReal = atualItem?.dia ?? anteriorItem?.dia ?? 0
+      const diaReal = atualItem?.dia ?? anteriorItem?.dia ?? anoAnteriorItem?.dia ?? 0
       const label =
         dayMode === "business"
           ? String(key)
@@ -162,32 +195,38 @@ export default function DashboardSalesChart({
         if (metricMode === "faturamento") {
           faturamentoAcumuladoAtual += faturamentoAtual
           faturamentoAcumuladoAnterior += faturamentoAnterior
+          faturamentoAcumuladoAnoAnterior += faturamentoAnoAnterior
 
           return {
             dia: String(diaReal).padStart(2, "0"),
             label,
             atual: faturamentoAcumuladoAtual,
             anterior: faturamentoAcumuladoAnterior,
+            anoAnterior: faturamentoAcumuladoAnoAnterior,
           }
         }
 
         if (metricMode === "pedidos") {
           pedidosAcumuladosAtual += pedidosAtual
           pedidosAcumuladosAnterior += pedidosAnterior
+          pedidosAcumuladosAnoAnterior += pedidosAnoAnterior
 
           return {
             dia: String(diaReal).padStart(2, "0"),
             label,
             atual: pedidosAcumuladosAtual,
             anterior: pedidosAcumuladosAnterior,
+            anoAnterior: pedidosAcumuladosAnoAnterior,
           }
         }
 
         if (metricMode === "ticket_medio") {
           faturamentoAcumuladoAtual += faturamentoAtual
           faturamentoAcumuladoAnterior += faturamentoAnterior
+          faturamentoAcumuladoAnoAnterior += faturamentoAnoAnterior
           pedidosAcumuladosAtual += pedidosAtual
           pedidosAcumuladosAnterior += pedidosAnterior
+          pedidosAcumuladosAnoAnterior += pedidosAnoAnterior
 
           return {
             dia: String(diaReal).padStart(2, "0"),
@@ -200,6 +239,10 @@ export default function DashboardSalesChart({
               pedidosAcumuladosAnterior > 0
                 ? faturamentoAcumuladoAnterior / pedidosAcumuladosAnterior
                 : 0,
+            anoAnterior:
+              pedidosAcumuladosAnoAnterior > 0
+                ? faturamentoAcumuladoAnoAnterior / pedidosAcumuladosAnoAnterior
+                : 0,
           }
         }
 
@@ -208,6 +251,7 @@ export default function DashboardSalesChart({
           label,
           atual: positivacoesAcumuladasAtual,
           anterior: positivacoesAcumuladasAnterior,
+          anoAnterior: positivacoesAcumuladasAnoAnterior,
         }
       }
 
@@ -217,6 +261,7 @@ export default function DashboardSalesChart({
           label,
           atual: faturamentoAtual,
           anterior: faturamentoAnterior,
+          anoAnterior: faturamentoAnoAnterior,
         }
       }
 
@@ -226,6 +271,7 @@ export default function DashboardSalesChart({
           label,
           atual: pedidosAtual,
           anterior: pedidosAnterior,
+          anoAnterior: pedidosAnoAnterior,
         }
       }
 
@@ -235,6 +281,7 @@ export default function DashboardSalesChart({
           label,
           atual: ticketAtual,
           anterior: ticketAnterior,
+          anoAnterior: ticketAnoAnterior,
         }
       }
 
@@ -243,15 +290,17 @@ export default function DashboardSalesChart({
         label,
         atual: positivacoesAtual,
         anterior: positivacoesAnterior,
+        anoAnterior: positivacoesAnoAnterior,
       }
     })
-  }, [data, previousData, metricMode, viewMode, dayMode])
+  }, [data, previousData, lastYearData, metricMode, viewMode, dayMode])
 
   const mobileTableData = useMemo<MobileTableRow[]>(() => {
     return [...chartData].reverse().map((item) => ({
       dia: item.dia,
       atual: item.atual,
       anterior: item.anterior,
+      anoAnterior: item.anoAnterior,
     }))
   }, [chartData])
 
@@ -281,8 +330,8 @@ export default function DashboardSalesChart({
                   <button
                     onClick={() => setDayMode("calendar")}
                     className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${dayMode === "calendar"
-                        ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                        : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                      ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                       }`}
                   >
                     Corridos
@@ -291,8 +340,8 @@ export default function DashboardSalesChart({
                   <button
                     onClick={() => setDayMode("business")}
                     className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${dayMode === "business"
-                        ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                        : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                      ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                       }`}
                   >
                     Úteis
@@ -303,8 +352,8 @@ export default function DashboardSalesChart({
                   <button
                     onClick={() => setViewMode("daily")}
                     className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === "daily"
-                        ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                        : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                      ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                       }`}
                   >
                     Diário
@@ -313,8 +362,8 @@ export default function DashboardSalesChart({
                   <button
                     onClick={() => setViewMode("cumulative")}
                     className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === "cumulative"
-                        ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                        : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                      ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                       }`}
                   >
                     Acumulado
@@ -349,12 +398,20 @@ export default function DashboardSalesChart({
           </div>
 
           <div className="hidden md:flex md:flex-wrap md:items-center md:gap-3">
+            <label className="flex shrink-0 items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
+              <input
+                type="checkbox"
+                checked={showAnoAnterior}
+                onChange={(e) => setShowAnoAnterior(e.target.checked)}
+              />
+              <span className={showAnoAnterior ? "font-semibold" : ""}>Ano Anterior</span>
+            </label>
             <div className="inline-flex shrink-0 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
               <button
                 onClick={() => setViewMode("daily")}
                 className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === "daily"
-                    ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                    : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                  : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                   }`}
               >
                 Diário
@@ -363,8 +420,8 @@ export default function DashboardSalesChart({
               <button
                 onClick={() => setViewMode("cumulative")}
                 className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === "cumulative"
-                    ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                    : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                  : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                   }`}
               >
                 Acumulado
@@ -375,8 +432,8 @@ export default function DashboardSalesChart({
               <button
                 onClick={() => setDayMode("calendar")}
                 className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${dayMode === "calendar"
-                    ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                    : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                  : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                   }`}
               >
                 Corridos
@@ -385,8 +442,8 @@ export default function DashboardSalesChart({
               <button
                 onClick={() => setDayMode("business")}
                 className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${dayMode === "business"
-                    ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                    : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                  : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                   }`}
               >
                 Úteis
@@ -445,21 +502,18 @@ export default function DashboardSalesChart({
             <AreaChart data={chartData}>
               <defs>
                 <linearGradient id="colorAtual" x1="0" y1="0" x2="0" y2="1">
-                  <stop
-                    offset="5%"
-                    stopColor={currentMetric.color}
-                    stopOpacity={0.35}
-                  />
-                  <stop
-                    offset="95%"
-                    stopColor={currentMetric.color}
-                    stopOpacity={0.04}
-                  />
+                  <stop offset="5%" stopColor={currentMetric.color} stopOpacity={0.35} />
+                  <stop offset="95%" stopColor={currentMetric.color} stopOpacity={0.04} />
                 </linearGradient>
 
                 <linearGradient id="colorAnterior" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#CBD5E1" stopOpacity={0.25} />
                   <stop offset="95%" stopColor="#CBD5E1" stopOpacity={0.04} />
+                </linearGradient>
+
+                <linearGradient id="colorAnoAnterior" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#0b70f5" stopOpacity={0.20} />
+                  <stop offset="95%" stopColor="#0b70f5" stopOpacity={0.03} />
                 </linearGradient>
               </defs>
 
@@ -477,7 +531,7 @@ export default function DashboardSalesChart({
               <Tooltip
                 formatter={(value, name) => {
                   const legend =
-                    name === "atual" ? "Período atual" : "Mês anterior"
+                    name === "atual" ? "Mês atual" : name === "anterior" ? "Mês anterior" : "Ano Anterior"
                   return [currentMetric.format(Number(value ?? 0)), legend]
                 }}
                 labelFormatter={(_, payload) => {
@@ -485,6 +539,18 @@ export default function DashboardSalesChart({
                   return row ? `Dia ${row.dia}` : ""
                 }}
               />
+
+              {showAnoAnterior && (
+                <Area
+                  type="monotone"
+                  dataKey="anoAnterior"
+                  stroke="#0b70f5"
+                  fill="url(#colorAnoAnterior)"
+                  strokeWidth={2}
+                  strokeDasharray="10 10"
+                  dot={false}
+                />
+              )}
 
               <Area
                 type="monotone"

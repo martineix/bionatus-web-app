@@ -51,6 +51,7 @@ export default function DashboardPage() {
   const [availableMonths, setAvailableMonths] = useState<DashboardMonthOption[]>([])
   const [metricsDaily, setMetricsDaily] = useState<DashboardMetricDailyPoint[]>([])
   const [metricsPreviousDaily, setMetricsPreviousDaily] = useState<DashboardMetricDailyPoint[]>([])
+  const [metricsLastYearDaily, setMetricsLastYearDaily] = useState<DashboardMetricDailyPoint[]>([])
   const [loading, setLoading] = useState(true)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [refreshing, setRefreshing] = useState(false)
@@ -151,13 +152,15 @@ export default function DashboardPage() {
           dataFim: null,
         }
 
+        let lastYearFilters: DashboardFiltersInput = {
+          ...filters,
+          dataInicio: null,
+          dataFim: null,
+        }
+
         if (hasComparison) {
           const currentDate = new Date(filters.ano!, filters.mes! - 1, 1)
-          const previousDate = new Date(
-            currentDate.getFullYear(),
-            currentDate.getMonth() - 1,
-            1
-          )
+          const previousDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
 
           const previousYear = previousDate.getFullYear()
           const previousMonth = previousDate.getMonth() + 1
@@ -167,26 +170,28 @@ export default function DashboardPage() {
           previousFilters = {
             ...filters,
             dataInicio: `${previousYear}-${previousMonthPadded}-01`,
-            dataFim: `${previousYear}-${previousMonthPadded}-${String(
-              previousLastDay
-            ).padStart(2, "0")}`,
+            dataFim: `${previousYear}-${previousMonthPadded}-${String(previousLastDay).padStart(2, "0")}`,
+          }
+
+          const lastYear = filters.ano! -1
+          const currentMonth = String(filters.mes!).padStart(2, "0")
+          const lastYearLastDay = new Date(lastYear, filters.mes!, 0).getDate()
+
+          lastYearFilters = {
+            ...filters,
+            dataInicio: `${lastYear}-${currentMonth}-01`,
+            dataFim: `${lastYear}-${currentMonth}-${String(lastYearLastDay).padStart(2, "0")}`,
           }
         }
-
+        
         const comparisonPromise = hasComparison
           ? getDashboardKpisComparison({
               dataInicio: dataInicio!,
               dataFim: dataFim!,
               dataInicioMesAnterior: previousFilters.dataInicio!,
               dataFimMesAnterior: previousFilters.dataFim!,
-              dataInicioAnoAnterior: `${filters.ano! - 1}-${String(
-                filters.mes!
-              ).padStart(2, "0")}-01`,
-              dataFimAnoAnterior: `${filters.ano! - 1}-${String(
-                filters.mes!
-              ).padStart(2, "0")}-${String(
-                new Date(filters.ano! - 1, filters.mes!, 0).getDate()
-              ).padStart(2, "0")}`,
+              dataInicioAnoAnterior: `${filters.ano! - 1}-${String(filters.mes!).padStart(2, "0")}-01`,
+              dataFimAnoAnterior: `${filters.ano! - 1}-${String(filters.mes!).padStart(2, "0")}-${String(new Date(filters.ano! - 1, filters.mes!, 0).getDate()).padStart(2, "0")}`,
               idRepresentante: filters.idRepresentante,
               mercado: filters.mercado,
               contas: filters.contas,
@@ -194,16 +199,21 @@ export default function DashboardPage() {
             })
           : Promise.resolve(null)
 
+        const lastYearMetricsPromise = hasComparison
+          ? getDashboardMetricsDaily(lastYearFilters)
+          : Promise.resolve([] as DashboardMetricDailyPoint[])
+        
         const previousMetricsPromise = hasComparison
           ? getDashboardMetricsDaily(previousFilters)
           : Promise.resolve([] as DashboardMetricDailyPoint[])
 
-        const [kpisData, comparisonData, metricsData, metricsPreviousData] =
+        const [kpisData, comparisonData, metricsData, metricsPreviousData, metricsLastYearData] =
           await Promise.all([
             getDashboardKpis(filtersToQuery),
             comparisonPromise,
             getDashboardMetricsDaily(filtersToQuery),
             previousMetricsPromise,
+            lastYearMetricsPromise
           ])
 
         setKpis(kpisData)
@@ -211,6 +221,7 @@ export default function DashboardPage() {
         setMetricsDaily(metricsData)
         setMetricsPreviousDaily(metricsPreviousData)
         setLastUpdated(new Date())
+        setMetricsLastYearDaily(metricsLastYearData)
       } catch (error) {
         console.error("Erro ao buscar dados do dashboard:", error)
       } finally {
@@ -458,6 +469,7 @@ export default function DashboardPage() {
         <DashboardSalesChart
           data={metricsDaily}
           previousData={metricsPreviousDaily}
+          lastYearData={metricsLastYearDaily}
           loading={loading}
         />
       </div>
