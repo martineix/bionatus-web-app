@@ -297,7 +297,7 @@ export default function DashboardSalesChart({
 
   const mobileTableData = useMemo<MobileTableRow[]>(() => {
     return [...chartData].reverse().map((item) => ({
-      dia: item.dia,
+      dia: item.label,
       atual: item.atual,
       anterior: item.anterior,
       anoAnterior: item.anoAnterior,
@@ -534,10 +534,7 @@ export default function DashboardSalesChart({
                     name === "atual" ? "Mês atual" : name === "anterior" ? "Mês anterior" : "Ano anterior"
                   return [currentMetric.format(Number(value ?? 0)), legend]
                 }}
-                labelFormatter={(_, payload) => {
-                  const row = payload?.[0]?.payload as ChartRow | undefined
-                  return row ? `Dia ${row.dia}` : ""
-                }}
+                labelFormatter={(label) => `Dia ${label}`}
               />
 
               {showAnoAnterior && (
@@ -588,14 +585,14 @@ export default function DashboardSalesChart({
             <table className="w-full table-fixed border-collapse">
               <thead className="bg-slate-50 dark:bg-slate-900">
                 <tr>
-                  <th className="w-14 px-2 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                    Dia
+                  <th className="w-18 px-2 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">
+                    {dayMode === "business" ? "Dia Útil" : "Dia"}
                   </th>
                   <th className="px-2 py-3 text-right text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                     Mês Atual
                   </th>
                   <th className="px-2 py-3 text-right text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                    Mês Ant.
+                    Mês Anterior
                   </th>
                 </tr>
               </thead>
