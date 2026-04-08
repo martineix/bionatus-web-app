@@ -528,13 +528,39 @@ export default function DashboardSalesChart({
                   }).format(Number(value))
                 }
               />
+
               <Tooltip
-                formatter={(value, name) => {
-                  const legend =
-                    name === "atual" ? "Mês atual" : name === "anterior" ? "Mês anterior" : "Ano anterior"
-                  return [currentMetric.format(Number(value ?? 0)), legend]
+                content={({ active, payload, label }) => {
+                  if (!active || !payload?.length) return null
+
+                  return (
+                    <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-lg">
+                      <p className="mb-2 text-xs font-semibold text-slate-900">
+                        Dia {label}
+                      </p>
+
+                      {payload.map((entry, index) => {
+                        const legend =
+                          entry.dataKey === "atual"
+                            ? "Mês atual"
+                            : entry.dataKey === "anterior"
+                              ? "Mês anterior"
+                              : "Ano anterior"
+
+                        return (
+                          <div key={index} className="flex items-center justify-between gap-3 py-1">
+                            <span style={{ color: entry.color }} className="text-sm font-medium">
+                              {legend}
+                            </span>
+                            <span style={{ color: entry.color }} className="text-sm font-semibold text-slate-900">
+                              {currentMetric.format(Number(entry.value ?? 0))}
+                            </span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )
                 }}
-                labelFormatter={(label) => `Dia ${label}`}
               />
 
               {showAnoAnterior && (

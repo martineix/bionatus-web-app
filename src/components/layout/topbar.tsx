@@ -58,7 +58,7 @@ export default function Topbar({
               <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 sm:text-sm">
                 <span className="sm:hidden">{updatedLabel}</span>
                 <span className="hidden sm:inline">
-                  {subtitle ?? "Visão geral do desempenho comercial"}
+                  {subtitle ?? "Visão Geral"} || {updatedLabel}
                 </span>
               </p>
             </div>
@@ -108,13 +108,13 @@ export default function Topbar({
           </div>
         </div>
 
-        {onRefresh && (
+        {/* {onRefresh && (
           <div className="mt-2 hidden sm:flex justify-end">
             <p className="text-xs text-slate-500 dark:text-slate-400">
               {updatedLabel}
             </p>
           </div>
-        )}
+        )} */}
       </div>
     </header>
   )

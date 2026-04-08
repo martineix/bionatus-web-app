@@ -247,7 +247,7 @@ export default function DashboardPage() {
   return (
     <AppShell
       title="Dashboard"
-      subtitle="Visão geral do desempenho comercial"
+      subtitle="Visão Geral"
       onRefresh={() => loadDashboardData(false)}
       refreshing={refreshing}
       lastUpdated={lastUpdated}
