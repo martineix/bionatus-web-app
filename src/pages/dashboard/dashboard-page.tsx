@@ -10,10 +10,12 @@ import {
   getDashboardKpis,
   getDashboardKpisComparison,
   getDashboardMetricsDaily,
+  getDashboardProjectionDaily,
   type DashboardFiltersInput,
   type DashboardKpis,
   type DashboardKpisComparison,
   type DashboardMetricDailyPoint,
+  type DashboardProjectionDailyPoint,
   type DashboardMonthOption,
 } from "@/lib/dashboard"
 
@@ -52,9 +54,31 @@ export default function DashboardPage() {
   const [metricsDaily, setMetricsDaily] = useState<DashboardMetricDailyPoint[]>([])
   const [metricsPreviousDaily, setMetricsPreviousDaily] = useState<DashboardMetricDailyPoint[]>([])
   const [metricsLastYearDaily, setMetricsLastYearDaily] = useState<DashboardMetricDailyPoint[]>([])
+  const [projectionDaily, setProjectionDaily] = useState<DashboardProjectionDailyPoint[]>([])
   const [loading, setLoading] = useState(true)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [refreshing, setRefreshing] = useState(false)
+
+  const CHART_PREFERENCES_STORAGE_KEY = "dashboard-chart-preferences"
+  type ChartViewMode = "daily" | "cumulative"
+  type ChartMetricMode = "faturamento" | "pedidos" | "ticket_medio" | "positivacoes"
+  type ChartDayMode = "calendar" | "business"
+
+  type DashboardChartPreferences = {
+    viewMode: ChartViewMode
+    metricMode: ChartMetricMode
+    dayMode: ChartDayMode
+    showAnoAnterior: boolean
+    showProjecao: boolean
+  }
+
+  const defaultChartPreferences: DashboardChartPreferences = {
+    viewMode: "daily",
+    metricMode: "faturamento",
+    dayMode: "calendar",
+    showAnoAnterior: false,
+    showProjecao: false,
+  }
 
   const [filters, setFilters] = useState<DashboardFiltersInput>(() => {
     const saved = localStorage.getItem(FILTERS_STORAGE_KEY)
@@ -80,11 +104,30 @@ export default function DashboardPage() {
     return defaultFilters
   })
 
-  const hasComparison = !!filters.ano && !!filters.mes
+  useEffect(() => { localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(filters)) }, [filters])
 
-  useEffect(() => {
-    localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(filters))
-  }, [filters])
+  const [chartPreferences, setChartPreferences] = useState<DashboardChartPreferences>(() => {
+    const saved = localStorage.getItem(CHART_PREFERENCES_STORAGE_KEY)
+
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+
+        return {
+          ...defaultChartPreferences,
+          ...parsed,
+        }
+      } catch {
+        return defaultChartPreferences
+      }
+    }
+
+    return defaultChartPreferences
+  })
+
+  useEffect(() => { localStorage.setItem(CHART_PREFERENCES_STORAGE_KEY, JSON.stringify(chartPreferences)) }, [chartPreferences])
+
+  const hasComparison = !!filters.ano && !!filters.mes
 
   useEffect(() => {
     async function loadYears() {
@@ -202,18 +245,23 @@ export default function DashboardPage() {
         const lastYearMetricsPromise = hasComparison
           ? getDashboardMetricsDaily(lastYearFilters)
           : Promise.resolve([] as DashboardMetricDailyPoint[])
+
+        const projectionPromise = hasComparison && filtersToQuery.dataInicio && filtersToQuery.dataFim
+            ? getDashboardProjectionDaily(filtersToQuery)
+            : Promise.resolve([] as DashboardProjectionDailyPoint[])
         
         const previousMetricsPromise = hasComparison
           ? getDashboardMetricsDaily(previousFilters)
           : Promise.resolve([] as DashboardMetricDailyPoint[])
 
-        const [kpisData, comparisonData, metricsData, metricsPreviousData, metricsLastYearData] =
+        const [kpisData, comparisonData, metricsData, metricsPreviousData, metricsLastYearData, projectionData] =
           await Promise.all([
             getDashboardKpis(filtersToQuery),
             comparisonPromise,
             getDashboardMetricsDaily(filtersToQuery),
             previousMetricsPromise,
-            lastYearMetricsPromise
+            lastYearMetricsPromise,
+            projectionPromise
           ])
 
         setKpis(kpisData)
@@ -222,6 +270,7 @@ export default function DashboardPage() {
         setMetricsPreviousDaily(metricsPreviousData)
         setLastUpdated(new Date())
         setMetricsLastYearDaily(metricsLastYearData)
+        setProjectionDaily(projectionData)
       } catch (error) {
         console.error("Erro ao buscar dados do dashboard:", error)
       } finally {
@@ -470,7 +519,18 @@ export default function DashboardPage() {
           data={metricsDaily}
           previousData={metricsPreviousDaily}
           lastYearData={metricsLastYearDaily}
+          projectionData={projectionDaily}
           loading={loading}
+          viewMode={chartPreferences.viewMode}
+          metricMode={chartPreferences.metricMode}
+          dayMode={chartPreferences.dayMode}
+          showAnoAnterior={chartPreferences.showAnoAnterior}
+          showProjecao={chartPreferences.showProjecao}
+          onViewModeChange={(value) => setChartPreferences((prev) => ({ ...prev, viewMode: value }))}
+          onMetricModeChange={(value) => setChartPreferences((prev) => ({ ...prev, metricMode: value }))}
+          onDayModeChange={(value) => setChartPreferences((prev) => ({ ...prev, dayMode: value }))}
+          onShowAnoAnteriorChange={(value) => setChartPreferences((prev) => ({ ...prev, showAnoAnterior: value }))}
+          onShowProjecaoChange={(value) => setChartPreferences((prev) => ({ ...prev, showProjecao: value }))}
         />
       </div>
     </AppShell>

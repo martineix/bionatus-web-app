@@ -247,3 +247,67 @@ export async function getGithubUpdates(): Promise<GithubUpdate[]> {
   const json = await response.json()
   return json.updates ?? []
 }
+
+// calcular projeção ponderada
+
+export type DashboardProjectionDailyPoint = {
+  data_ref: string
+  dia: number
+  dia_util: boolean
+  dia_util_numero_mes: number | null
+  projecao_acumulada: number | null
+  fechamento_projetado: number | null
+  percentual_referencia: number | null
+}
+
+export async function getDashboardProjectionDaily(filters: DashboardFiltersInput): Promise<DashboardProjectionDailyPoint[]> {
+  
+  if (!filters.dataInicio || !filters.dataFim) {
+    return []
+  }
+
+  const { data, error } = await supabase.rpc("get_dashboard_projection_daily_v3", {
+    p_data_inicio: filters.dataInicio,
+    p_data_fim: filters.dataFim,
+    p_id_representante: filters.idRepresentante,
+    p_mercado: filters.mercado,
+    p_contas: filters.contas,
+    p_is_bionatus: filters.isBionatus,
+  })
+
+  if (error) {
+    throw error
+  }
+
+  return (data ?? []).map(
+    (row: {
+      data_ref: string
+      dia: number | string
+      dia_util: boolean | null
+      dia_util_numero_mes: number | string | null
+      projecao_acumulada: number | string | null
+      fechamento_projetado: number | string | null
+      percentual_referencia: number | string | null
+    }) => ({
+      data_ref: row.data_ref,
+      dia: Number(row.dia),
+      dia_util: Boolean(row.dia_util),
+      dia_util_numero_mes:
+        row.dia_util_numero_mes === null || row.dia_util_numero_mes === undefined
+          ? null
+          : Number(row.dia_util_numero_mes),
+      projecao_acumulada:
+        row.projecao_acumulada === null || row.projecao_acumulada === undefined
+          ? null
+          : Number(row.projecao_acumulada),
+      fechamento_projetado:
+        row.fechamento_projetado === null || row.fechamento_projetado === undefined
+          ? null
+          : Number(row.fechamento_projetado),
+      percentual_referencia:
+        row.percentual_referencia === null || row.percentual_referencia === undefined
+          ? null
+          : Number(row.percentual_referencia),
+    })
+  )
+}

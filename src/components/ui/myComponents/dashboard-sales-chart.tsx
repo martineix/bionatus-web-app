@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
   Area,
   AreaChart,
@@ -8,14 +8,31 @@ import {
   XAxis,
   YAxis,
 } from "recharts"
-import type { DashboardMetricDailyPoint } from "@/lib/dashboard"
+import type {
+  DashboardMetricDailyPoint,
+  DashboardProjectionDailyPoint,
+} from "@/lib/dashboard"
 import { formatCurrencyBRL, formatNumberBR } from "@/lib/format"
 
 type DashboardSalesChartProps = {
   data: DashboardMetricDailyPoint[]
   previousData: DashboardMetricDailyPoint[]
   lastYearData: DashboardMetricDailyPoint[]
+  projectionData: DashboardProjectionDailyPoint[]
   loading?: boolean
+  
+  viewMode: ViewMode
+  metricMode: MetricMode
+  dayMode: DayMode
+  showAnoAnterior: boolean
+  showProjecao: boolean
+
+  onViewModeChange: (value: ViewMode) => void
+  onMetricModeChange: (value: MetricMode) => void
+  onDayModeChange: (value: DayMode) => void
+  onShowAnoAnteriorChange: (value: boolean) => void
+  onShowProjecaoChange: (value: boolean) => void
+
 }
 
 type ViewMode = "daily" | "cumulative"
@@ -63,6 +80,7 @@ type ChartRow = {
   atual: number
   anterior: number
   anoAnterior: number
+  projecao: number | null
 }
 
 type MobileTableRow = {
@@ -70,21 +88,40 @@ type MobileTableRow = {
   atual: number
   anterior: number
   anoAnterior: number
+  projecao: number | null
 }
+
+const MIN_DIA_UTIL_PARA_PROJECAO = 3
 
 export default function DashboardSalesChart({
   data,
   previousData,
   lastYearData,
+  projectionData,
   loading = false,
+  viewMode,
+  metricMode,
+  dayMode,
+  showAnoAnterior,
+  showProjecao,
+  onViewModeChange,
+  onMetricModeChange,
+  onDayModeChange,
+  onShowAnoAnteriorChange,
+  onShowProjecaoChange,
 }: DashboardSalesChartProps) {
-
-  const [viewMode, setViewMode] = useState<ViewMode>("daily")
-  const [metricMode, setMetricMode] = useState<MetricMode>("faturamento")
   const [hoveredMetric, setHoveredMetric] = useState<MetricMode | null>(null)
-  const [dayMode, setDayMode] = useState<DayMode>("calendar")
 
-  const [showAnoAnterior, setShowAnoAnterior] = useState(false)
+  useEffect(() => {
+    if (
+      (viewMode !== "cumulative" ||
+        dayMode !== "business" ||
+        metricMode !== "faturamento") &&
+      showProjecao
+    ) {
+      onShowProjecaoChange(false)
+    }
+  }, [viewMode, dayMode, metricMode, showProjecao, onShowProjecaoChange])
 
   const currentMetric = metricConfig[metricMode]
 
@@ -97,20 +134,28 @@ export default function DashboardSalesChart({
     const filteredPreviousData =
       dayMode === "business"
         ? previousData.filter(
-          (item) => item.dia_util && item.dia_util_numero_mes !== null
-        )
+            (item) => item.dia_util && item.dia_util_numero_mes !== null
+          )
         : previousData
 
     const filteredLastYearData =
       dayMode === "business"
         ? lastYearData.filter(
-          (item) => item.dia_util && item.dia_util_numero_mes !== null
-        )
+            (item) => item.dia_util && item.dia_util_numero_mes !== null
+          )
         : lastYearData
+
+    const filteredProjectionData =
+      dayMode === "business"
+        ? projectionData.filter(
+            (item) => item.dia_util && item.dia_util_numero_mes !== null
+          )
+        : projectionData
 
     const currentMap = new Map<number, DashboardMetricDailyPoint>()
     const previousMap = new Map<number, DashboardMetricDailyPoint>()
     const lastYearMap = new Map<number, DashboardMetricDailyPoint>()
+    const projectionMap = new Map<number, DashboardProjectionDailyPoint>()
 
     if (dayMode === "business") {
       filteredData.forEach((item) => {
@@ -125,6 +170,9 @@ export default function DashboardSalesChart({
         lastYearMap.set(item.dia_util_numero_mes as number, item)
       })
 
+      filteredProjectionData.forEach((item) => {
+        projectionMap.set(item.dia_util_numero_mes as number, item)
+      })
     } else {
       filteredData.forEach((item) => {
         currentMap.set(item.dia, item)
@@ -136,6 +184,10 @@ export default function DashboardSalesChart({
 
       filteredLastYearData.forEach((item) => {
         lastYearMap.set(item.dia, item)
+      })
+
+      filteredProjectionData.forEach((item) => {
+        projectionMap.set(item.dia, item)
       })
     }
 
@@ -149,7 +201,10 @@ export default function DashboardSalesChart({
           : filteredPreviousData.map((item) => item.dia)),
         ...(dayMode === "business"
           ? filteredLastYearData.map((item) => item.dia_util_numero_mes as number)
-          : filteredLastYearData.map((item) => item.dia))
+          : filteredLastYearData.map((item) => item.dia)),
+        ...(dayMode === "business"
+          ? filteredProjectionData.map((item) => item.dia_util_numero_mes as number)
+          : filteredProjectionData.map((item) => item.dia)),
       ])
     ).sort((a, b) => a - b)
 
@@ -160,10 +215,24 @@ export default function DashboardSalesChart({
     let pedidosAcumuladosAnterior = 0
     let pedidosAcumuladosAnoAnterior = 0
 
+    const ultimoDiaUtilComReal =
+      dayMode === "business"
+        ? Math.max(
+            0,
+            ...filteredData
+              .filter((item) => item.dia_util_numero_mes !== null)
+              .map((item) => item.dia_util_numero_mes as number)
+          )
+        : 0
+
+    
+        let ultimaProjecaoValida: number | null = null
+
     return allKeys.map((key) => {
       const atualItem = currentMap.get(key)
       const anteriorItem = previousMap.get(key)
       const anoAnteriorItem = lastYearMap.get(key)
+      const projectionItem = projectionMap.get(key)
 
       const faturamentoAtual = atualItem?.faturamento ?? 0
       const faturamentoAnterior = anteriorItem?.faturamento ?? 0
@@ -181,11 +250,18 @@ export default function DashboardSalesChart({
       const positivacoesAnterior = anteriorItem?.positivacoes ?? 0
       const positivacoesAnoAnterior = anoAnteriorItem?.positivacoes ?? 0
 
-      const positivacoesAcumuladasAtual = atualItem?.positivacoes_acumuladas ?? 0
-      const positivacoesAcumuladasAnterior = anteriorItem?.positivacoes_acumuladas ?? 0
-      const positivacoesAcumuladasAnoAnterior = anoAnteriorItem?.positivacoes_acumuladas ?? 0
+      const positivacoesAcumuladasAtual =
+        atualItem?.positivacoes_acumuladas ?? 0
+      const positivacoesAcumuladasAnterior =
+        anteriorItem?.positivacoes_acumuladas ?? 0
+      const positivacoesAcumuladasAnoAnterior =
+        anoAnteriorItem?.positivacoes_acumuladas ?? 0
 
-      const diaReal = atualItem?.dia ?? anteriorItem?.dia ?? anoAnteriorItem?.dia ?? 0
+      const projecaoAcumulada = projectionItem?.projecao_acumulada ?? null
+
+      const diaReal =
+        atualItem?.dia ?? anteriorItem?.dia ?? anoAnteriorItem?.dia ?? 0
+
       const label =
         dayMode === "business"
           ? String(key)
@@ -197,12 +273,28 @@ export default function DashboardSalesChart({
           faturamentoAcumuladoAnterior += faturamentoAnterior
           faturamentoAcumuladoAnoAnterior += faturamentoAnoAnterior
 
+          const podeProjetar =
+            dayMode === "business" &&
+            ultimoDiaUtilComReal >= MIN_DIA_UTIL_PARA_PROJECAO
+
+          if (projecaoAcumulada !== null) {
+            ultimaProjecaoValida = projecaoAcumulada
+          }
+
+          const projecaoFaturamentoAcumulada =
+            !podeProjetar
+              ? null
+              : key <= ultimoDiaUtilComReal
+                ? faturamentoAcumuladoAtual
+                : ultimaProjecaoValida
+
           return {
             dia: String(diaReal).padStart(2, "0"),
             label,
             atual: faturamentoAcumuladoAtual,
             anterior: faturamentoAcumuladoAnterior,
             anoAnterior: faturamentoAcumuladoAnoAnterior,
+            projecao: projecaoFaturamentoAcumulada,
           }
         }
 
@@ -217,6 +309,7 @@ export default function DashboardSalesChart({
             atual: pedidosAcumuladosAtual,
             anterior: pedidosAcumuladosAnterior,
             anoAnterior: pedidosAcumuladosAnoAnterior,
+            projecao: null,
           }
         }
 
@@ -243,6 +336,7 @@ export default function DashboardSalesChart({
               pedidosAcumuladosAnoAnterior > 0
                 ? faturamentoAcumuladoAnoAnterior / pedidosAcumuladosAnoAnterior
                 : 0,
+            projecao: null,
           }
         }
 
@@ -252,6 +346,7 @@ export default function DashboardSalesChart({
           atual: positivacoesAcumuladasAtual,
           anterior: positivacoesAcumuladasAnterior,
           anoAnterior: positivacoesAcumuladasAnoAnterior,
+          projecao: null,
         }
       }
 
@@ -262,6 +357,7 @@ export default function DashboardSalesChart({
           atual: faturamentoAtual,
           anterior: faturamentoAnterior,
           anoAnterior: faturamentoAnoAnterior,
+          projecao: null,
         }
       }
 
@@ -272,6 +368,7 @@ export default function DashboardSalesChart({
           atual: pedidosAtual,
           anterior: pedidosAnterior,
           anoAnterior: pedidosAnoAnterior,
+          projecao: null,
         }
       }
 
@@ -282,6 +379,7 @@ export default function DashboardSalesChart({
           atual: ticketAtual,
           anterior: ticketAnterior,
           anoAnterior: ticketAnoAnterior,
+          projecao: null,
         }
       }
 
@@ -291,9 +389,10 @@ export default function DashboardSalesChart({
         atual: positivacoesAtual,
         anterior: positivacoesAnterior,
         anoAnterior: positivacoesAnoAnterior,
+        projecao: null,
       }
     })
-  }, [data, previousData, lastYearData, metricMode, viewMode, dayMode])
+  }, [data, previousData, lastYearData, projectionData, metricMode, viewMode, dayMode])
 
   const mobileTableData = useMemo<MobileTableRow[]>(() => {
     return [...chartData].reverse().map((item) => ({
@@ -301,6 +400,7 @@ export default function DashboardSalesChart({
       atual: item.atual,
       anterior: item.anterior,
       anoAnterior: item.anoAnterior,
+      projecao: item.projecao,
     }))
   }, [chartData])
 
@@ -313,12 +413,8 @@ export default function DashboardSalesChart({
           </h2>
 
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            <span className="hidden md:inline">
-              Comparativo entre período atual e mês anterior
-            </span>
-            <span className="md:hidden">
-              Comparativo diário entre mês atual e mês anterior
-            </span>
+            <span className="hidden md:inline">Comparativo entre Períodos</span>
+            <span className="md:hidden">Comparativo entre Períodos</span>
           </p>
         </div>
 
@@ -328,21 +424,23 @@ export default function DashboardSalesChart({
               <div className="flex flex-wrap items-center gap-2">
                 <div className="inline-flex shrink-0 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
                   <button
-                    onClick={() => setDayMode("calendar")}
-                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${dayMode === "calendar"
-                      ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                      }`}
+                    onClick={() => onDayModeChange("calendar")}
+                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                      dayMode === "calendar"
+                        ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                        : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                    }`}
                   >
                     Corridos
                   </button>
 
                   <button
-                    onClick={() => setDayMode("business")}
-                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${dayMode === "business"
-                      ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                      }`}
+                    onClick={() => onDayModeChange("business")}
+                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                      dayMode === "business"
+                        ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                        : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                    }`}
                   >
                     Úteis
                   </button>
@@ -350,21 +448,23 @@ export default function DashboardSalesChart({
 
                 <div className="inline-flex shrink-0 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
                   <button
-                    onClick={() => setViewMode("daily")}
-                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === "daily"
-                      ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                      }`}
+                    onClick={() => onViewModeChange("daily")}
+                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                      viewMode === "daily"
+                        ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                        : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                    }`}
                   >
                     Diário
                   </button>
 
                   <button
-                    onClick={() => setViewMode("cumulative")}
-                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === "cumulative"
-                      ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                      }`}
+                    onClick={() => onViewModeChange("cumulative")}
+                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                      viewMode === "cumulative"
+                        ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                        : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                    }`}
                   >
                     Acumulado
                   </button>
@@ -380,7 +480,7 @@ export default function DashboardSalesChart({
                     return (
                       <button
                         key={metricKey}
-                        onClick={() => setMetricMode(metricKey)}
+                        onClick={() => onMetricModeChange(metricKey)}
                         className="min-w-0 rounded-lg border px-2 py-1.5 text-[11px] font-semibold transition-colors"
                         style={{
                           borderColor: isActive ? metric.color : "#e2e8f0",
@@ -398,31 +498,60 @@ export default function DashboardSalesChart({
           </div>
 
           <div className="hidden md:flex md:flex-wrap md:items-center md:gap-3">
+            <label
+              className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
+                viewMode !== "cumulative" ||
+                dayMode !== "business" ||
+                metricMode !== "faturamento"
+                  ? "cursor-not-allowed border-slate-200 text-slate-400 opacity-60 dark:border-slate-700 dark:text-slate-500"
+                  : "border-slate-200 text-slate-600 dark:border-slate-700 dark:text-slate-300"
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={showProjecao}
+                onChange={(e) => onShowProjecaoChange(e.target.checked)}
+                disabled={
+                  viewMode !== "cumulative" ||
+                  dayMode !== "business" ||
+                  metricMode !== "faturamento"
+                }
+              />
+              <span className={showProjecao ? "font-semibold" : ""}>
+                Projeção
+              </span>
+            </label>
+
             <label className="flex shrink-0 items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
               <input
                 type="checkbox"
                 checked={showAnoAnterior}
-                onChange={(e) => setShowAnoAnterior(e.target.checked)}
+                onChange={(e) => onShowAnoAnteriorChange(e.target.checked)}
               />
-              <span className={showAnoAnterior ? "font-semibold" : ""}>Ano Anterior</span>
+              <span className={showAnoAnterior ? "font-semibold" : ""}>
+                Ano Anterior
+              </span>
             </label>
+
             <div className="inline-flex shrink-0 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
               <button
-                onClick={() => setViewMode("daily")}
-                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === "daily"
-                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                  : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                  }`}
+                onClick={() => onViewModeChange("daily")}
+                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                  viewMode === "daily"
+                    ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                    : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                }`}
               >
                 Diário
               </button>
 
               <button
-                onClick={() => setViewMode("cumulative")}
-                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === "cumulative"
-                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                  : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                  }`}
+                onClick={() => onViewModeChange("cumulative")}
+                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                  viewMode === "cumulative"
+                    ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                    : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                }`}
               >
                 Acumulado
               </button>
@@ -430,21 +559,23 @@ export default function DashboardSalesChart({
 
             <div className="inline-flex shrink-0 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
               <button
-                onClick={() => setDayMode("calendar")}
-                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${dayMode === "calendar"
-                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                  : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                  }`}
+                onClick={() => onDayModeChange("calendar")}
+                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                  dayMode === "calendar"
+                    ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                    : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                }`}
               >
                 Corridos
               </button>
 
               <button
-                onClick={() => setDayMode("business")}
-                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${dayMode === "business"
-                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                  : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                  }`}
+                onClick={() => onDayModeChange("business")}
+                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                  dayMode === "business"
+                    ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                    : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                }`}
               >
                 Úteis
               </button>
@@ -460,7 +591,7 @@ export default function DashboardSalesChart({
                   return (
                     <button
                       key={metricKey}
-                      onClick={() => setMetricMode(metricKey)}
+                      onClick={() => onMetricModeChange(metricKey)}
                       onMouseEnter={() => setHoveredMetric(metricKey)}
                       onMouseLeave={() => setHoveredMetric(null)}
                       className="whitespace-nowrap rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors"
@@ -502,8 +633,16 @@ export default function DashboardSalesChart({
             <AreaChart data={chartData}>
               <defs>
                 <linearGradient id="colorAtual" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={currentMetric.color} stopOpacity={0.35} />
-                  <stop offset="95%" stopColor={currentMetric.color} stopOpacity={0.04} />
+                  <stop
+                    offset="5%"
+                    stopColor={currentMetric.color}
+                    stopOpacity={0.35}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor={currentMetric.color}
+                    stopOpacity={0.04}
+                  />
                 </linearGradient>
 
                 <linearGradient id="colorAnterior" x1="0" y1="0" x2="0" y2="1">
@@ -512,8 +651,13 @@ export default function DashboardSalesChart({
                 </linearGradient>
 
                 <linearGradient id="colorAnoAnterior" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#0b70f5" stopOpacity={0.20} />
-                  <stop offset="95%" stopColor="#0b70f5" stopOpacity={0.03} />
+                  <stop offset="5%" stopColor="#0B70F5" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="#0B70F5" stopOpacity={0.03} />
+                </linearGradient>
+
+                <linearGradient id="colorProjecao" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#F50BB7" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="#F50BB7" stopOpacity={0.03} />
                 </linearGradient>
               </defs>
 
@@ -545,14 +689,25 @@ export default function DashboardSalesChart({
                             ? "Mês atual"
                             : entry.dataKey === "anterior"
                               ? "Mês anterior"
-                              : "Ano anterior"
+                              : entry.dataKey === "anoAnterior"
+                                ? "Ano anterior"
+                                : "Projeção"
 
                         return (
-                          <div key={index} className="flex items-center justify-between gap-3 py-1">
-                            <span style={{ color: entry.color }} className="text-sm font-medium">
+                          <div
+                            key={index}
+                            className="flex items-center justify-between gap-3 py-1"
+                          >
+                            <span
+                              style={{ color: entry.color }}
+                              className="text-sm font-medium"
+                            >
                               {legend}
                             </span>
-                            <span style={{ color: entry.color }} className="text-sm font-semibold text-slate-900">
+                            <span
+                              style={{ color: entry.color }}
+                              className="text-sm font-semibold text-slate-900"
+                            >
                               {currentMetric.format(Number(entry.value ?? 0))}
                             </span>
                           </div>
@@ -567,13 +722,29 @@ export default function DashboardSalesChart({
                 <Area
                   type="monotone"
                   dataKey="anoAnterior"
-                  stroke="#0b70f5"
+                  stroke="#0B70F5"
                   fill="url(#colorAnoAnterior)"
                   strokeWidth={2}
                   strokeDasharray="10 10"
                   dot={false}
                 />
               )}
+
+              {showProjecao &&
+                viewMode === "cumulative" &&
+                dayMode === "business" &&
+                metricMode === "faturamento" && (
+                  <Area
+                    type="monotone"
+                    dataKey="projecao"
+                    stroke="#F50BB7"
+                    fill="url(#colorProjecao)"
+                    strokeWidth={2}
+                    strokeDasharray="10 10"
+                    dot={false}
+                    connectNulls
+                  />
+                )}
 
               <Area
                 type="monotone"
@@ -611,7 +782,7 @@ export default function DashboardSalesChart({
             <table className="w-full table-fixed border-collapse">
               <thead className="bg-slate-50 dark:bg-slate-900">
                 <tr>
-                  <th className="w-18 px-2 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">
+                  <th className="w-18 truncate px-2 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                     {dayMode === "business" ? "Dia Útil" : "Dia"}
                   </th>
                   <th className="px-2 py-3 text-right text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
