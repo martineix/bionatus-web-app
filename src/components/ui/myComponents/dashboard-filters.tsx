@@ -300,7 +300,7 @@ export default function DashboardFilters({
             </Popover>
           </div>
 
-          <div className="lg:w-37.5 lg:min-w-37.5">
+          <div className="lg:w-50 lg:min-w-37.5">
             <InlineSelectField
               label="Mercado"
               value={filters.mercado === null ? "" : String(filters.mercado)}
