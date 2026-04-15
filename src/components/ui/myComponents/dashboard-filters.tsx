@@ -150,8 +150,8 @@ export default function DashboardFilters({
 
   return (
     <section className="rounded-2xl border border-[#D0D9D6] bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 lg:p-4">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-5">
-        <div className="flex items-start gap-3 lg:min-w-55 lg:shrink-0">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-5">
+        <div className="flex align-items items-start gap-3 lg:min-w-55 lg:shrink-0">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#F0F0F0] text-[#006426] dark:bg-slate-800 dark:text-[#7DD3A2]">
             <Filter className="h-4 w-4" />
           </div>
