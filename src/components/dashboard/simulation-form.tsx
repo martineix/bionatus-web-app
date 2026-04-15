@@ -14,7 +14,7 @@ export function SimulationForm({
     resetSimulationForm,
 }: any) {
     return (
-        <div className="w-full rounded-2xl border border-[#D0D9D6] bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+        <div className="w-full h-full rounded-2xl border border-[#D0D9D6] bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">
             <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
                 Simulador de projeção
             </h3>
