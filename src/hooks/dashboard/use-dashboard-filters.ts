@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react"
 import type { DashboardFiltersInput } from "@/lib/dashboard"
 import {
+  getDashboardAvailableMonths,
+  getDashboardAvailableYears,
+} from "@/lib/dashboard"
+import {
   FILTERS_STORAGE_KEY,
   defaultFilters,
 } from "@/lib/dashboard/dashboard-constants"
@@ -9,34 +13,86 @@ import {
   getYearDateRange,
 } from "@/lib/dashboard/dashboard-helpers"
 
+function getInitialFilters(): DashboardFiltersInput {
+  const saved = localStorage.getItem(FILTERS_STORAGE_KEY)
+
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved)
+
+      return {
+        ...defaultFilters,
+        ...parsed,
+        contas: Array.isArray(parsed.contas) ? parsed.contas : [],
+        isBionatus:
+          parsed.isBionatus === 0 || parsed.isBionatus === 1
+            ? parsed.isBionatus
+            : null,
+      }
+    } catch {
+      return defaultFilters
+    }
+  }
+
+  return defaultFilters
+}
+
 export function useDashboardFilters() {
-  const [filters, setFilters] = useState<DashboardFiltersInput>(() => {
-    const saved = localStorage.getItem(FILTERS_STORAGE_KEY)
+  const [filters, setFilters] = useState<DashboardFiltersInput>(getInitialFilters)
+  const [filtersReady, setFiltersReady] = useState(false)
 
-    if (saved) {
+  useEffect(() => {
+    async function initializeFilters() {
       try {
-        const parsed = JSON.parse(saved)
+        const saved = localStorage.getItem(FILTERS_STORAGE_KEY)
 
-        return {
-          ...defaultFilters,
-          ...parsed,
-          contas: Array.isArray(parsed.contas) ? parsed.contas : [],
-          isBionatus:
-            parsed.isBionatus === 0 || parsed.isBionatus === 1
-              ? parsed.isBionatus
-              : null,
+        // Se já houver filtro salvo, não sobrescreve
+        if (saved) {
+          setFiltersReady(true)
+          return
         }
-      } catch {
-        return defaultFilters
+
+        const years = await getDashboardAvailableYears()
+
+        if (!years.length) {
+          setFiltersReady(true)
+          return
+        }
+
+        const latestYear = Math.max(...years)
+        const months = await getDashboardAvailableMonths(latestYear)
+
+        if (!months.length) {
+          setFilters((prev) => ({
+            ...prev,
+            ano: latestYear,
+          }))
+          setFiltersReady(true)
+          return
+        }
+
+        const latestMonth = Math.max(...months.map((item) => item.mes))
+
+        setFilters((prev) => ({
+          ...prev,
+          ano: latestYear,
+          mes: latestMonth,
+        }))
+
+        setFiltersReady(true)
+      } catch (error) {
+        console.error("Erro ao inicializar filtros do dashboard:", error)
+        setFiltersReady(true)
       }
     }
 
-    return defaultFilters
-  })
+    initializeFilters()
+  }, [])
 
   useEffect(() => {
+    if (!filtersReady) return
     localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(filters))
-  }, [filters])
+  }, [filters, filtersReady])
 
   useEffect(() => {
     let nextDataInicio: string | null = null
@@ -70,9 +126,5 @@ export function useDashboardFilters() {
 
   const hasComparison = !!filters.ano && !!filters.mes
 
-  return {
-    filters,
-    setFilters,
-    hasComparison,
-  }
+  return { filters, setFilters, hasComparison, filtersReady, }
 }

@@ -11,8 +11,11 @@ import { useDashboardData } from "@/hooks/dashboard/use-dashboard-data"
 import { useDashboardSimulations } from "@/hooks/dashboard/use-dashboard-simulations"
 
 export default function DashboardPage() {
-  const { filters, setFilters, hasComparison } = useDashboardFilters()
-  const { chartPreferences, setChartPreferences } = useDashboardChartPreferences()
+  const { filters, setFilters, hasComparison, filtersReady } =
+    useDashboardFilters()
+
+  const { chartPreferences, setChartPreferences } =
+    useDashboardChartPreferences()
 
   const {
     kpis,
@@ -27,7 +30,7 @@ export default function DashboardPage() {
     refreshing,
     lastUpdated,
     loadDashboardData,
-  } = useDashboardData({ filters, hasComparison })
+  } = useDashboardData({ filters, hasComparison, filtersReady })
 
   const simulations = useDashboardSimulations({
     ano: filters.ano,
@@ -38,16 +41,18 @@ export default function DashboardPage() {
   })
 
   const canShowProjectionControls =
-  chartPreferences.showProjecao &&
-  chartPreferences.viewMode === "cumulative" &&
-  chartPreferences.dayMode === "business" &&
-  chartPreferences.metricMode === "faturamento"
+    chartPreferences.showProjecao &&
+    chartPreferences.viewMode === "cumulative" &&
+    chartPreferences.dayMode === "business" &&
+    chartPreferences.metricMode === "faturamento"
 
   useEffect(() => {
+    if (!filtersReady) return
+
     if (filters.dataInicio && filters.dataFim) {
       simulations.loadSimulacoes()
     }
-  }, [filters.dataInicio, filters.dataFim, simulations])
+  }, [filtersReady, filters.dataInicio, filters.dataFim, simulations])
 
   return (
     <AppShell
@@ -82,10 +87,7 @@ export default function DashboardPage() {
           setChartPreferences={setChartPreferences}
         />
 
-        {canShowProjectionControls && (
-          <DashboardSimulationSection {...simulations} />
-        )}
-
+        {canShowProjectionControls && ( <DashboardSimulationSection {...simulations} /> )}
       </div>
     </AppShell>
   )

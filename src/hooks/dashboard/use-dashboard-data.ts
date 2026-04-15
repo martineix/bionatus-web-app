@@ -19,15 +19,12 @@ import { getMonthDateRange } from "@/lib/dashboard/dashboard-helpers"
 type UseDashboardDataParams = {
   filters: DashboardFiltersInput
   hasComparison: boolean
+  filtersReady?: boolean
 }
 
-export function useDashboardData({
-  filters,
-  hasComparison,
-}: UseDashboardDataParams) {
+export function useDashboardData({ filters, hasComparison, filtersReady}: UseDashboardDataParams) {
   const [kpis, setKpis] = useState<DashboardKpis | null>(null)
-  const [kpisComparison, setKpisComparison] =
-    useState<DashboardKpisComparison | null>(null)
+  const [kpisComparison, setKpisComparison] = useState<DashboardKpisComparison | null>(null)
   const [availableYears, setAvailableYears] = useState<number[]>([])
   const [availableMonths, setAvailableMonths] = useState<DashboardMonthOption[]>([])
   const [metricsDaily, setMetricsDaily] = useState<DashboardMetricDailyPoint[]>([])
@@ -71,23 +68,18 @@ export function useDashboardData({
 
   const loadDashboardData = useCallback(
     async (showLoading = true) => {
+      if (!filtersReady) return
+      if (!filters.dataInicio || !filters.dataFim) return
+
       try {
         if (showLoading) setLoading(true)
         else setRefreshing(true)
 
         const filtersToQuery = { ...filters }
 
-        let previousFilters: DashboardFiltersInput = {
-          ...filters,
-          dataInicio: null,
-          dataFim: null,
-        }
+        let previousFilters: DashboardFiltersInput = { ...filters, dataInicio: null, dataFim: null, }
 
-        let lastYearFilters: DashboardFiltersInput = {
-          ...filters,
-          dataInicio: null,
-          dataFim: null,
-        }
+        let lastYearFilters: DashboardFiltersInput = { ...filters, dataInicio: null, dataFim: null, }
 
         if (hasComparison && filters.ano && filters.mes) {
           const currentDate = new Date(filters.ano, filters.mes - 1, 1)
@@ -170,20 +162,23 @@ export function useDashboardData({
         setRefreshing(false)
       }
     },
-    [filters, hasComparison]
+    [filters, hasComparison, filtersReady]
   )
 
   useEffect(() => {
+    if (!filtersReady) return
+    if (!filters.dataInicio || !filters.dataFim) return
+
     loadDashboardData(true)
-  }, [loadDashboardData])
+  }, [filtersReady, filters.dataInicio, filters.dataFim, loadDashboardData])
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      loadDashboardData(false)
-    }, 15 * 60 * 1000)
+    if (!filtersReady) return
+    
+    const interval = setInterval(() => { loadDashboardData(false) }, 15 * 60 * 1000)
 
     return () => clearInterval(interval)
-  }, [loadDashboardData])
+  }, [filtersReady, loadDashboardData])
 
   return {
     kpis,

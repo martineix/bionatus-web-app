@@ -153,6 +153,26 @@ function SalesChartTooltip({
   )
 }
 
+function getMetricButtonStyle(
+  metricKey: keyof typeof metricConfig,
+  metricMode: MetricMode,
+  hoveredMetric?: MetricMode | null
+) {
+  const metric = metricConfig[metricKey]
+  const isActive = metricMode === metricKey
+  const isHovered = hoveredMetric === metricKey && !isActive
+
+  return {
+    borderColor: isActive ? metric.color : "#e2e8f0",
+    backgroundColor: isActive
+      ? metric.color
+      : isHovered
+        ? metric.hoverBg
+        : "transparent",
+    color: isActive ? "#ffffff" : isHovered ? metric.hoverText : "#475569",
+  }
+}
+
 function DashboardSalesChartComponent({
   data,
   previousData,
@@ -179,6 +199,8 @@ function DashboardSalesChartComponent({
     viewMode === "cumulative" &&
     dayMode === "business" &&
     metricMode === "faturamento"
+
+  const canShowAnoAnterior = showAnoAnterior
 
   const filteredData = useMemo(() => {
     return dayMode === "business"
@@ -487,6 +509,7 @@ function DashboardSalesChartComponent({
     viewMode,
     dayMode,
   ])
+
   const mobileTableData = useMemo<MobileTableRow[]>(() => {
     return [...chartData].reverse().map((item) => ({
       dia: item.label,
@@ -517,20 +540,22 @@ function DashboardSalesChartComponent({
               <div className="flex flex-wrap items-center gap-2">
                 <div className="inline-flex shrink-0 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
                   <button
+                    type="button"
                     onClick={() => onDayModeChange("calendar")}
                     className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${dayMode === "calendar"
-                      ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                        ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                        : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                       }`}
                   >
                     Corridos
                   </button>
 
                   <button
+                    type="button"
                     onClick={() => onDayModeChange("business")}
                     className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${dayMode === "business"
-                      ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                        ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                        : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                       }`}
                   >
                     Úteis
@@ -539,20 +564,22 @@ function DashboardSalesChartComponent({
 
                 <div className="inline-flex shrink-0 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
                   <button
+                    type="button"
                     onClick={() => onViewModeChange("daily")}
                     className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === "daily"
-                      ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                        ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                        : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                       }`}
                   >
                     Diário
                   </button>
 
                   <button
+                    type="button"
                     onClick={() => onViewModeChange("cumulative")}
                     className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === "cumulative"
-                      ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                        ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                        : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                       }`}
                   >
                     Acumulado
@@ -561,27 +588,56 @@ function DashboardSalesChartComponent({
               </div>
 
               <div className="grid grid-cols-4 gap-2">
-                {(Object.keys(metricConfig) as Array<keyof typeof metricConfig>).map(
-                  (metricKey) => {
-                    const metric = metricConfig[metricKey]
-                    const isActive = metricMode === metricKey
+  {(Object.keys(metricConfig) as Array<keyof typeof metricConfig>).map(
+    (metricKey) => {
+      const metric = metricConfig[metricKey]
 
-                    return (
-                      <button
-                        key={metricKey}
-                        onClick={() => onMetricModeChange(metricKey)}
-                        className="min-w-0 rounded-lg border px-2 py-1.5 text-[11px] font-semibold transition-colors"
-                        style={{
-                          borderColor: isActive ? metric.color : "#e2e8f0",
-                          backgroundColor: isActive ? metric.color : "transparent",
-                          color: isActive ? "#ffffff" : "#475569",
-                        }}
-                      >
-                        {metric.shortLabel}
-                      </button>
-                    )
+      return (
+        <button
+          key={metricKey}
+          type="button"
+          onClick={() => onMetricModeChange(metricKey)}
+          className="min-w-0 rounded-lg border px-2 py-1.5 text-[11px] font-semibold transition-colors"
+          style={getMetricButtonStyle(metricKey, metricMode)}
+        >
+          {metric.shortLabel}
+        </button>
+      )
+    }
+  )}
+</div>
+
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => onShowAnoAnteriorChange(!showAnoAnterior)}
+                  className={`rounded-lg border px-3 py-1.5 text-[11px] font-medium transition-colors ${showAnoAnterior
+                      ? "border-[#0B70F5] bg-[#EAF3FF] text-[#0B70F5] dark:border-[#0B70F5] dark:bg-[#0B70F5]/10"
+                      : "border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                    }`}
+                >
+                  Ano anterior
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onShowProjecaoChange(!showProjecao)}
+                  disabled={
+                    viewMode !== "cumulative" ||
+                    dayMode !== "business" ||
+                    metricMode !== "faturamento"
                   }
-                )}
+                  className={`rounded-lg border px-3 py-1.5 text-[11px] font-medium transition-colors ${viewMode !== "cumulative" ||
+                      dayMode !== "business" ||
+                      metricMode !== "faturamento"
+                      ? "cursor-not-allowed border-slate-200 text-slate-400 opacity-60 dark:border-slate-700 dark:text-slate-500"
+                      : showProjecao
+                        ? "border-[#F50BB7] bg-[#FDEBFA] text-[#F50BB7] dark:border-[#F50BB7] dark:bg-[#F50BB7]/10"
+                        : "border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                    }`}
+                >
+                  Projeção
+                </button>
               </div>
             </div>
           </div>
@@ -589,10 +645,10 @@ function DashboardSalesChartComponent({
           <div className="hidden md:flex md:flex-wrap md:items-center md:gap-3">
             <label
               className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm ${viewMode !== "cumulative" ||
-                dayMode !== "business" ||
-                metricMode !== "faturamento"
-                ? "cursor-not-allowed border-slate-200 text-slate-400 opacity-60 dark:border-slate-700 dark:text-slate-500"
-                : "border-slate-200 text-slate-600 dark:border-slate-700 dark:text-slate-300"
+                  dayMode !== "business" ||
+                  metricMode !== "faturamento"
+                  ? "cursor-not-allowed border-slate-200 text-slate-400 opacity-60 dark:border-slate-700 dark:text-slate-500"
+                  : "border-slate-200 text-slate-600 dark:border-slate-700 dark:text-slate-300"
                 }`}
             >
               <input
@@ -623,20 +679,22 @@ function DashboardSalesChartComponent({
 
             <div className="inline-flex shrink-0 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
               <button
+                type="button"
                 onClick={() => onViewModeChange("daily")}
                 className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === "daily"
-                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                  : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                    ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                    : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                   }`}
               >
                 Diário
               </button>
 
               <button
+                type="button"
                 onClick={() => onViewModeChange("cumulative")}
                 className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === "cumulative"
-                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                  : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                    ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                    : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                   }`}
               >
                 Acumulado
@@ -645,20 +703,22 @@ function DashboardSalesChartComponent({
 
             <div className="inline-flex shrink-0 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
               <button
+                type="button"
                 onClick={() => onDayModeChange("calendar")}
                 className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${dayMode === "calendar"
-                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                  : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                    ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                    : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                   }`}
               >
                 Corridos
               </button>
 
               <button
+                type="button"
                 onClick={() => onDayModeChange("business")}
                 className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${dayMode === "business"
-                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                  : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                    ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                    : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                   }`}
               >
                 Úteis
@@ -675,6 +735,7 @@ function DashboardSalesChartComponent({
                   return (
                     <button
                       key={metricKey}
+                      type="button"
                       onClick={() => onMetricModeChange(metricKey)}
                       onMouseEnter={() => setHoveredMetric(metricKey)}
                       onMouseLeave={() => setHoveredMetric(null)}
@@ -755,9 +816,8 @@ function DashboardSalesChartComponent({
               />
 
               <Tooltip
-                content={
-                  <SalesChartTooltip formatter={currentMetric.format} />
-                }
+                isAnimationActive={false}
+                content={<SalesChartTooltip formatter={currentMetric.format} />}
               />
 
               {showAnoAnterior && (
@@ -803,7 +863,7 @@ function DashboardSalesChartComponent({
                 stroke={currentMetric.color}
                 fill="url(#colorAtual)"
                 strokeWidth={3}
-                dot={true}
+                dot={false}
                 isAnimationActive={false}
               />
             </AreaChart>
@@ -850,6 +910,14 @@ function DashboardSalesChartComponent({
                     <td className="wrap-break-word px-2 py-3 text-right text-sm text-slate-600 dark:text-slate-300">
                       <div className="flex flex-col items-end">
                         <span>{currentMetric.format(row.atual)}</span>
+
+                        {
+                          canShowAnoAnterior && row.anoAnterior !== null && (
+                            <span className="mt-1 text-[11px] font-medium text-[#0B70F5]">
+                              Ano Ant: {currentMetric.format(row.anoAnterior)}
+                            </span>
+                          )
+                        }
 
                         {canShowProjection && row.projecao !== null && (
                           <span className="mt-1 text-[11px] font-medium text-[#F50BB7]">

@@ -175,7 +175,7 @@ export default function DashboardFilters({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:flex-1 lg:items-end lg:gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:flex-wrap lg:justify-end lg:items-end lg:gap-3">
           <div className="lg:w-27.5 lg:min-w-27.5">
             <InlineSelectField
               label="Ano"
@@ -220,7 +220,7 @@ export default function DashboardFilters({
             </InlineSelectField>
           </div>
 
-          <div className="space-y-1 lg:flex-1 lg:min-w-65">
+          <div className="space-y-1 lg:w-65 lg:min-w-65">
             <label className="block text-[10px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400 lg:mb-0.5">
               Canal
             </label>
