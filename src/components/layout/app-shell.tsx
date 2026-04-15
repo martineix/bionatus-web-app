@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react"
+import { useCallback, useEffect, useState, type ReactNode } from "react"
 import Sidebar from "./sidebar"
 import Topbar from "./topbar"
 
@@ -12,6 +12,17 @@ type AppShellProps = {
 }
 
 const SIDEBAR_STORAGE_KEY = "sidebar-collapsed"
+const DESKTOP_BREAKPOINT = 1024
+
+function getInitialSidebarCollapsed() {
+  try {
+    const saved = localStorage.getItem(SIDEBAR_STORAGE_KEY)
+    if (saved === null) return false
+    return JSON.parse(saved)
+  } catch {
+    return false
+  }
+}
 
 export default function AppShell({
   title,
@@ -21,27 +32,46 @@ export default function AppShell({
   refreshing = false,
   lastUpdated = null,
 }: AppShellProps) {
-  const [collapsed, setCollapsed] = useState<boolean>(() => {
-    const saved = localStorage.getItem(SIDEBAR_STORAGE_KEY)
-
-    if (saved === null) return false
-
-    try {
-      return JSON.parse(saved)
-    } catch {
-      return false
-    }
-  })
-
+  const [collapsed, setCollapsed] = useState<boolean>(getInitialSidebarCollapsed)
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  function handleToggleSidebar() {
+  const handleToggleSidebar = useCallback(() => {
     setCollapsed((prev) => !prev)
-  }
+  }, [])
+
+  const handleCloseMobileMenu = useCallback(() => {
+    setMobileOpen(false)
+  }, [])
+
+  const handleOpenMobileMenu = useCallback(() => {
+    setMobileOpen(true)
+  }, [])
 
   useEffect(() => {
     localStorage.setItem(SIDEBAR_STORAGE_KEY, JSON.stringify(collapsed))
   }, [collapsed])
+
+  useEffect(() => {
+    if (!mobileOpen) return
+
+    const originalOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+
+    return () => {
+      document.body.style.overflow = originalOverflow
+    }
+  }, [mobileOpen])
+
+  useEffect(() => {
+    function handleResize() {
+      if (window.innerWidth >= DESKTOP_BREAKPOINT) {
+        setMobileOpen(false)
+      }
+    }
+
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [])
 
   return (
     <div className="min-h-screen bg-[#F0F0F0] dark:bg-slate-900">
@@ -49,7 +79,7 @@ export default function AppShell({
         collapsed={collapsed}
         onToggleCollapse={handleToggleSidebar}
         mobileOpen={mobileOpen}
-        onCloseMobile={() => setMobileOpen(false)}
+        onCloseMobile={handleCloseMobileMenu}
       />
 
       <div
@@ -62,10 +92,10 @@ export default function AppShell({
           onRefresh={onRefresh}
           refreshing={refreshing}
           lastUpdated={lastUpdated}
-          onOpenMobileMenu={() => setMobileOpen(true)}
+          onOpenMobileMenu={handleOpenMobileMenu}
         />
 
-        <main className="flex-1 px-4 pb-4 pt-24 sm:px-6 sm:pb-6 lg:pt-4">
+        <main className="flex-1 px-4 pb-4 sm:px-6 sm:pb-6 lg:pt-4">
           {children}
         </main>
       </div>

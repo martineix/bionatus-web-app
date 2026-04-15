@@ -266,7 +266,7 @@ export async function getDashboardProjectionDaily(filters: DashboardFiltersInput
     return []
   }
 
-  const { data, error } = await supabase.rpc("get_dashboard_projection_daily_v3", {
+  const { data, error } = await supabase.rpc("get_dashboard_projection_daily_v4", {
     p_data_inicio: filters.dataInicio,
     p_data_fim: filters.dataFim,
     p_id_representante: filters.idRepresentante,
@@ -310,4 +310,160 @@ export async function getDashboardProjectionDaily(filters: DashboardFiltersInput
           : Number(row.percentual_referencia),
     })
   )
+}
+
+export type DashboardSimulacaoRow = {
+  id: number
+  data_ref: string
+  dia_mes: number
+  dia_util: number | null
+  ano: number
+  mes: number
+  nome_mes: string
+  contas: number
+  conta_nome: string
+  valor: number
+  observacao: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type DashboardSimulacaoInput = {
+  data_ref: string
+  contas: number
+  valor: number
+  observacao?: string | null
+}
+
+export type DashboardSimulacaoUpdateInput = {
+  id: number
+  data_ref: string
+  contas: number
+  valor: number
+  observacao?: string | null
+}
+
+export type DashboardSimulacaoDeleteResult = {
+  id: number
+  data_ref: string
+  contas: number
+  valor: number
+  observacao: string | null
+}
+
+function mapDashboardSimulacaoRow(row: {
+  id: number | string
+  data_ref: string
+  dia_mes: number | string
+  dia_util: number | string | null
+  ano: number | string
+  mes: number | string
+  nome_mes: string
+  contas: number | string
+  conta_nome: string
+  valor: number | string
+  observacao: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}): DashboardSimulacaoRow {
+  return {
+    id: Number(row.id),
+    data_ref: row.data_ref,
+    dia_mes: Number(row.dia_mes),
+    dia_util:
+      row.dia_util === null || row.dia_util === undefined
+        ? null
+        : Number(row.dia_util),
+    ano: Number(row.ano),
+    mes: Number(row.mes),
+    nome_mes: row.nome_mes,
+    contas: Number(row.contas),
+    conta_nome: row.conta_nome,
+    valor: Number(row.valor ?? 0),
+    observacao: row.observacao ?? null,
+    created_by: row.created_by ?? null,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+  }
+}
+
+export async function getDashboardSimulacoes(params: {
+  dataInicio: string
+  dataFim: string
+}): Promise<DashboardSimulacaoRow[]> {
+  const { data, error } = await supabase.rpc("get_dashboard_projecoes", {
+    p_data_inicio: params.dataInicio,
+    p_data_fim: params.dataFim,
+  })
+
+  if (error) {
+    throw error
+  }
+
+  return (data ?? []).map(mapDashboardSimulacaoRow)
+}
+
+export async function insertDashboardSimulacao(
+  input: DashboardSimulacaoInput
+): Promise<DashboardSimulacaoRow | null> {
+  const { data, error } = await supabase.rpc("insert_dashboard_projecao", {
+    p_data_ref: input.data_ref,
+    p_contas: input.contas,
+    p_valor: input.valor,
+    p_observacao: input.observacao ?? null,
+  })
+
+  if (error) {
+    throw error
+  }
+
+  const row = data?.[0]
+  return row ? mapDashboardSimulacaoRow(row) : null
+}
+
+export async function updateDashboardSimulacao(
+  input: DashboardSimulacaoUpdateInput
+): Promise<DashboardSimulacaoRow | null> {
+  const { data, error } = await supabase.rpc("update_dashboard_projecao", {
+    p_id: input.id,
+    p_data_ref: input.data_ref,
+    p_contas: input.contas,
+    p_valor: input.valor,
+    p_observacao: input.observacao ?? null,
+  })
+
+  if (error) {
+    throw error
+  }
+
+  const row = data?.[0]
+  return row ? mapDashboardSimulacaoRow(row) : null
+}
+
+export async function deleteDashboardSimulacao(
+  id: number
+): Promise<DashboardSimulacaoDeleteResult | null> {
+  const { data, error } = await supabase.rpc("delete_dashboard_projecao", {
+    p_id: id,
+  })
+
+  if (error) {
+    throw error
+  }
+
+  const row = data?.[0]
+
+  if (!row) {
+    return null
+  }
+
+  return {
+    id: Number(row.id),
+    data_ref: row.data_ref,
+    contas: Number(row.contas),
+    valor: Number(row.valor ?? 0),
+    observacao: row.observacao ?? null,
+  }
 }

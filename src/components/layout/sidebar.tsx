@@ -6,6 +6,7 @@ import {
   X,
   PanelLeftClose,
   PanelLeftOpen,
+  type LucideIcon,
 } from "lucide-react"
 
 type SidebarProps = {
@@ -15,12 +16,38 @@ type SidebarProps = {
   onCloseMobile: () => void
 }
 
+type NavItem = {
+  to: string
+  label: string
+  icon: LucideIcon
+}
+
+const navItems: NavItem[] = [
+  {
+    to: "/dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    to: "/clientes",
+    label: "Clientes",
+    icon: Users,
+  },
+  {
+    to: "/produtos",
+    label: "Produtos",
+    icon: Package,
+  },
+]
+
 export default function Sidebar({
   collapsed,
   onToggleCollapse,
   mobileOpen,
   onCloseMobile,
 }: SidebarProps) {
+  const showLabels = mobileOpen || !collapsed
+
   return (
     <>
       {mobileOpen && (
@@ -31,13 +58,13 @@ export default function Sidebar({
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex h-screen flex-col border-r border-slate-200 bg-white p-4 transition-[width, transform] duration-300 dark:border-slate-800 dark:bg-slate-950
+        className={`fixed inset-y-0 left-0 z-50 flex h-screen flex-col border-r border-slate-200 bg-white p-4 transition-[width,transform] duration-300 dark:border-slate-800 dark:bg-slate-950
         ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
         w-72 lg:translate-x-0
         ${collapsed ? "lg:w-20" : "lg:w-64"}`}
       >
         <div className="mb-6 flex items-center justify-between">
-          {!collapsed && (
+          {showLabels && (
             <div>
               <h2 className="text-xl font-bold text-[#006426] dark:text-[#7DD3A2]">
                 Bionatus
@@ -67,56 +94,28 @@ export default function Sidebar({
         </div>
 
         <nav className="space-y-2">
-          <NavLink
-            to="/dashboard"
-            onClick={onCloseMobile}
-            className={({ isActive }) =>
-              `flex items-center rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
-                collapsed ? "lg:justify-center" : "gap-3"
-              } ${
-                isActive
-                  ? "bg-[#D0D9D6] text-[#006426] dark:bg-slate-800 dark:text-[#7DD3A2]"
-                  : "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-              }`
-            }
-          >
-            <LayoutDashboard className="h-4 w-4 shrink-0" />
-            {!collapsed && <span>Dashboard</span>}
-          </NavLink>
+          {navItems.map((item) => {
+            const Icon = item.icon
 
-          <NavLink
-            to="/clientes"
-            onClick={onCloseMobile}
-            className={({ isActive }) =>
-              `flex items-center rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
-                collapsed ? "lg:justify-center" : "gap-3"
-              } ${
-                isActive
-                  ? "bg-[#D0D9D6] text-[#006426] dark:bg-slate-800 dark:text-[#7DD3A2]"
-                  : "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-              }`
-            }
-          >
-            <Users className="h-4 w-4 shrink-0" />
-            {!collapsed && <span>Clientes</span>}
-          </NavLink>
-
-          <NavLink
-            to="/produtos"
-            onClick={onCloseMobile}
-            className={({ isActive }) =>
-              `flex items-center rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
-                collapsed ? "lg:justify-center" : "gap-3"
-              } ${
-                isActive
-                  ? "bg-[#D0D9D6] text-[#006426] dark:bg-slate-800 dark:text-[#7DD3A2]"
-                  : "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-              }`
-            }
-          >
-            <Package className="h-4 w-4 shrink-0" />
-            {!collapsed && <span>Produtos</span>}
-          </NavLink>
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                onClick={onCloseMobile}
+                className={({ isActive }) =>
+                  `flex items-center rounded-xl px-3 py-2 text-sm font-medium transition-colors ${showLabels ? "gap-3" : "lg:justify-center"
+                  } ${isActive
+                    ? "bg-[#D0D9D6] text-[#006426] dark:bg-slate-800 dark:text-[#7DD3A2]"
+                    : "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                  }`
+                }
+                title={!showLabels ? item.label : undefined}
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                {showLabels && <span>{item.label}</span>}
+              </NavLink>
+            )
+          })}
         </nav>
       </aside>
     </>
