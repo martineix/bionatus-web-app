@@ -19,12 +19,9 @@ export function DashboardKpisSection({
       {dashboardKpiCards.map((card) => {
         const Icon = card.icon
 
-        const currentValue =
-          kpisComparison?.[`${card.valueKey}_atual`] ?? kpis?.[card.valueKey] ?? 0
-        const previousMonthValue =
-          kpisComparison?.[`${card.valueKey}_mes_anterior`] ?? 0
-        const previousYearValue =
-          kpisComparison?.[`${card.valueKey}_ano_anterior`] ?? 0
+        const currentValue = kpisComparison?.[`${card.valueKey}_atual`] ?? kpis?.[card.valueKey] ?? 0
+        const previousMonthValue = kpisComparison?.[`${card.valueKey}_mes_anterior`] ?? 0
+        const previousYearValue = kpisComparison?.[`${card.valueKey}_ano_anterior`] ?? 0
 
         const formatValue =
           card.valueKey === "faturamento" || card.valueKey === "ticket_medio"
@@ -45,17 +42,13 @@ export function DashboardKpisSection({
                   {
                     label: "vs mês anterior:",
                     value: formatValue(previousMonthValue),
-                    change: formatPercentBR(
-                      getPercentageChange(currentValue, previousMonthValue)
-                    ),
+                    change: formatPercentBR(getPercentageChange(currentValue, previousMonthValue)),
                     positive: currentValue >= previousMonthValue,
                   },
                   {
                     label: "vs ano anterior:",
                     value: formatValue(previousYearValue),
-                    change: formatPercentBR(
-                      getPercentageChange(currentValue, previousYearValue)
-                    ),
+                    change: formatPercentBR(getPercentageChange(currentValue, previousYearValue)),
                     positive: currentValue >= previousYearValue,
                   },
                 ]
