@@ -1,5 +1,6 @@
 // src/hooks/dashboard/use-dashboard-data.ts
 import { useCallback, useEffect, useState } from "react"
+import { logger } from "@/lib/logger"
 import {
   getDashboardAvailableMonths,
   getDashboardAvailableYears,
@@ -41,7 +42,7 @@ export function useDashboardData({ filters, hasComparison, filtersReady}: UseDas
         const years = await getDashboardAvailableYears()
         setAvailableYears(years)
       } catch (error) {
-        console.error("Erro ao buscar anos disponíveis:", error)
+        logger.error("use-dashboard-data/loadYears", error)
       }
     }
 
@@ -59,7 +60,7 @@ export function useDashboardData({ filters, hasComparison, filtersReady}: UseDas
         const months = await getDashboardAvailableMonths(filters.ano)
         setAvailableMonths(months)
       } catch (error) {
-        console.error("Erro ao buscar meses disponíveis:", error)
+        logger.error("use-dashboard-data/loadMonths", error)
       }
     }
 
@@ -156,7 +157,7 @@ export function useDashboardData({ filters, hasComparison, filtersReady}: UseDas
         setProjectionDaily(projectionData)
         setLastUpdated(new Date())
       } catch (error) {
-        console.error("Erro ao buscar dados do dashboard:", error)
+        logger.error("use-dashboard-data/loadDashboardData", error)
       } finally {
         setLoading(false)
         setRefreshing(false)

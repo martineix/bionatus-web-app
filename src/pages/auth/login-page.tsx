@@ -5,10 +5,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { signInWithPassword } from "@/lib/auth"
+import { useTheme } from "@/providers/theme-provider"
+import { logger } from "@/lib/logger"
 import logoBionatus from "@/assets/logo-bionatus.svg"
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const { theme, setTheme } = useTheme()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -16,28 +19,12 @@ export default function LoginPage() {
   const [error, setError] = useState("")
 
   useEffect(() => {
-    const root = document.documentElement
-    const body = document.body
-
-    const previousColorScheme = root.style.colorScheme
-    const previousBodyBg = body.style.backgroundColor
-    const hadDarkClass = root.classList.contains("dark")
-
-    root.classList.remove("dark")
-    root.style.colorScheme = "light"
-    body.style.backgroundColor = "#F0F0F0"
-
-    return () => {
-      root.style.colorScheme = previousColorScheme
-      body.style.backgroundColor = previousBodyBg
-
-      if (hadDarkClass) {
-        root.classList.add("dark")
-      }
+    if (theme === "dark") {
+      setTheme("light")
     }
   }, [])
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()
     setLoading(true)
     setError("")
@@ -45,7 +32,7 @@ export default function LoginPage() {
     const { error } = await signInWithPassword(email, password)
 
     if (error) {
-      console.error("Erro no Login:", error)
+      logger.error("login-page/handleLogin", error)
       setError(error.message)
       setLoading(false)
       return

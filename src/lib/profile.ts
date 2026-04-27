@@ -16,9 +16,9 @@ export async function getMyProfile() {
         .eq("id", user.id)
         .single()
 
-        if (error) {
-            throw error
-        }
-    
+    if (error) {
+        throw error
+    }
+
     return data
 }

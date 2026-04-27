@@ -2,15 +2,17 @@ import { Pencil, X } from "lucide-react"
 import { formatCurrencyBRL } from "@/lib/format"
 import { formatDateBR } from "@/lib/dashboard/dashboard-helpers"
 
+type SimulationTableItem = {
+    id: number
+    data_ref: string
+    dia_util: number | null
+    conta_nome: string
+    valor: number
+}
+
 type SimulationTableProps = {
-    projectionSimulations: Array<{
-        id: number
-        data_ref: string
-        dia_util: number | null
-        conta_nome: string
-        valor: number
-    }>
-    handleEditSimulation: (item: any) => void
+    projectionSimulations: SimulationTableItem[]
+    handleEditSimulation: (item: SimulationTableItem) => void
     handleDeleteSimulation: (id: number) => void
 }
 

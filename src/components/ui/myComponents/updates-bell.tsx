@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { Bell, GitCommitVertical, Loader2 } from "lucide-react"
+import { logger } from "@/lib/logger"
 import {
   Popover,
   PopoverContent,
@@ -41,7 +42,7 @@ export default function UpdatesBell() {
         const data = await getGithubUpdates()
         setUpdates(data)
       } catch (err) {
-        console.error("Erro ao buscar updates:", err)
+        logger.error("updates-bell/fetchUpdates", err)
         setError("Não foi possível carregar os updates.")
       } finally {
         setLoading(false)

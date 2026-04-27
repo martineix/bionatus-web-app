@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import type { DashboardFiltersInput } from "@/lib/dashboard"
+import { logger } from "@/lib/logger"
 import {
   getDashboardAvailableMonths,
   getDashboardAvailableYears,
@@ -81,7 +82,7 @@ export function useDashboardFilters() {
 
         setFiltersReady(true)
       } catch (error) {
-        console.error("Erro ao inicializar filtros do dashboard:", error)
+        logger.error("use-dashboard-filters/initializeFilters", error)
         setFiltersReady(true)
       }
     }

@@ -7,13 +7,21 @@ import {
   getPercentageChange,
 } from "@/lib/format"
 import { dashboardKpiCards } from "@/lib/dashboard/dashboard-kpi-cards"
+import type { DashboardKpis, DashboardKpisComparison } from "@/lib/dashboard"
+
+type DashboardKpisSectionProps = {
+  loading: boolean
+  hasComparison: boolean
+  kpis: DashboardKpis | null
+  kpisComparison: DashboardKpisComparison | null
+}
 
 export function DashboardKpisSection({
   loading,
   hasComparison,
   kpis,
   kpisComparison,
-}: any) {
+}: DashboardKpisSectionProps) {
   return (
     <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
       {dashboardKpiCards.map((card) => {

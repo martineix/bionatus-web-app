@@ -1,5 +1,6 @@
 // src/hooks/dashboard/use-dashboard-simulations.ts
 import { useCallback, useState } from "react"
+import { toast } from "sonner"
 import {
   deleteDashboardSimulacao,
   getDashboardSimulacoes,
@@ -8,6 +9,7 @@ import {
   type DashboardSimulacaoRow,
 } from "@/lib/dashboard"
 import { parseCurrencyInput } from "@/lib/dashboard/dashboard-helpers"
+import { logger } from "@/lib/logger"
 
 type Params = {
   ano: number | null
@@ -49,7 +51,7 @@ export function useDashboardSimulations({
       const data = await getDashboardSimulacoes({ dataInicio, dataFim })
       setProjectionSimulations(data)
     } catch (error) {
-      console.error("Erro ao buscar simulações:", error)
+      logger.error("use-dashboard-simulations/loadSimulacoes", error)
     }
   }, [dataInicio, dataFim, mes])
 
@@ -57,7 +59,7 @@ export function useDashboardSimulations({
     if (!simulationDate || simulationChannel === "" || !simulationValue) return
 
     if (!ano || !mes || !dataInicio || !dataFim) {
-      alert("Selecione ano e mês no filtro principal antes de inserir uma simulação.")
+      toast.warning("Selecione ano e mês no filtro principal antes de inserir uma simulação.")
       return
     }
 
@@ -66,14 +68,14 @@ export function useDashboardSimulations({
     const selectedMonth = selectedDate.getMonth() + 1
 
     if (selectedYear !== ano || selectedMonth !== mes) {
-      alert("A data da simulação precisa estar dentro do mês selecionado no dashboard.")
+      toast.warning("A data da simulação precisa estar dentro do mês selecionado no dashboard.")
       return
     }
 
     const numericValue = parseCurrencyInput(simulationValue)
 
     if (numericValue <= 0) {
-      alert("Informe um valor válido para a simulação.")
+      toast.warning("Informe um valor válido para a simulação.")
       return
     }
 
@@ -101,8 +103,8 @@ export function useDashboardSimulations({
       await loadSimulacoes()
       await onAfterChange?.()
     } catch (error) {
-      console.error("Erro ao salvar simulação:", error)
-      alert("Não foi possível salvar a simulação.")
+      logger.error("use-dashboard-simulations/handleSubmitSimulation", error)
+      toast.error("Não foi possível salvar a simulação.")
     } finally {
       setSavingSimulation(false)
     }
@@ -126,8 +128,8 @@ export function useDashboardSimulations({
       await loadSimulacoes()
       await onAfterChange?.()
     } catch (error) {
-      console.error("Erro ao excluir a simulação:", error)
-      alert("Não foi possível excluir a simulação.")
+      logger.error("use-dashboard-simulations/handleDeleteSimulation", error)
+      toast.error("Não foi possível excluir a simulação.")
     }
   }
 

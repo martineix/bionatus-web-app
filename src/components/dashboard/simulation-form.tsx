@@ -1,5 +1,19 @@
 // src/components/dashboard/simulation-form.tsx
+import type { Dispatch, SetStateAction } from "react"
 import { channelOptions } from "@/lib/dashboard/dashboard-constants"
+
+type SimulationFormProps = {
+  simulationDate: string
+  simulationChannel: number | ""
+  simulationValue: string
+  editingSimulationId: number | null
+  savingSimulation: boolean
+  setSimulationDate: Dispatch<SetStateAction<string>>
+  setSimulationChannel: Dispatch<SetStateAction<number | "">>
+  setSimulationValue: Dispatch<SetStateAction<string>>
+  handleSubmitSimulation: () => void
+  resetSimulationForm: () => void
+}
 
 export function SimulationForm({
     simulationDate,
@@ -12,7 +26,7 @@ export function SimulationForm({
     setSimulationValue,
     handleSubmitSimulation,
     resetSimulationForm,
-}: any) {
+}: SimulationFormProps) {
     return (
         <div className="w-full h-full rounded-2xl border border-[#D0D9D6] bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">
             <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">

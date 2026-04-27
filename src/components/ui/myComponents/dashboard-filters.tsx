@@ -11,6 +11,7 @@ import type {
   DashboardFiltersInput,
   DashboardMonthOption,
 } from "@/lib/dashboard"
+import { channelOptions as canalOptions } from "@/lib/dashboard/dashboard-constants"
 
 type DashboardFiltersProps = {
   filters: DashboardFiltersInput
@@ -18,16 +19,6 @@ type DashboardFiltersProps = {
   availableYears: number[]
   availableMonths: DashboardMonthOption[]
 }
-
-const canalOptions = [
-  { value: 1, label: "Marcas Próprias" },
-  { value: 2, label: "Licitações" },
-  { value: 3, label: "Varejo" },
-  { value: 4, label: "Redes" },
-  { value: 5, label: "Distribuição" },
-  { value: 6, label: "Televendas" },
-  { value: 7, label: "Outros" },
-]
 
 const baseControlClass =
   "h-10 lg:h-9 w-full rounded-xl border bg-white px-3 pr-10 text-sm text-slate-700 outline-none transition-colors dark:bg-slate-900 dark:text-slate-200"
