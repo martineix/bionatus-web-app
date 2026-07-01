@@ -13,12 +13,17 @@ type Params = {
 }
 
 export function useDashboardBreakdown({ filters, filtersReady }: Params) {
+  const { dataInicio, dataFim, idRepresentante, mercado, contas, isBionatus } = filters
+
   const [breakdownByConta, setBreakdownByConta] = useState<DashboardBreakdownContaRow[]>([])
   const [breakdownByFabricante, setBreakdownByFabricante] = useState<DashboardFabricanteBreakdownRow[]>([])
   const [loading, setLoading] = useState(false)
 
-  const loadBreakdown = useCallback(async () => {
-    if (!filtersReady || !filters.dataInicio || !filters.dataFim) {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const contasKey = contas.join(",")
+
+  const loadBreakdown = useCallback(async (signal?: AbortSignal) => {
+    if (!filtersReady || !dataInicio || !dataFim) {
       setBreakdownByConta([])
       setBreakdownByFabricante([])
       return
@@ -27,24 +32,47 @@ export function useDashboardBreakdown({ filters, filtersReady }: Params) {
     try {
       setLoading(true)
 
+      const f: DashboardFiltersInput = {
+        ano: null,
+        mes: null,
+        dataInicio,
+        dataFim,
+        idRepresentante,
+        mercado,
+        contas,
+        isBionatus,
+      }
+
       const [contaData, fabricanteData] = await Promise.all([
-        getDashboardBreakdownByConta(filters),
-        getDashboardFabricanteBreakdown(filters),
+        getDashboardBreakdownByConta(f),
+        getDashboardFabricanteBreakdown(f),
       ])
+
+      if (signal?.aborted) return
 
       setBreakdownByConta(contaData)
       setBreakdownByFabricante(fabricanteData)
     } catch (error) {
-      logger.error("use-dashboard-breakdown/loadBreakdown", error)
+      if (!signal?.aborted) {
+        logger.error("use-dashboard-breakdown/loadBreakdown", error)
+      }
     } finally {
-      setLoading(false)
+      if (!signal?.aborted) {
+        setLoading(false)
+      }
     }
-  }, [filters, filtersReady])
+  // contasKey representa contas (array estável salvo quando o usuário muda canal)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtersReady, dataInicio, dataFim, idRepresentante, mercado, contasKey, isBionatus])
 
   useEffect(() => {
     if (!filtersReady) return
-    loadBreakdown()
-  }, [filtersReady, filters.dataInicio, filters.dataFim, loadBreakdown])
+
+    const controller = new AbortController()
+    loadBreakdown(controller.signal)
+
+    return () => controller.abort()
+  }, [filtersReady, loadBreakdown])
 
   return { breakdownByConta, breakdownByFabricante, loading }
 }
