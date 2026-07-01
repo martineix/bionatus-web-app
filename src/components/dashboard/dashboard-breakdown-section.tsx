@@ -241,6 +241,9 @@ export function DashboardBreakdownSection({
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 % sobre o faturamento
               </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                *Falta ajuste de produtos ainda
+              </p>
             </div>
           </div>
 
