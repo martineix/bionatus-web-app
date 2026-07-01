@@ -119,6 +119,9 @@ export function DashboardBreakdownSection({
             <p className="text-xs text-slate-500 dark:text-slate-400">
               Faturamento segmentado por mercado e canal
             </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              *Não afetado por filtros de período, canal ou fabricante
+            </p>
           </div>
         </div>
 
