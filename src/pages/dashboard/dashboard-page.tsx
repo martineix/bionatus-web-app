@@ -5,10 +5,12 @@ import DashboardFilters from "@/components/ui/myComponents/dashboard-filters"
 import { DashboardKpisSection } from "@/components/dashboard/dashboard-kpis-section"
 import { DashboardChartSection } from "@/components/dashboard/dashboard-chart-section"
 import { DashboardSimulationSection } from "@/components/dashboard/dashboard-simulation-section"
+import { DashboardBreakdownSection } from "@/components/dashboard/dashboard-breakdown-section"
 import { useDashboardFilters } from "@/hooks/dashboard/use-dashboard-filters"
 import { useDashboardChartPreferences } from "@/hooks/dashboard/use-dashboard-chart-preferences"
 import { useDashboardData } from "@/hooks/dashboard/use-dashboard-data"
 import { useDashboardSimulations } from "@/hooks/dashboard/use-dashboard-simulations"
+import { useDashboardBreakdown } from "@/hooks/dashboard/use-dashboard-breakdown"
 
 export default function DashboardPage() {
   const { filters, setFilters, hasComparison, filtersReady } =
@@ -32,6 +34,9 @@ export default function DashboardPage() {
     loadDashboardData,
   } = useDashboardData({ filters, hasComparison, filtersReady })
 
+  const { breakdownByConta, breakdownByFabricante, loading: breakdownLoading } =
+    useDashboardBreakdown({ filters, filtersReady })
+
   const simulations = useDashboardSimulations({
     ano: filters.ano,
     mes: filters.mes,
@@ -46,13 +51,15 @@ export default function DashboardPage() {
     chartPreferences.dayMode === "business" &&
     chartPreferences.metricMode === "faturamento"
 
+  const { loadSimulacoes } = simulations
+
   useEffect(() => {
     if (!filtersReady) return
 
     if (filters.dataInicio && filters.dataFim) {
-      simulations.loadSimulacoes()
+      loadSimulacoes()
     }
-  }, [filtersReady, filters.dataInicio, filters.dataFim, simulations])
+  }, [filtersReady, filters.dataInicio, filters.dataFim, loadSimulacoes])
 
   return (
     <AppShell
@@ -85,6 +92,12 @@ export default function DashboardPage() {
           loading={loading}
           chartPreferences={chartPreferences}
           setChartPreferences={setChartPreferences}
+        />
+
+        <DashboardBreakdownSection
+          breakdownByConta={breakdownByConta}
+          breakdownByFabricante={breakdownByFabricante}
+          loading={breakdownLoading}
         />
 
         {canShowProjectionControls && ( <DashboardSimulationSection {...simulations} /> )}

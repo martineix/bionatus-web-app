@@ -8,6 +8,10 @@ import type {
   DashboardProjectionDailyPoint,
   DashboardSimulacaoRow,
   DashboardSimulacaoRowRaw,
+  DashboardBreakdownContaRow,
+  DashboardBreakdownContaRowRaw,
+  DashboardFabricanteBreakdownRow,
+  DashboardFabricanteBreakdownRowRaw,
 } from "./types"
 import { toNumber, toNullableNumber } from "./rpc-helpers"
 
@@ -149,5 +153,33 @@ export function mapDashboardSimulacaoRow(
     created_by: row.created_by ?? null,
     created_at: row.created_at,
     updated_at: row.updated_at,
+  }
+}
+
+export function mapDashboardBreakdownContaRow(
+  row: DashboardBreakdownContaRowRaw
+): DashboardBreakdownContaRow {
+  return {
+    mercado: toNumber(row.mercado),
+    mercado_nome: String(row.mercado_nome ?? ""),
+    conta: toNumber(row.conta),
+    conta_nome: String(row.conta_nome ?? ""),
+    faturamento: toNumber(row.faturamento),
+    pedidos: toNumber(row.pedidos),
+    ticket_medio: toNumber(row.ticket_medio),
+    positivacoes: toNumber(row.positivacoes),
+  }
+}
+
+export function mapDashboardFabricanteBreakdownRow(
+  row: DashboardFabricanteBreakdownRowRaw
+): DashboardFabricanteBreakdownRow {
+  return {
+    is_bionatus:
+      row.is_bionatus === null || row.is_bionatus === undefined
+        ? null
+        : toNumber(row.is_bionatus),
+    fabricante_nome: String(row.fabricante_nome ?? ""),
+    faturamento: toNumber(row.faturamento),
   }
 }

@@ -135,3 +135,37 @@ export type GithubUpdate = {
   date: string
   author: string
 }
+
+export type DashboardBreakdownContaRow = {
+  mercado: number
+  mercado_nome: string
+  conta: number
+  conta_nome: string
+  faturamento: number
+  pedidos: number
+  ticket_medio: number
+  positivacoes: number
+}
+
+export type DashboardBreakdownContaRowRaw = {
+  mercado: unknown
+  mercado_nome: unknown
+  conta: unknown
+  conta_nome: unknown
+  faturamento: unknown
+  pedidos: unknown
+  ticket_medio: unknown
+  positivacoes: unknown
+}
+
+export type DashboardFabricanteBreakdownRow = {
+  is_bionatus: number | null
+  fabricante_nome: string
+  faturamento: number
+}
+
+export type DashboardFabricanteBreakdownRowRaw = {
+  is_bionatus: unknown
+  fabricante_nome: unknown
+  faturamento: unknown
+}
