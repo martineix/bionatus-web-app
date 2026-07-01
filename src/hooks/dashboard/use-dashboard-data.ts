@@ -24,6 +24,11 @@ type UseDashboardDataParams = {
 }
 
 export function useDashboardData({ filters, hasComparison, filtersReady}: UseDashboardDataParams) {
+  const { ano, mes, dataInicio, dataFim, idRepresentante, mercado, contas, isBionatus } = filters
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const contasKey = contas.join(",")
+
   const [kpis, setKpis] = useState<DashboardKpis | null>(null)
   const [kpisComparison, setKpisComparison] = useState<DashboardKpisComparison | null>(null)
   const [availableYears, setAvailableYears] = useState<number[]>([])
@@ -52,12 +57,12 @@ export function useDashboardData({ filters, hasComparison, filtersReady}: UseDas
   useEffect(() => {
     async function loadMonths() {
       try {
-        if (!filters.ano) {
+        if (!ano) {
           setAvailableMonths([])
           return
         }
 
-        const months = await getDashboardAvailableMonths(filters.ano)
+        const months = await getDashboardAvailableMonths(ano)
         setAvailableMonths(months)
       } catch (error) {
         logger.error("use-dashboard-data/loadMonths", error)
@@ -65,25 +70,33 @@ export function useDashboardData({ filters, hasComparison, filtersReady}: UseDas
     }
 
     loadMonths()
-  }, [filters.ano])
+  }, [ano])
 
   const loadDashboardData = useCallback(
     async (showLoading = true) => {
       if (!filtersReady) return
-      if (!filters.dataInicio || !filters.dataFim) return
+      if (!dataInicio || !dataFim) return
 
       try {
         if (showLoading) setLoading(true)
         else setRefreshing(true)
 
-        const filtersToQuery = { ...filters }
+        const filtersToQuery: DashboardFiltersInput = {
+          ano,
+          mes,
+          dataInicio,
+          dataFim,
+          idRepresentante,
+          mercado,
+          contas,
+          isBionatus,
+        }
 
-        let previousFilters: DashboardFiltersInput = { ...filters, dataInicio: null, dataFim: null, }
+        let previousFilters: DashboardFiltersInput = { ...filtersToQuery, dataInicio: null, dataFim: null }
+        let lastYearFilters: DashboardFiltersInput = { ...filtersToQuery, dataInicio: null, dataFim: null }
 
-        let lastYearFilters: DashboardFiltersInput = { ...filters, dataInicio: null, dataFim: null, }
-
-        if (hasComparison && filters.ano && filters.mes) {
-          const currentDate = new Date(filters.ano, filters.mes - 1, 1)
+        if (hasComparison && ano && mes) {
+          const currentDate = new Date(ano, mes - 1, 1)
           const previousDate = new Date(
             currentDate.getFullYear(),
             currentDate.getMonth() - 1,
@@ -91,7 +104,7 @@ export function useDashboardData({ filters, hasComparison, filtersReady}: UseDas
           )
 
           previousFilters = {
-            ...filters,
+            ...filtersToQuery,
             ...getMonthDateRange(
               previousDate.getFullYear(),
               previousDate.getMonth() + 1
@@ -99,8 +112,8 @@ export function useDashboardData({ filters, hasComparison, filtersReady}: UseDas
           }
 
           lastYearFilters = {
-            ...filters,
-            ...getMonthDateRange(filters.ano - 1, filters.mes),
+            ...filtersToQuery,
+            ...getMonthDateRange(ano - 1, mes),
           }
         }
 
@@ -113,10 +126,10 @@ export function useDashboardData({ filters, hasComparison, filtersReady}: UseDas
                 dataFimMesAnterior: previousFilters.dataFim!,
                 dataInicioAnoAnterior: lastYearFilters.dataInicio!,
                 dataFimAnoAnterior: lastYearFilters.dataFim!,
-                idRepresentante: filters.idRepresentante,
-                mercado: filters.mercado,
-                contas: filters.contas,
-                isBionatus: filters.isBionatus,
+                idRepresentante,
+                mercado,
+                contas,
+                isBionatus,
               })
             : Promise.resolve(null)
 
@@ -163,21 +176,20 @@ export function useDashboardData({ filters, hasComparison, filtersReady}: UseDas
         setRefreshing(false)
       }
     },
-    [filters, hasComparison, filtersReady]
+    // contasKey representa contas (array) de forma estável
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [filtersReady, ano, mes, dataInicio, dataFim, idRepresentante, mercado, contasKey, isBionatus, hasComparison]
   )
 
   useEffect(() => {
     if (!filtersReady) return
-    if (!filters.dataInicio || !filters.dataFim) return
-
+    if (!dataInicio || !dataFim) return
     loadDashboardData(true)
-  }, [filtersReady, filters.dataInicio, filters.dataFim, loadDashboardData])
+  }, [filtersReady, ano, mes, dataInicio, dataFim, idRepresentante, mercado, contasKey, isBionatus, loadDashboardData])
 
   useEffect(() => {
     if (!filtersReady) return
-    
     const interval = setInterval(() => { loadDashboardData(false) }, 15 * 60 * 1000)
-
     return () => clearInterval(interval)
   }, [filtersReady, loadDashboardData])
 
