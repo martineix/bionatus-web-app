@@ -16,6 +16,9 @@ dist-ssr
 # MCP config (contém tokens sensíveis)
 .mcp.json
 
+# Scratch progress ledger for subagent-driven-development
+.superpowers/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
