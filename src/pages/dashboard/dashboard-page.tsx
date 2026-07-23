@@ -49,6 +49,12 @@ export default function DashboardPage() {
     onAfterChange: () => loadDashboardData(false),
   })
 
+  const canShowProjectionControls =
+    chartPreferences.showProjecao &&
+    chartPreferences.viewMode === "cumulative" &&
+    chartPreferences.dayMode === "business" &&
+    chartPreferences.metricMode === "faturamento"
+
   const { loadSimulacoes } = simulations
 
   useEffect(() => {
@@ -99,7 +105,7 @@ export default function DashboardPage() {
           error={breakdownError}
         />
 
-        {hasComparison && <DashboardSimulationSection {...simulations} />}
+        {canShowProjectionControls && <DashboardSimulationSection {...simulations} />}
       </div>
     </AppShell>
   )
