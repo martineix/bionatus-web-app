@@ -44,7 +44,7 @@ export function useRemovals() {
 
     const numericPedido = Number(pedido)
 
-    if (!Number.isFinite(numericPedido) || numericPedido <= 0) {
+    if (!Number.isFinite(numericPedido) || numericPedido <= 0 || !Number.isInteger(numericPedido)) {
       toast.warning("Informe um número de pedido válido.")
       return
     }

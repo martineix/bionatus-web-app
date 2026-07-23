@@ -60,7 +60,13 @@ export async function insertRemoval(
     throw error
   }
 
-  return mapRemovalRow((data as RemovalRowRaw[])[0])
+  const row = (data as RemovalRowRaw[] | null)?.[0]
+
+  if (!row) {
+    throw new Error("Não foi possível adicionar a remoção.")
+  }
+
+  return mapRemovalRow(row)
 }
 
 export async function deleteRemoval(id: number): Promise<void> {
