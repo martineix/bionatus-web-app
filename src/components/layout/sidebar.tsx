@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   Package,
   Users,
+  Ban,
   X,
   PanelLeftClose,
   PanelLeftOpen,
@@ -40,6 +41,11 @@ const navItems: NavItem[] = [
     to: "/produtos",
     label: "Produtos",
     icon: Package,
+  },
+  {
+    to: "/remocoes",
+    label: "Remoções",
+    icon: Ban,
   },
 ]
 

@@ -3,6 +3,7 @@ import LoginPage from "@/pages/auth/login-page"
 import DashboardPage from "@/pages/dashboard/dashboard-page"
 import ClientesPage from "@/pages/clientes/clientes-page"
 import ProdutosPage from "@/pages/produtos/produtos-page"
+import RemocoesPage from "@/pages/remocoes/remocoes-page"
 import ProtectedRoute from "@/routes/protected-route"
 
 export default function App() {
@@ -33,6 +34,15 @@ export default function App() {
         element={
           <ProtectedRoute>
             <ProdutosPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/remocoes"
+        element={
+          <ProtectedRoute>
+            <RemocoesPage />
           </ProtectedRoute>
         }
       />
