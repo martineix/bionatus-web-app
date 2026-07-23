@@ -34,8 +34,12 @@ export default function DashboardPage() {
     loadDashboardData,
   } = useDashboardData({ filters, hasComparison, filtersReady })
 
-  const { breakdownByConta, breakdownByFabricante, loading: breakdownLoading } =
-    useDashboardBreakdown({ filters, filtersReady })
+  const {
+    breakdownByConta,
+    breakdownByFabricante,
+    loading: breakdownLoading,
+    error: breakdownError,
+  } = useDashboardBreakdown({ filters, filtersReady })
 
   const simulations = useDashboardSimulations({
     ano: filters.ano,
@@ -44,12 +48,6 @@ export default function DashboardPage() {
     dataFim: filters.dataFim,
     onAfterChange: () => loadDashboardData(false),
   })
-
-  const canShowProjectionControls =
-    chartPreferences.showProjecao &&
-    chartPreferences.viewMode === "cumulative" &&
-    chartPreferences.dayMode === "business" &&
-    chartPreferences.metricMode === "faturamento"
 
   const { loadSimulacoes } = simulations
 
@@ -98,9 +96,10 @@ export default function DashboardPage() {
           breakdownByConta={breakdownByConta}
           breakdownByFabricante={breakdownByFabricante}
           loading={breakdownLoading}
+          error={breakdownError}
         />
 
-        {canShowProjectionControls && ( <DashboardSimulationSection {...simulations} /> )}
+        {hasComparison && <DashboardSimulationSection {...simulations} />}
       </div>
     </AppShell>
   )

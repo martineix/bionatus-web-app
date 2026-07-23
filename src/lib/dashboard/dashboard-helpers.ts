@@ -1,8 +1,9 @@
 export function parseCurrencyInput(value: string) {
-  const normalized = value
-    .replace(/\./g, "")
-    .replace(",", ".")
-    .replace(/[^\d.-]/g, "")
+  const hasComma = value.includes(",")
+
+  const normalized = hasComma
+    ? value.replace(/\./g, "").replace(",", ".").replace(/[^\d.-]/g, "")
+    : value.replace(/[^\d.-]/g, "")
 
   const parsed = Number(normalized)
   return Number.isFinite(parsed) ? parsed : 0

@@ -1,5 +1,5 @@
 // src/hooks/dashboard/use-dashboard-data.ts
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { logger } from "@/lib/logger"
 import {
   getDashboardAvailableMonths,
@@ -41,6 +41,18 @@ export function useDashboardData({ filters, hasComparison, filtersReady}: UseDas
   const [refreshing, setRefreshing] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
+  // Cancelamento compartilhado: qualquer chamada nova (filtro, botão Atualizar,
+  // intervalo automático, simulação) supera e cancela a anterior, não importa
+  // qual delas disparou primeiro — evita que uma resposta antiga sobrescreva
+  // uma mais recente.
+  const activeRequestRef = useRef<AbortController | null>(null)
+
+  useEffect(() => {
+    return () => {
+      activeRequestRef.current?.abort()
+    }
+  }, [])
+
   useEffect(() => {
     async function loadYears() {
       try {
@@ -76,6 +88,11 @@ export function useDashboardData({ filters, hasComparison, filtersReady}: UseDas
     async (showLoading = true) => {
       if (!filtersReady) return
       if (!dataInicio || !dataFim) return
+
+      activeRequestRef.current?.abort()
+      const controller = new AbortController()
+      activeRequestRef.current = controller
+      const { signal } = controller
 
       try {
         if (showLoading) setLoading(true)
@@ -162,6 +179,8 @@ export function useDashboardData({ filters, hasComparison, filtersReady}: UseDas
           projectionPromise,
         ])
 
+        if (signal.aborted) return
+
         setKpis(kpisData)
         setKpisComparison(comparisonData)
         setMetricsDaily(metricsData)
@@ -170,10 +189,14 @@ export function useDashboardData({ filters, hasComparison, filtersReady}: UseDas
         setProjectionDaily(projectionData)
         setLastUpdated(new Date())
       } catch (error) {
-        logger.error("use-dashboard-data/loadDashboardData", error)
+        if (!signal.aborted) {
+          logger.error("use-dashboard-data/loadDashboardData", error)
+        }
       } finally {
-        setLoading(false)
-        setRefreshing(false)
+        if (!signal.aborted) {
+          setLoading(false)
+          setRefreshing(false)
+        }
       }
     },
     // contasKey representa contas (array) de forma estável

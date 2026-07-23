@@ -1,28 +1,20 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Eye, EyeOff } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { signInWithPassword } from "@/lib/auth"
-import { useTheme } from "@/providers/theme-provider"
 import { logger } from "@/lib/logger"
 import logoBionatus from "@/assets/logo-bionatus.svg"
 
 export default function LoginPage() {
   const navigate = useNavigate()
-  const { theme, setTheme } = useTheme()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-
-  useEffect(() => {
-    if (theme === "dark") {
-      setTheme("light")
-    }
-  }, [])
 
   async function handleLogin(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()

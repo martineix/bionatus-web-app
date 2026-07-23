@@ -173,6 +173,188 @@ function getMetricButtonStyle(
   }
 }
 
+type SegmentedToggleOption<T extends string> = {
+  value: T
+  label: string
+}
+
+type SegmentedToggleProps<T extends string> = {
+  value: T
+  options: SegmentedToggleOption<T>[]
+  onChange: (value: T) => void
+}
+
+function SegmentedToggle<T extends string>({
+  value,
+  options,
+  onChange,
+}: SegmentedToggleProps<T>) {
+  return (
+    <div className="inline-flex shrink-0 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
+      {options.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          onClick={() => onChange(option.value)}
+          className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${value === option.value
+            ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+            : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+            }`}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+type MetricModeButtonsProps = {
+  metricMode: MetricMode
+  onMetricModeChange: (value: MetricMode) => void
+  variant: "compact" | "full"
+}
+
+function MetricModeButtons({
+  metricMode,
+  onMetricModeChange,
+  variant,
+}: MetricModeButtonsProps) {
+  const [hoveredMetric, setHoveredMetric] = useState<MetricMode | null>(null)
+  const metricKeys = Object.keys(metricConfig) as Array<keyof typeof metricConfig>
+
+  if (variant === "compact") {
+    return (
+      <div className="grid grid-cols-4 gap-2">
+        {metricKeys.map((metricKey) => {
+          const metric = metricConfig[metricKey]
+
+          return (
+            <button
+              key={metricKey}
+              type="button"
+              onClick={() => onMetricModeChange(metricKey)}
+              className="min-w-0 rounded-lg border px-2 py-1.5 text-[11px] font-semibold transition-colors"
+              style={getMetricButtonStyle(metricKey, metricMode)}
+            >
+              {metric.shortLabel}
+            </button>
+          )
+        })}
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex shrink-0 items-center gap-2 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
+      {metricKeys.map((metricKey) => {
+        const metric = metricConfig[metricKey]
+
+        return (
+          <button
+            key={metricKey}
+            type="button"
+            onClick={() => onMetricModeChange(metricKey)}
+            onMouseEnter={() => setHoveredMetric(metricKey)}
+            onMouseLeave={() => setHoveredMetric(null)}
+            className="whitespace-nowrap rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors"
+            style={getMetricButtonStyle(metricKey, metricMode, hoveredMetric)}
+          >
+            {metric.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+type AnoAnteriorToggleProps = {
+  checked: boolean
+  onChange: (value: boolean) => void
+  variant: "button" | "checkbox"
+}
+
+function AnoAnteriorToggle({ checked, onChange, variant }: AnoAnteriorToggleProps) {
+  if (variant === "checkbox") {
+    return (
+      <label className="flex shrink-0 items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={(e) => onChange(e.target.checked)}
+        />
+        <span className={checked ? "font-semibold" : ""}>Ano Anterior</span>
+      </label>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      className={`rounded-lg border px-3 py-1.5 text-[11px] font-medium transition-colors ${checked
+        ? "border-[#0B70F5] bg-[#EAF3FF] text-[#0B70F5] dark:border-[#0B70F5] dark:bg-[#0B70F5]/10"
+        : "border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+        }`}
+    >
+      Ano anterior
+    </button>
+  )
+}
+
+type ProjecaoToggleProps = {
+  checked: boolean
+  disabled: boolean
+  onChange: (value: boolean) => void
+  variant: "button" | "checkbox"
+}
+
+function ProjecaoToggle({ checked, disabled, onChange, variant }: ProjecaoToggleProps) {
+  if (variant === "checkbox") {
+    return (
+      <label
+        className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm ${disabled
+          ? "cursor-not-allowed border-slate-200 text-slate-400 opacity-60 dark:border-slate-700 dark:text-slate-500"
+          : "border-slate-200 text-slate-600 dark:border-slate-700 dark:text-slate-300"
+          }`}
+      >
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={(e) => onChange(e.target.checked)}
+          disabled={disabled}
+        />
+        <span className={checked ? "font-semibold" : ""}>Projeção</span>
+      </label>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      disabled={disabled}
+      className={`rounded-lg border px-3 py-1.5 text-[11px] font-medium transition-colors ${disabled
+        ? "cursor-not-allowed border-slate-200 text-slate-400 opacity-60 dark:border-slate-700 dark:text-slate-500"
+        : checked
+          ? "border-[#F50BB7] bg-[#FDEBFA] text-[#F50BB7] dark:border-[#F50BB7] dark:bg-[#F50BB7]/10"
+          : "border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+        }`}
+    >
+      Projeção
+    </button>
+  )
+}
+
+const dayModeOptions: SegmentedToggleOption<DayMode>[] = [
+  { value: "calendar", label: "Corridos" },
+  { value: "business", label: "Úteis" },
+]
+
+const viewModeOptions: SegmentedToggleOption<ViewMode>[] = [
+  { value: "daily", label: "Diário" },
+  { value: "cumulative", label: "Acumulado" },
+]
+
 function DashboardSalesChartComponent({
   data,
   previousData,
@@ -190,15 +372,11 @@ function DashboardSalesChartComponent({
   onShowAnoAnteriorChange,
   onShowProjecaoChange,
 }: DashboardSalesChartProps) {
-  const [hoveredMetric, setHoveredMetric] = useState<MetricMode | null>(null)
-
   const currentMetric = metricConfig[metricMode]
 
-  const canShowProjection =
-    showProjecao &&
-    viewMode === "cumulative" &&
-    dayMode === "business" &&
-    metricMode === "faturamento"
+  const projecaoDisabled =
+    viewMode !== "cumulative" || dayMode !== "business" || metricMode !== "faturamento"
+  const canShowProjection = showProjecao && !projecaoDisabled
 
   const canShowAnoAnterior = showAnoAnterior
 
@@ -538,214 +716,73 @@ function DashboardSalesChartComponent({
           <div className="flex flex-col gap-2 md:hidden">
             <div className="flex flex-col gap-2">
               <div className="flex flex-wrap items-center gap-2">
-                <div className="inline-flex shrink-0 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
-                  <button
-                    type="button"
-                    onClick={() => onDayModeChange("calendar")}
-                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${dayMode === "calendar"
-                      ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                      }`}
-                  >
-                    Corridos
-                  </button>
+                <SegmentedToggle
+                  value={dayMode}
+                  options={dayModeOptions}
+                  onChange={onDayModeChange}
+                />
 
-                  <button
-                    type="button"
-                    onClick={() => onDayModeChange("business")}
-                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${dayMode === "business"
-                      ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                      }`}
-                  >
-                    Úteis
-                  </button>
-                </div>
-
-                <div className="inline-flex shrink-0 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
-                  <button
-                    type="button"
-                    onClick={() => onViewModeChange("daily")}
-                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === "daily"
-                      ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                      }`}
-                  >
-                    Diário
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => onViewModeChange("cumulative")}
-                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === "cumulative"
-                      ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                      }`}
-                  >
-                    Acumulado
-                  </button>
-                </div>
+                <SegmentedToggle
+                  value={viewMode}
+                  options={viewModeOptions}
+                  onChange={onViewModeChange}
+                />
               </div>
 
-              <div className="grid grid-cols-4 gap-2">
-                {(Object.keys(metricConfig) as Array<keyof typeof metricConfig>).map(
-                  (metricKey) => {
-                    const metric = metricConfig[metricKey]
-
-                    return (
-                      <button
-                        key={metricKey}
-                        type="button"
-                        onClick={() => onMetricModeChange(metricKey)}
-                        className="min-w-0 rounded-lg border px-2 py-1.5 text-[11px] font-semibold transition-colors"
-                        style={getMetricButtonStyle(metricKey, metricMode)}
-                      >
-                        {metric.shortLabel}
-                      </button>
-                    )
-                  }
-                )}
-              </div>
+              <MetricModeButtons
+                metricMode={metricMode}
+                onMetricModeChange={onMetricModeChange}
+                variant="compact"
+              />
 
               <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => onShowAnoAnteriorChange(!showAnoAnterior)}
-                  className={`rounded-lg border px-3 py-1.5 text-[11px] font-medium transition-colors ${showAnoAnterior
-                    ? "border-[#0B70F5] bg-[#EAF3FF] text-[#0B70F5] dark:border-[#0B70F5] dark:bg-[#0B70F5]/10"
-                    : "border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-                    }`}
-                >
-                  Ano anterior
-                </button>
+                <AnoAnteriorToggle
+                  checked={showAnoAnterior}
+                  onChange={onShowAnoAnteriorChange}
+                  variant="button"
+                />
 
-                <button
-                  type="button"
-                  onClick={() => onShowProjecaoChange(!showProjecao)}
-                  disabled={
-                    viewMode !== "cumulative" ||
-                    dayMode !== "business" ||
-                    metricMode !== "faturamento"
-                  }
-                  className={`rounded-lg border px-3 py-1.5 text-[11px] font-medium transition-colors ${viewMode !== "cumulative" ||
-                    dayMode !== "business" ||
-                    metricMode !== "faturamento"
-                    ? "cursor-not-allowed border-slate-200 text-slate-400 opacity-60 dark:border-slate-700 dark:text-slate-500"
-                    : showProjecao
-                      ? "border-[#F50BB7] bg-[#FDEBFA] text-[#F50BB7] dark:border-[#F50BB7] dark:bg-[#F50BB7]/10"
-                      : "border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-                    }`}
-                >
-                  Projeção
-                </button>
+                <ProjecaoToggle
+                  checked={showProjecao}
+                  disabled={projecaoDisabled}
+                  onChange={onShowProjecaoChange}
+                  variant="button"
+                />
               </div>
             </div>
           </div>
 
           <div className="hidden md:flex md:flex-wrap md:items-center md:gap-3">
-            <label
-              className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm ${viewMode !== "cumulative" ||
-                dayMode !== "business" ||
-                metricMode !== "faturamento"
-                ? "cursor-not-allowed border-slate-200 text-slate-400 opacity-60 dark:border-slate-700 dark:text-slate-500"
-                : "border-slate-200 text-slate-600 dark:border-slate-700 dark:text-slate-300"
-                }`}
-            >
-              <input
-                type="checkbox"
-                checked={showProjecao}
-                onChange={(e) => onShowProjecaoChange(e.target.checked)}
-                disabled={
-                  viewMode !== "cumulative" ||
-                  dayMode !== "business" ||
-                  metricMode !== "faturamento"
-                }
-              />
-              <span className={showProjecao ? "font-semibold" : ""}>
-                Projeção
-              </span>
-            </label>
+            <ProjecaoToggle
+              checked={showProjecao}
+              disabled={projecaoDisabled}
+              onChange={onShowProjecaoChange}
+              variant="checkbox"
+            />
 
-            <label className="flex shrink-0 items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
-              <input
-                type="checkbox"
-                checked={showAnoAnterior}
-                onChange={(e) => onShowAnoAnteriorChange(e.target.checked)}
-              />
-              <span className={showAnoAnterior ? "font-semibold" : ""}>
-                Ano Anterior
-              </span>
-            </label>
+            <AnoAnteriorToggle
+              checked={showAnoAnterior}
+              onChange={onShowAnoAnteriorChange}
+              variant="checkbox"
+            />
 
-            <div className="inline-flex shrink-0 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
-              <button
-                type="button"
-                onClick={() => onViewModeChange("daily")}
-                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === "daily"
-                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                  : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                  }`}
-              >
-                Diário
-              </button>
+            <SegmentedToggle
+              value={viewMode}
+              options={viewModeOptions}
+              onChange={onViewModeChange}
+            />
 
-              <button
-                type="button"
-                onClick={() => onViewModeChange("cumulative")}
-                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === "cumulative"
-                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                  : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                  }`}
-              >
-                Acumulado
-              </button>
-            </div>
+            <SegmentedToggle
+              value={dayMode}
+              options={dayModeOptions}
+              onChange={onDayModeChange}
+            />
 
-            <div className="inline-flex shrink-0 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
-              <button
-                type="button"
-                onClick={() => onDayModeChange("calendar")}
-                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${dayMode === "calendar"
-                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                  : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                  }`}
-              >
-                Corridos
-              </button>
-
-              <button
-                type="button"
-                onClick={() => onDayModeChange("business")}
-                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${dayMode === "business"
-                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                  : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                  }`}
-              >
-                Úteis
-              </button>
-            </div>
-
-            <div className="flex shrink-0 items-center gap-2 rounded-lg border border-slate-200 p-1 dark:border-slate-700">
-              {(Object.keys(metricConfig) as Array<keyof typeof metricConfig>).map(
-                (metricKey) => {
-                  const metric = metricConfig[metricKey]
-
-                  return (
-                    <button
-                      key={metricKey}
-                      type="button"
-                      onClick={() => onMetricModeChange(metricKey)}
-                      onMouseEnter={() => setHoveredMetric(metricKey)}
-                      onMouseLeave={() => setHoveredMetric(null)}
-                      className="whitespace-nowrap rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors"
-                      style={getMetricButtonStyle(metricKey, metricMode, hoveredMetric)}
-                    >
-                      {metric.label}
-                    </button>
-                  )
-                }
-              )}
-            </div>
+            <MetricModeButtons
+              metricMode={metricMode}
+              onMetricModeChange={onMetricModeChange}
+              variant="full"
+            />
           </div>
         </div>
       </div>

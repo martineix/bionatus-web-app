@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
+import { z } from "zod"
 import type { DashboardFiltersInput } from "@/lib/dashboard"
 import { logger } from "@/lib/logger"
 import {
@@ -14,33 +15,66 @@ import {
   getYearDateRange,
 } from "@/lib/dashboard/dashboard-helpers"
 
+const dashboardFiltersSchema = z.object({
+  ano: z.number().nullable(),
+  mes: z.number().nullable(),
+  dataInicio: z.string().nullable(),
+  dataFim: z.string().nullable(),
+  idRepresentante: z.number().nullable(),
+  mercado: z.number().nullable(),
+  contas: z.array(z.number()),
+  isBionatus: z.union([z.literal(0), z.literal(1), z.null()]),
+})
+
 function getInitialFilters(): DashboardFiltersInput {
   const saved = localStorage.getItem(FILTERS_STORAGE_KEY)
+  if (!saved) return defaultFilters
 
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved)
+  try {
+    const parsed = JSON.parse(saved)
+    const result = dashboardFiltersSchema.safeParse(parsed)
+    if (result.success) return result.data
 
-      return {
-        ...defaultFilters,
-        ...parsed,
-        contas: Array.isArray(parsed.contas) ? parsed.contas : [],
-        isBionatus:
-          parsed.isBionatus === 0 || parsed.isBionatus === 1
-            ? parsed.isBionatus
-            : null,
-      }
-    } catch {
-      return defaultFilters
+    return {
+      ...defaultFilters,
+      ...dashboardFiltersSchema.partial().parse(parsed),
     }
+  } catch {
+    return defaultFilters
+  }
+}
+
+function withDerivedDates(filters: DashboardFiltersInput): DashboardFiltersInput {
+  if (filters.ano && filters.mes) {
+    return { ...filters, ...getMonthDateRange(filters.ano, filters.mes) }
   }
 
-  return defaultFilters
+  if (filters.ano) {
+    return { ...filters, ...getYearDateRange(filters.ano) }
+  }
+
+  return { ...filters, dataInicio: null, dataFim: null }
 }
 
 export function useDashboardFilters() {
-  const [filters, setFilters] = useState<DashboardFiltersInput>(getInitialFilters)
+  const [filters, setRawFilters] = useState<DashboardFiltersInput>(() =>
+    withDerivedDates(getInitialFilters())
+  )
   const [filtersReady, setFiltersReady] = useState(false)
+
+  const setFilters = useCallback(
+    (update: React.SetStateAction<DashboardFiltersInput>) => {
+      setRawFilters((prev) => {
+        const next =
+          typeof update === "function"
+            ? (update as (prev: DashboardFiltersInput) => DashboardFiltersInput)(prev)
+            : update
+
+        return withDerivedDates(next)
+      })
+    },
+    []
+  )
 
   useEffect(() => {
     async function initializeFilters() {
@@ -88,42 +122,12 @@ export function useDashboardFilters() {
     }
 
     initializeFilters()
-  }, [])
+  }, [setFilters])
 
   useEffect(() => {
     if (!filtersReady) return
     localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(filters))
   }, [filters, filtersReady])
-
-  useEffect(() => {
-    let nextDataInicio: string | null = null
-    let nextDataFim: string | null = null
-
-    if (filters.ano && filters.mes) {
-      const range = getMonthDateRange(filters.ano, filters.mes)
-      nextDataInicio = range.dataInicio
-      nextDataFim = range.dataFim
-    } else if (filters.ano) {
-      const range = getYearDateRange(filters.ano)
-      nextDataInicio = range.dataInicio
-      nextDataFim = range.dataFim
-    }
-
-    setFilters((prev) => {
-      if (
-        prev.dataInicio === nextDataInicio &&
-        prev.dataFim === nextDataFim
-      ) {
-        return prev
-      }
-
-      return {
-        ...prev,
-        dataInicio: nextDataInicio,
-        dataFim: nextDataFim,
-      }
-    })
-  }, [filters.ano, filters.mes])
 
   const hasComparison = !!filters.ano && !!filters.mes
 

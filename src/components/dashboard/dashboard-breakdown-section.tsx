@@ -11,6 +11,7 @@ type Props = {
   breakdownByConta: DashboardBreakdownContaRow[]
   breakdownByFabricante: DashboardFabricanteBreakdownRow[]
   loading: boolean
+  error?: boolean
 }
 
 const FABRICANTE_COLORS: Record<string, string> = {
@@ -34,6 +35,7 @@ export function DashboardBreakdownSection({
   breakdownByConta,
   breakdownByFabricante,
   loading,
+  error = false,
 }: Props) {
   const [expandedMercados, setExpandedMercados] = useState<Set<number>>(
     new Set([1, 2])
@@ -99,6 +101,14 @@ export function DashboardBreakdownSection({
       else next.add(mercado)
       return next
     })
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-600 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400">
+        Não foi possível carregar o breakdown por canal. Tente atualizar a página.
+      </div>
+    )
   }
 
   if (!loading && breakdownByConta.length === 0) return null

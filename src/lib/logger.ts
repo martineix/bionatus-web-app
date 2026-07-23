@@ -4,11 +4,10 @@ type LogContext = Record<string, unknown>
 
 export const logger = {
   error(context: string, error: unknown, data?: LogContext) {
-    if (isDev) {
-      console.error(`[${context}]`, error, data ?? "")
-    }
-    // Em produção, integrar com Sentry/LogRocket aqui:
+    // Sempre loga, inclusive em produção — hoje é a única forma de saber que algo falhou.
+    // Se integrar um serviço de erro (Sentry/LogRocket), reportar aqui também:
     // Sentry.captureException(error, { extra: { context, ...data } })
+    console.error(`[${context}]`, error, data ?? "")
   },
 
   warn(context: string, message: string, data?: LogContext) {

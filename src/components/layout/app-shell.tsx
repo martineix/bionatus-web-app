@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type ReactNode } from "react"
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import Sidebar from "./sidebar"
 import Topbar from "./topbar"
 
@@ -34,6 +34,10 @@ export default function AppShell({
 }: AppShellProps) {
   const [collapsed, setCollapsed] = useState<boolean>(getInitialSidebarCollapsed)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const asideRef = useRef<HTMLElement>(null)
+  const menuButtonRef = useRef<HTMLButtonElement>(null)
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
+  const wasMobileOpenRef = useRef(false)
 
   const handleToggleSidebar = useCallback(() => {
     setCollapsed((prev) => !prev)
@@ -73,6 +77,51 @@ export default function AppShell({
     return () => window.removeEventListener("resize", handleResize)
   }, [])
 
+  useEffect(() => {
+    if (mobileOpen) {
+      wasMobileOpenRef.current = true
+      closeButtonRef.current?.focus()
+    } else if (wasMobileOpenRef.current) {
+      wasMobileOpenRef.current = false
+      menuButtonRef.current?.focus()
+    }
+  }, [mobileOpen])
+
+  useEffect(() => {
+    if (!mobileOpen) return
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setMobileOpen(false)
+        return
+      }
+
+      if (event.key !== "Tab") return
+
+      const container = asideRef.current
+      if (!container) return
+
+      const focusable = container.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )
+      if (focusable.length === 0) return
+
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown)
+    return () => document.removeEventListener("keydown", handleKeyDown)
+  }, [mobileOpen])
+
   return (
     <div className="min-h-screen bg-[#F0F0F0] dark:bg-slate-900">
       <Sidebar
@@ -80,6 +129,8 @@ export default function AppShell({
         onToggleCollapse={handleToggleSidebar}
         mobileOpen={mobileOpen}
         onCloseMobile={handleCloseMobileMenu}
+        asideRef={asideRef}
+        closeButtonRef={closeButtonRef}
       />
 
       <div
@@ -93,6 +144,8 @@ export default function AppShell({
           refreshing={refreshing}
           lastUpdated={lastUpdated}
           onOpenMobileMenu={handleOpenMobileMenu}
+          mobileOpen={mobileOpen}
+          menuButtonRef={menuButtonRef}
         />
 
         <main className="flex-1 px-4 pb-4 sm:px-6 sm:pb-6 lg:pt-4">

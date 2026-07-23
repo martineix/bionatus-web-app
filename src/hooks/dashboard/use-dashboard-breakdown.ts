@@ -18,6 +18,7 @@ export function useDashboardBreakdown({ filters, filtersReady }: Params) {
   const [breakdownByConta, setBreakdownByConta] = useState<DashboardBreakdownContaRow[]>([])
   const [breakdownByFabricante, setBreakdownByFabricante] = useState<DashboardFabricanteBreakdownRow[]>([])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(false)
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const contasKey = contas.join(",")
@@ -31,6 +32,7 @@ export function useDashboardBreakdown({ filters, filtersReady }: Params) {
 
     try {
       setLoading(true)
+      setError(false)
 
       const f: DashboardFiltersInput = {
         ano: null,
@@ -52,9 +54,12 @@ export function useDashboardBreakdown({ filters, filtersReady }: Params) {
 
       setBreakdownByConta(contaData)
       setBreakdownByFabricante(fabricanteData)
-    } catch (error) {
+    } catch (err) {
       if (!signal?.aborted) {
-        logger.error("use-dashboard-breakdown/loadBreakdown", error)
+        logger.error("use-dashboard-breakdown/loadBreakdown", err)
+        setBreakdownByConta([])
+        setBreakdownByFabricante([])
+        setError(true)
       }
     } finally {
       if (!signal?.aborted) {
@@ -74,5 +79,5 @@ export function useDashboardBreakdown({ filters, filtersReady }: Params) {
     return () => controller.abort()
   }, [filtersReady, loadBreakdown])
 
-  return { breakdownByConta, breakdownByFabricante, loading }
+  return { breakdownByConta, breakdownByFabricante, loading, error }
 }

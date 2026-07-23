@@ -1,3 +1,4 @@
+import { type RefObject } from "react"
 import { NavLink } from "react-router-dom"
 import {
   LayoutDashboard,
@@ -14,6 +15,8 @@ type SidebarProps = {
   onToggleCollapse: () => void
   mobileOpen: boolean
   onCloseMobile: () => void
+  asideRef?: RefObject<HTMLElement | null>
+  closeButtonRef?: RefObject<HTMLButtonElement | null>
 }
 
 type NavItem = {
@@ -45,6 +48,8 @@ export default function Sidebar({
   onToggleCollapse,
   mobileOpen,
   onCloseMobile,
+  asideRef,
+  closeButtonRef,
 }: SidebarProps) {
   const showLabels = mobileOpen || !collapsed
 
@@ -58,6 +63,11 @@ export default function Sidebar({
       )}
 
       <aside
+        ref={asideRef}
+        id="mobile-sidebar"
+        role={mobileOpen ? "dialog" : undefined}
+        aria-modal={mobileOpen ? true : undefined}
+        aria-label="Menu principal"
         className={`fixed inset-y-0 left-0 z-50 flex h-screen flex-col border-r border-slate-200 bg-white p-4 transition-[width,transform] duration-300 dark:border-slate-800 dark:bg-slate-950
         ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
         w-72 lg:translate-x-0
@@ -74,7 +84,9 @@ export default function Sidebar({
 
           <div className="flex items-center gap-2">
             <button
+              ref={closeButtonRef}
               onClick={onCloseMobile}
+              aria-label="Fechar menu"
               className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 lg:hidden"
             >
               <X className="h-4 w-4" />
@@ -82,6 +94,7 @@ export default function Sidebar({
 
             <button
               onClick={onToggleCollapse}
+              aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
               className="hidden h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 lg:inline-flex"
             >
               {collapsed ? (
@@ -93,7 +106,7 @@ export default function Sidebar({
           </div>
         </div>
 
-        <nav className="space-y-2">
+        <nav className="space-y-2" aria-label="Navegação principal">
           {navItems.map((item) => {
             const Icon = item.icon
 
@@ -102,6 +115,7 @@ export default function Sidebar({
                 key={item.to}
                 to={item.to}
                 onClick={onCloseMobile}
+                aria-label={!showLabels ? item.label : undefined}
                 className={({ isActive }) =>
                   `flex items-center rounded-xl px-3 py-2 text-sm font-medium transition-colors ${showLabels ? "gap-3" : "lg:justify-center"
                   } ${isActive

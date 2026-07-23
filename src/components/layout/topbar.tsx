@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react"
+import { useCallback, useMemo, type RefObject } from "react"
 import { LogOut, Menu, Moon, RefreshCcw, Sun } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { signOut } from "@/lib/auth"
@@ -12,6 +12,8 @@ type TopbarProps = {
   refreshing?: boolean
   lastUpdated?: Date | null
   onOpenMobileMenu?: () => void
+  mobileOpen?: boolean
+  menuButtonRef?: RefObject<HTMLButtonElement | null>
 }
 
 const iconButtonClass =
@@ -26,6 +28,8 @@ export default function Topbar({
   refreshing = false,
   lastUpdated = null,
   onOpenMobileMenu,
+  mobileOpen = false,
+  menuButtonRef,
 }: TopbarProps) {
   const navigate = useNavigate()
   const { theme, toggleTheme } = useTheme()
@@ -53,10 +57,13 @@ export default function Topbar({
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-3">
             <button
+              ref={menuButtonRef}
               type="button"
               onClick={onOpenMobileMenu}
               className={`${iconButtonClass} lg:hidden`}
               aria-label="Abrir menu"
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-sidebar"
             >
               <Menu className="h-5 w-5" />
             </button>
