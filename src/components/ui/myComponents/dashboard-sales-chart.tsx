@@ -787,7 +787,7 @@ function DashboardSalesChartComponent({
         </div>
       </div>
 
-      <div className="mt-6 hidden h-80 md:block">
+      <div className="mt-6 hidden h-80 select-none md:block">
         {loading ? (
           <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-slate-300 text-slate-400 dark:border-slate-700 dark:text-slate-500">
             Carregando gráfico...

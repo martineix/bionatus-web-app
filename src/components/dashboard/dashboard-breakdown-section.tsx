@@ -257,7 +257,7 @@ export function DashboardBreakdownSection({
             </div>
           </div>
 
-          <div className="flex flex-1 flex-col items-center justify-center p-5">
+          <div className="flex flex-1 select-none flex-col items-center justify-center p-5">
             <PieChart width={180} height={180}>
               <Pie
                 data={donutData}
