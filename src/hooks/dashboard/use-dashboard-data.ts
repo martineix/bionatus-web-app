@@ -8,12 +8,14 @@ import {
   getDashboardKpisComparison,
   getDashboardMetricsDaily,
   getDashboardProjectionDaily,
+  getPendenteFaturamento,
   type DashboardFiltersInput,
   type DashboardKpis,
   type DashboardKpisComparison,
   type DashboardMetricDailyPoint,
   type DashboardProjectionDailyPoint,
   type DashboardMonthOption,
+  type PendenteFaturamento,
 } from "@/lib/dashboard"
 import { getMonthDateRange } from "@/lib/dashboard/dashboard-helpers"
 
@@ -37,6 +39,7 @@ export function useDashboardData({ filters, hasComparison, filtersReady}: UseDas
   const [metricsPreviousDaily, setMetricsPreviousDaily] = useState<DashboardMetricDailyPoint[]>([])
   const [metricsLastYearDaily, setMetricsLastYearDaily] = useState<DashboardMetricDailyPoint[]>([])
   const [projectionDaily, setProjectionDaily] = useState<DashboardProjectionDailyPoint[]>([])
+  const [pendenteFaturamento, setPendenteFaturamento] = useState<PendenteFaturamento | null>(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
@@ -64,6 +67,21 @@ export function useDashboardData({ filters, hasComparison, filtersReady}: UseDas
     }
 
     loadYears()
+  }, [])
+
+  useEffect(() => {
+    async function loadPendenteFaturamento() {
+      try {
+        const data = await getPendenteFaturamento()
+        setPendenteFaturamento(data)
+      } catch (error) {
+        logger.error("use-dashboard-data/loadPendenteFaturamento", error)
+      }
+    }
+
+    loadPendenteFaturamento()
+    const interval = setInterval(loadPendenteFaturamento, 15 * 60 * 1000)
+    return () => clearInterval(interval)
   }, [])
 
   useEffect(() => {
@@ -225,6 +243,7 @@ export function useDashboardData({ filters, hasComparison, filtersReady}: UseDas
     metricsPreviousDaily,
     metricsLastYearDaily,
     projectionDaily,
+    pendenteFaturamento,
     loading,
     refreshing,
     lastUpdated,

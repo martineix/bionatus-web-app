@@ -7,13 +7,14 @@ import {
   getPercentageChange,
 } from "@/lib/format"
 import { dashboardKpiCards } from "@/lib/dashboard/dashboard-kpi-cards"
-import type { DashboardKpis, DashboardKpisComparison } from "@/lib/dashboard"
+import type { DashboardKpis, DashboardKpisComparison, PendenteFaturamento } from "@/lib/dashboard"
 
 type DashboardKpisSectionProps = {
   loading: boolean
   hasComparison: boolean
   kpis: DashboardKpis | null
   kpisComparison: DashboardKpisComparison | null
+  pendenteFaturamento: PendenteFaturamento | null
 }
 
 export function DashboardKpisSection({
@@ -21,6 +22,7 @@ export function DashboardKpisSection({
   hasComparison,
   kpis,
   kpisComparison,
+  pendenteFaturamento,
 }: DashboardKpisSectionProps) {
   return (
     <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
@@ -45,6 +47,11 @@ export function DashboardKpisSection({
             icon={<Icon className="h-5 w-5" />}
             accentColor="#FFF"
             accentBg={card.accentBg}
+            badge={
+              card.key === "faturamento" && pendenteFaturamento && pendenteFaturamento.venda > 0
+                ? `A faturar SANKHYA: ${formatCurrencyBRL(pendenteFaturamento.venda)}`
+                : undefined
+            }
             comparisons={
               hasComparison
                 ? [

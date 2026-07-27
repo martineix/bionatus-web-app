@@ -28,6 +28,7 @@ export default function DashboardPage() {
     metricsPreviousDaily,
     metricsLastYearDaily,
     projectionDaily,
+    pendenteFaturamento,
     loading,
     refreshing,
     lastUpdated,
@@ -86,6 +87,7 @@ export default function DashboardPage() {
           hasComparison={hasComparison}
           kpis={kpis}
           kpisComparison={kpisComparison}
+          pendenteFaturamento={pendenteFaturamento}
         />
 
         <DashboardChartSection

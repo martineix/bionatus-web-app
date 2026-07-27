@@ -38,6 +38,14 @@ export type DashboardMonthOption = {
   ano_mes: string
 }
 
+export type PendenteFaturamento = {
+  qtd: number
+  vlrnota: number
+  venda: number
+  bonus: number
+  updatedAt: string
+}
+
 export type DashboardMetricDailyPoint = {
   data_ref: string
   dia: number
@@ -82,6 +90,28 @@ export async function getDashboardKpis(
     pedidos: Number(row.pedidos ?? 0),
     ticket_medio: Number(row.ticket_medio ?? 0),
     positivacoes: Number(row.positivacoes ?? 0),
+  }
+}
+
+export async function getPendenteFaturamento(): Promise<PendenteFaturamento | null> {
+  const { data, error } = await supabase.rpc("get_sankhya_pendente_faturamento")
+
+  if (error) {
+    throw error
+  }
+
+  const row = data?.[0]
+
+  if (!row) {
+    return null
+  }
+
+  return {
+    qtd: Number(row.qtd ?? 0),
+    vlrnota: Number(row.vlrnota ?? 0),
+    venda: Number(row.venda ?? 0),
+    bonus: Number(row.bonus ?? 0),
+    updatedAt: row.updated_at,
   }
 }
 

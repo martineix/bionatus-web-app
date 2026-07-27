@@ -16,6 +16,7 @@ type KpiCardProps = {
   accentBg: string
   comparisons?: ComparisonItem[]
   loading?: boolean
+  badge?: string
 }
 
 export default function KpiCard({
@@ -26,23 +27,32 @@ export default function KpiCard({
   accentBg,
   comparisons = [],
   loading = false,
+  badge,
 }: KpiCardProps) {
   return (
     <div className="rounded-2xl border border-[#D0D9D6] bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 sm:p-6">
-      <div className="flex items-center gap-3">
-        <div
-          className="flex h-10 w-10 items-center justify-center rounded-xl"
-          style={{
-            backgroundColor: accentBg,
-            color: accentColor,
-          }}
-        >
-          {icon}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div
+            className="flex h-10 w-10 items-center justify-center rounded-xl"
+            style={{
+              backgroundColor: accentBg,
+              color: accentColor,
+            }}
+          >
+            {icon}
+          </div>
+
+          <p className="text-base font-medium text-slate-500 dark:text-slate-400 sm:text-lg">
+            {title}
+          </p>
         </div>
 
-        <p className="text-base font-medium text-slate-500 dark:text-slate-400 sm:text-lg">
-          {title}
-        </p>
+        {badge && !loading && (
+          <span className="whitespace-nowrap rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
+            {badge}
+          </span>
+        )}
       </div>
 
       {loading ? (
