@@ -35,7 +35,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F0F0F0] text-slate-900">
+    <div
+      className="min-h-screen bg-[#F0F0F0] text-slate-900"
+      style={{ colorScheme: "light" }}
+    >
       <div className="grid min-h-screen lg:grid-cols-[1.85fr_1fr]">
         <section className="relative hidden lg:block">
           <div
