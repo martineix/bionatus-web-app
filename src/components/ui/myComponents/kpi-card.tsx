@@ -31,10 +31,10 @@ export default function KpiCard({
 }: KpiCardProps) {
   return (
     <div className="rounded-2xl border border-[#D0D9D6] bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 sm:p-6">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        <div className="flex min-w-0 items-center gap-3">
           <div
-            className="flex h-10 w-10 items-center justify-center rounded-xl"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
             style={{
               backgroundColor: accentBg,
               color: accentColor,
@@ -43,13 +43,13 @@ export default function KpiCard({
             {icon}
           </div>
 
-          <p className="text-base font-medium text-slate-500 dark:text-slate-400 sm:text-lg">
+          <p className="truncate text-base font-medium text-slate-500 dark:text-slate-400 sm:text-lg">
             {title}
           </p>
         </div>
 
         {badge && !loading && (
-          <span className="whitespace-nowrap rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
+          <span className="max-w-full truncate rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
             {badge}
           </span>
         )}
