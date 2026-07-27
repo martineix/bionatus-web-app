@@ -40,7 +40,8 @@ export function DashboardKpisSection({
           <KpiCard
             key={card.key}
             title={card.title}
-            value={loading ? "Carregando..." : formatValue(currentValue)}
+            value={formatValue(currentValue)}
+            loading={loading}
             icon={<Icon className="h-5 w-5" />}
             accentColor="#FFF"
             accentBg={card.accentBg}

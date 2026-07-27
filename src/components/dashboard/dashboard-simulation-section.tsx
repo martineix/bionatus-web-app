@@ -8,10 +8,12 @@ type DashboardSimulationSectionProps = {
   projectionSimulations: DashboardSimulacaoRow[]
   savingSimulation: boolean
   simulationDate: string
+  simulationMarket: number | ""
   simulationChannel: number | ""
   simulationValue: string
   editingSimulationId: number | null
   setSimulationDate: Dispatch<SetStateAction<string>>
+  setSimulationMarket: Dispatch<SetStateAction<number | "">>
   setSimulationChannel: Dispatch<SetStateAction<number | "">>
   setSimulationValue: Dispatch<SetStateAction<string>>
   resetSimulationForm: () => void

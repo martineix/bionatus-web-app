@@ -1,7 +1,8 @@
 import { Fragment, useMemo, useState } from "react"
 import { BarChart3, ChevronDown, ChevronRight, PieChart as PieChartIcon } from "lucide-react"
-import { Pie, PieChart, Tooltip } from "recharts"
+import { Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
 import { formatCurrencyBRL, formatNumberBR } from "@/lib/format"
+import { Skeleton } from "@/components/ui/skeleton"
 import type {
   DashboardBreakdownContaRow,
   DashboardFabricanteBreakdownRow,
@@ -136,12 +137,14 @@ export function DashboardBreakdownSection({
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-12 text-sm text-slate-400">
-            Carregando...
+          <div className="space-y-2 p-5">
+            {Array.from({ length: 5 }).map((_, index) => (
+              <Skeleton key={index} className="h-9 w-full rounded-lg" />
+            ))}
           </div>
         ) : (
           <div className="overflow-x-auto p-5">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm tabular-nums">
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-700">
                   <th className="pb-2.5 text-left text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
@@ -238,71 +241,96 @@ export function DashboardBreakdownSection({
       </section>
 
       {/* ── CARD GRÁFICO DE ROSCA ── */}
-      {!loading && donutData.length > 0 && (
+      {loading ? (
         <section className="flex w-full flex-col rounded-2xl border border-[#D0D9D6] bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950 lg:w-96 lg:shrink-0">
           <div className="flex items-center gap-3 border-b border-slate-100 px-5 py-4 dark:border-slate-800">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#F0F0F0] text-[#006426] dark:bg-slate-800 dark:text-[#7DD3A2]">
-              <PieChartIcon className="h-4 w-4" />
-            </div>
-            <div>
-              <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                Fabricante
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                % sobre o faturamento
-              </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                *Falta ajuste de produtos ainda
-              </p>
+            <Skeleton className="h-9 w-9 shrink-0 rounded-xl" />
+            <div className="space-y-2">
+              <Skeleton className="h-3.5 w-24" />
+              <Skeleton className="h-3 w-32" />
             </div>
           </div>
 
-          <div className="flex flex-1 select-none flex-col items-center justify-center p-5">
-            <PieChart width={180} height={180}>
-              <Pie
-                data={donutData}
-                cx="50%"
-                cy="50%"
-                innerRadius={52}
-                outerRadius={82}
-                paddingAngle={2}
-                dataKey="value"
-                strokeWidth={0}
-                isAnimationActive={false}
-              />
-              <Tooltip
-                formatter={(value) => [
-                  formatCurrencyBRL(typeof value === "number" ? value : 0),
-                  "Faturamento",
-                ]}
-                contentStyle={{
-                  borderRadius: "10px",
-                  border: "1px solid #e2e8f0",
-                  fontSize: "12px",
-                }}
-              />
-            </PieChart>
-
-            <div className="mt-4 w-full space-y-2.5">
-              {donutData.map((entry) => (
-                <div key={entry.name} className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="h-2.5 w-2.5 shrink-0 rounded-full"
-                      style={{ backgroundColor: entry.fill }}
-                    />
-                    <span className="text-xs text-slate-700 dark:text-slate-300">
-                      {entry.name}
-                    </span>
-                  </div>
-                  <span className="text-xs font-semibold text-slate-900 dark:text-slate-100">
-                    {formatPct(entry.percentage)}
-                  </span>
-                </div>
-              ))}
+          <div className="flex flex-1 flex-col items-center justify-center gap-4 p-5">
+            <Skeleton className="h-45 w-45 rounded-full" />
+            <div className="w-full space-y-2.5">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
             </div>
           </div>
         </section>
+      ) : (
+        donutData.length > 0 && (
+          <section className="flex w-full flex-col rounded-2xl border border-[#D0D9D6] bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950 lg:w-96 lg:shrink-0">
+            <div className="flex items-center gap-3 border-b border-slate-100 px-5 py-4 dark:border-slate-800">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#F0F0F0] text-[#006426] dark:bg-slate-800 dark:text-[#7DD3A2]">
+                <PieChartIcon className="h-4 w-4" />
+              </div>
+              <div>
+                <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  Fabricante
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  % sobre o faturamento
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  *Falta ajuste de produtos ainda
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-1 select-none flex-col items-center justify-center p-5">
+              <div className="h-45 w-45">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={donutData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius="58%"
+                      outerRadius="92%"
+                      paddingAngle={2}
+                      dataKey="value"
+                      strokeWidth={0}
+                      isAnimationActive={false}
+                    />
+                    <Tooltip
+                      formatter={(value) => [
+                        formatCurrencyBRL(typeof value === "number" ? value : 0),
+                        "Faturamento",
+                      ]}
+                      contentStyle={{
+                        borderRadius: "10px",
+                        border: "1px solid #e2e8f0",
+                        fontSize: "12px",
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="mt-4 w-full space-y-2.5">
+                {donutData.map((entry) => (
+                  <div key={entry.name} className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="h-2.5 w-2.5 shrink-0 rounded-full"
+                        style={{ backgroundColor: entry.fill }}
+                      />
+                      <span className="text-xs text-slate-700 dark:text-slate-300">
+                        {entry.name}
+                      </span>
+                    </div>
+                    <span className="text-xs font-semibold tabular-nums text-slate-900 dark:text-slate-100">
+                      {formatPct(entry.percentage)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )
       )}
 
     </div>

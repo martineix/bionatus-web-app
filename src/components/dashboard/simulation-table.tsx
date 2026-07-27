@@ -49,6 +49,15 @@ export function SimulationTable({
                                     <div className="mt-4 grid grid-cols-2 gap-3">
                                         <div className="min-w-0">
                                             <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                                                Mercado
+                                            </p>
+                                            <p className="mt-1 text-sm text-slate-800 dark:text-slate-200">
+                                                {item.mercado_nome}
+                                            </p>
+                                        </div>
+
+                                        <div className="min-w-0">
+                                            <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
                                                 Canal
                                             </p>
                                             <p className="mt-1 text-sm text-slate-800 dark:text-slate-200">
@@ -60,7 +69,7 @@ export function SimulationTable({
                                             <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
                                                 Valor
                                             </p>
-                                            <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
+                                            <p className="mt-1 text-sm font-semibold tabular-nums text-slate-900 dark:text-slate-100">
                                                 {formatCurrencyBRL(item.valor)}
                                             </p>
                                         </div>
@@ -104,6 +113,9 @@ export function SimulationTable({
                                         Dia útil
                                     </th>
                                     <th className="px-3 py-2 text-left font-semibold text-slate-600 dark:text-slate-300">
+                                        Mercado
+                                    </th>
+                                    <th className="px-3 py-2 text-left font-semibold text-slate-600 dark:text-slate-300">
                                         Canal
                                     </th>
                                     <th className="px-3 py-2 text-right font-semibold text-slate-600 dark:text-slate-300">
@@ -128,9 +140,12 @@ export function SimulationTable({
                                             {item.dia_util ?? "-"}
                                         </td>
                                         <td className="px-3 py-3 text-slate-700 dark:text-slate-200">
+                                            {item.mercado_nome}
+                                        </td>
+                                        <td className="px-3 py-3 text-slate-700 dark:text-slate-200">
                                             {item.conta_nome}
                                         </td>
-                                        <td className="px-3 py-3 text-right text-slate-700 dark:text-slate-200">
+                                        <td className="px-3 py-3 text-right tabular-nums text-slate-700 dark:text-slate-200">
                                             {formatCurrencyBRL(item.valor)}
                                         </td>
                                         <td className="px-3 py-3">

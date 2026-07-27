@@ -24,6 +24,11 @@ export const channelOptions = [
   { value: 7, label: "7 - Outros" },
 ] as const
 
+export const marketOptions = [
+  { value: 1, label: "Marcas + Licitações" },
+  { value: 2, label: "Farma" },
+] as const
+
 export type ChartViewMode = "daily" | "cumulative"
 export type ChartMetricMode = "faturamento" | "pedidos" | "ticket_medio" | "positivacoes"
 export type ChartDayMode = "calendar" | "business"

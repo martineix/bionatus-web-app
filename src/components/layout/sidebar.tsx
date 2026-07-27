@@ -93,7 +93,7 @@ export default function Sidebar({
               ref={closeButtonRef}
               onClick={onCloseMobile}
               aria-label="Fechar menu"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 lg:hidden"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 lg:hidden"
             >
               <X className="h-4 w-4" />
             </button>
@@ -101,7 +101,7 @@ export default function Sidebar({
             <button
               onClick={onToggleCollapse}
               aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
-              className="hidden h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 lg:inline-flex"
+              className="hidden h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 lg:inline-flex"
             >
               {collapsed ? (
                 <PanelLeftOpen className="h-4 w-4" />

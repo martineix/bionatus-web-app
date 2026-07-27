@@ -1,6 +1,16 @@
 // src/components/removals/removal-table.tsx
+import { useState } from "react"
 import { X } from "lucide-react"
 import type { RemovalRow } from "@/lib/removals"
+import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 type RemovalTableProps = {
   removals: RemovalRow[]
@@ -24,10 +34,17 @@ function formatDateTimeBR(value: string) {
 }
 
 export function RemovalTable({ removals, loading, handleDelete }: RemovalTableProps) {
-  function confirmDelete(id: number) {
-    if (window.confirm("Tem certeza que deseja excluir esta remoção?")) {
-      handleDelete(id)
+  const [pendingDelete, setPendingDelete] = useState<RemovalRow | null>(null)
+
+  function confirmDelete(item: RemovalRow) {
+    setPendingDelete(item)
+  }
+
+  function handleConfirmedDelete() {
+    if (pendingDelete) {
+      handleDelete(pendingDelete.id)
     }
+    setPendingDelete(null)
   }
 
   return (
@@ -40,9 +57,44 @@ export function RemovalTable({ removals, loading, handleDelete }: RemovalTablePr
         Pedidos/notas excluídos das agregações do dashboard.
       </p>
 
+      <Dialog
+        open={pendingDelete !== null}
+        onOpenChange={(open) => !open && setPendingDelete(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Excluir remoção</DialogTitle>
+            <DialogDescription>
+              {pendingDelete
+                ? `Tem certeza que deseja excluir a remoção do pedido ${pendingDelete.pedido} (${sistemaLabels[pendingDelete.sistema] ?? pendingDelete.sistema})? Essa ação não pode ser desfeita.`
+                : ""}
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter>
+            <button
+              type="button"
+              onClick={() => setPendingDelete(null)}
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 px-4 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirmedDelete}
+              className="inline-flex h-10 items-center justify-center rounded-xl bg-red-600 px-4 text-sm font-medium text-white transition-colors hover:bg-red-700"
+            >
+              Excluir
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {loading ? (
-        <div className="mt-5 rounded-2xl border border-dashed border-slate-300 px-4 py-10 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
-          Carregando...
+        <div className="mt-5 space-y-3">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Skeleton key={index} className="h-16 w-full rounded-2xl" />
+          ))}
         </div>
       ) : removals.length === 0 ? (
         <div className="mt-5 rounded-2xl border border-dashed border-slate-300 px-4 py-10 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
@@ -74,8 +126,8 @@ export function RemovalTable({ removals, loading, handleDelete }: RemovalTablePr
                 <div className="flex flex-col items-center justify-center gap-2">
                   <button
                     type="button"
-                    onClick={() => confirmDelete(item.id)}
-                    className="rounded-lg border border-red-300 px-2.5 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-950/20"
+                    onClick={() => confirmDelete(item)}
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-red-300 text-red-600 transition hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-950/20"
                     aria-label="Excluir remoção"
                     title="Excluir"
                   >
@@ -137,8 +189,8 @@ export function RemovalTable({ removals, loading, handleDelete }: RemovalTablePr
                       <div className="flex items-center justify-center">
                         <button
                           type="button"
-                          onClick={() => confirmDelete(item.id)}
-                          className="rounded-lg border border-red-300 px-3 py-1 text-xs font-medium text-red-600 transition hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-950/20"
+                          onClick={() => confirmDelete(item)}
+                          className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-red-300 text-red-600 transition hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-950/20"
                           aria-label="Excluir remoção"
                           title="Excluir"
                         >

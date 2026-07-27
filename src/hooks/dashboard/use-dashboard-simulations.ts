@@ -30,6 +30,7 @@ export function useDashboardSimulations({
   const [savingSimulation, setSavingSimulation] = useState(false)
 
   const [simulationDate, setSimulationDate] = useState("")
+  const [simulationMarket, setSimulationMarket] = useState<number | "">("")
   const [simulationChannel, setSimulationChannel] = useState<number | "">("")
   const [simulationValue, setSimulationValue] = useState("")
   const [editingSimulationId, setEditingSimulationId] = useState<number | null>(null)
@@ -37,6 +38,7 @@ export function useDashboardSimulations({
   function resetSimulationForm() {
     setEditingSimulationId(null)
     setSimulationDate("")
+    setSimulationMarket("")
     setSimulationChannel("")
     setSimulationValue("")
   }
@@ -56,7 +58,7 @@ export function useDashboardSimulations({
   }, [dataInicio, dataFim, mes])
 
   async function handleSubmitSimulation() {
-    if (!simulationDate || simulationChannel === "" || !simulationValue) return
+    if (!simulationDate || simulationMarket === "" || simulationChannel === "" || !simulationValue) return
 
     if (!ano || !mes || !dataInicio || !dataFim) {
       toast.warning("Selecione ano e mês no filtro principal antes de inserir uma simulação.")
@@ -86,6 +88,7 @@ export function useDashboardSimulations({
         await updateDashboardSimulacao({
           id: editingSimulationId,
           data_ref: simulationDate,
+          mercado: simulationMarket,
           contas: simulationChannel,
           valor: numericValue,
           observacao: null,
@@ -93,6 +96,7 @@ export function useDashboardSimulations({
       } else {
         await insertDashboardSimulacao({
           data_ref: simulationDate,
+          mercado: simulationMarket,
           contas: simulationChannel,
           valor: numericValue,
           observacao: null,
@@ -113,6 +117,7 @@ export function useDashboardSimulations({
   function handleEditSimulation(item: DashboardSimulacaoRow) {
     setEditingSimulationId(item.id)
     setSimulationDate(item.data_ref)
+    setSimulationMarket(item.mercado)
     setSimulationChannel(item.contas)
     setSimulationValue(String(item.valor))
   }
@@ -137,10 +142,12 @@ export function useDashboardSimulations({
     projectionSimulations,
     savingSimulation,
     simulationDate,
+    simulationMarket,
     simulationChannel,
     simulationValue,
     editingSimulationId,
     setSimulationDate,
+    setSimulationMarket,
     setSimulationChannel,
     setSimulationValue,
     resetSimulationForm,

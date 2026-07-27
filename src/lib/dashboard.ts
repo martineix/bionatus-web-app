@@ -320,6 +320,8 @@ export type DashboardSimulacaoRow = {
   ano: number
   mes: number
   nome_mes: string
+  mercado: number
+  mercado_nome: string
   contas: number
   conta_nome: string
   valor: number
@@ -331,6 +333,7 @@ export type DashboardSimulacaoRow = {
 
 export type DashboardSimulacaoInput = {
   data_ref: string
+  mercado: number
   contas: number
   valor: number
   observacao?: string | null
@@ -339,6 +342,7 @@ export type DashboardSimulacaoInput = {
 export type DashboardSimulacaoUpdateInput = {
   id: number
   data_ref: string
+  mercado: number
   contas: number
   valor: number
   observacao?: string | null
@@ -347,6 +351,7 @@ export type DashboardSimulacaoUpdateInput = {
 export type DashboardSimulacaoDeleteResult = {
   id: number
   data_ref: string
+  mercado: number
   contas: number
   valor: number
   observacao: string | null
@@ -360,6 +365,8 @@ function mapDashboardSimulacaoRow(row: {
   ano: number | string
   mes: number | string
   nome_mes: string
+  mercado: number | string
+  mercado_nome: string
   contas: number | string
   conta_nome: string
   valor: number | string
@@ -379,6 +386,8 @@ function mapDashboardSimulacaoRow(row: {
     ano: Number(row.ano),
     mes: Number(row.mes),
     nome_mes: row.nome_mes,
+    mercado: Number(row.mercado),
+    mercado_nome: row.mercado_nome,
     contas: Number(row.contas),
     conta_nome: row.conta_nome,
     valor: Number(row.valor ?? 0),
@@ -410,6 +419,7 @@ export async function insertDashboardSimulacao(
 ): Promise<DashboardSimulacaoRow | null> {
   const { data, error } = await supabase.rpc("insert_dashboard_projecao", {
     p_data_ref: input.data_ref,
+    p_mercado: input.mercado,
     p_contas: input.contas,
     p_valor: input.valor,
     p_observacao: input.observacao ?? null,
@@ -429,6 +439,7 @@ export async function updateDashboardSimulacao(
   const { data, error } = await supabase.rpc("update_dashboard_projecao", {
     p_id: input.id,
     p_data_ref: input.data_ref,
+    p_mercado: input.mercado,
     p_contas: input.contas,
     p_valor: input.valor,
     p_observacao: input.observacao ?? null,
@@ -462,6 +473,7 @@ export async function deleteDashboardSimulacao(
   return {
     id: Number(row.id),
     data_ref: row.data_ref,
+    mercado: Number(row.mercado),
     contas: Number(row.contas),
     valor: Number(row.valor ?? 0),
     observacao: row.observacao ?? null,

@@ -13,6 +13,7 @@ import type {
   DashboardProjectionDailyPoint,
 } from "@/lib/dashboard"
 import { formatCurrencyBRL, formatNumberBR } from "@/lib/format"
+import { Skeleton } from "@/components/ui/skeleton"
 
 type ViewMode = "daily" | "cumulative"
 type MetricMode = "faturamento" | "pedidos" | "ticket_medio" | "positivacoes"
@@ -142,7 +143,7 @@ function SalesChartTooltip({
             </span>
             <span
               style={{ color: entry.color }}
-              className="text-sm font-semibold"
+              className="text-sm font-semibold tabular-nums"
             >
               {formatter(Number(entry.value ?? 0))}
             </span>
@@ -150,6 +151,31 @@ function SalesChartTooltip({
         )
       })}
     </div>
+  )
+}
+
+type ChartLegendItemProps = {
+  color: string
+  label: string
+  dashed?: boolean
+}
+
+function ChartLegendItem({ color, label, dashed = false }: ChartLegendItemProps) {
+  return (
+    <span className="flex items-center gap-1.5">
+      <svg width="16" height="8" className="shrink-0" aria-hidden="true">
+        <line
+          x1="0"
+          y1="4"
+          x2="16"
+          y2="4"
+          stroke={color}
+          strokeWidth={2}
+          strokeDasharray={dashed ? "4 3" : undefined}
+        />
+      </svg>
+      {label}
+    </span>
   )
 }
 
@@ -196,7 +222,8 @@ function SegmentedToggle<T extends string>({
           key={option.value}
           type="button"
           onClick={() => onChange(option.value)}
-          className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${value === option.value
+          aria-pressed={value === option.value}
+          className={`min-h-9 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${value === option.value
             ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
             : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
             }`}
@@ -233,7 +260,8 @@ function MetricModeButtons({
               key={metricKey}
               type="button"
               onClick={() => onMetricModeChange(metricKey)}
-              className="min-w-0 rounded-lg border px-2 py-1.5 text-[11px] font-semibold transition-colors"
+              aria-pressed={metricMode === metricKey}
+              className="min-h-11 min-w-0 rounded-lg border px-2 py-1.5 text-[11px] font-semibold transition-colors"
               style={getMetricButtonStyle(metricKey, metricMode)}
             >
               {metric.shortLabel}
@@ -256,6 +284,7 @@ function MetricModeButtons({
             onClick={() => onMetricModeChange(metricKey)}
             onMouseEnter={() => setHoveredMetric(metricKey)}
             onMouseLeave={() => setHoveredMetric(null)}
+            aria-pressed={metricMode === metricKey}
             className="whitespace-nowrap rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors"
             style={getMetricButtonStyle(metricKey, metricMode, hoveredMetric)}
           >
@@ -291,7 +320,8 @@ function AnoAnteriorToggle({ checked, onChange, variant }: AnoAnteriorToggleProp
     <button
       type="button"
       onClick={() => onChange(!checked)}
-      className={`rounded-lg border px-3 py-1.5 text-[11px] font-medium transition-colors ${checked
+      aria-pressed={checked}
+      className={`min-h-9 rounded-lg border px-3 py-1.5 text-[11px] font-medium transition-colors ${checked
         ? "border-[#0B70F5] bg-[#EAF3FF] text-[#0B70F5] dark:border-[#0B70F5] dark:bg-[#0B70F5]/10"
         : "border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
         }`}
@@ -333,7 +363,8 @@ function ProjecaoToggle({ checked, disabled, onChange, variant }: ProjecaoToggle
       type="button"
       onClick={() => onChange(!checked)}
       disabled={disabled}
-      className={`rounded-lg border px-3 py-1.5 text-[11px] font-medium transition-colors ${disabled
+      aria-pressed={checked}
+      className={`min-h-9 rounded-lg border px-3 py-1.5 text-[11px] font-medium transition-colors ${disabled
         ? "cursor-not-allowed border-slate-200 text-slate-400 opacity-60 dark:border-slate-700 dark:text-slate-500"
         : checked
           ? "border-[#F50BB7] bg-[#FDEBFA] text-[#F50BB7] dark:border-[#F50BB7] dark:bg-[#F50BB7]/10"
@@ -787,16 +818,16 @@ function DashboardSalesChartComponent({
         </div>
       </div>
 
-      <div className="mt-6 hidden h-80 select-none md:block">
+      <div className="mt-6 hidden h-84 select-none md:flex md:flex-col">
         {loading ? (
-          <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-slate-300 text-slate-400 dark:border-slate-700 dark:text-slate-500">
-            Carregando gráfico...
-          </div>
+          <Skeleton className="h-full w-full rounded-2xl" />
         ) : chartData.length === 0 ? (
           <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-slate-300 text-slate-400 dark:border-slate-700 dark:text-slate-500">
             Sem dados para o período selecionado
           </div>
         ) : (
+          <>
+          <div className="min-h-0 flex-1">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData}>
               <defs>
@@ -891,13 +922,28 @@ function DashboardSalesChartComponent({
               />
             </AreaChart>
           </ResponsiveContainer>
+          </div>
+
+          <div className="mt-3 flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-600 dark:text-slate-300">
+            <ChartLegendItem color={currentMetric.color} label={`${currentMetric.label} (mês atual)`} />
+            <ChartLegendItem color="#94A3B8" label="Mês anterior" />
+            {showAnoAnterior && (
+              <ChartLegendItem color="#0B70F5" label="Ano anterior" dashed />
+            )}
+            {canShowProjection && (
+              <ChartLegendItem color="#F50BB7" label="Projeção" dashed />
+            )}
+          </div>
+          </>
         )}
       </div>
 
       <div className="mt-6 md:hidden">
         {loading ? (
-          <div className="flex min-h-48 items-center justify-center rounded-2xl border border-dashed border-slate-300 px-4 text-center text-slate-400 dark:border-slate-700 dark:text-slate-500">
-            Carregando tabela...
+          <div className="space-y-2">
+            {Array.from({ length: 5 }).map((_, index) => (
+              <Skeleton key={index} className="h-11 w-full rounded-xl" />
+            ))}
           </div>
         ) : mobileTableData.length === 0 ? (
           <div className="flex min-h-48 items-center justify-center rounded-2xl border border-dashed border-slate-300 px-4 text-center text-slate-400 dark:border-slate-700 dark:text-slate-500">
@@ -932,25 +978,25 @@ function DashboardSalesChartComponent({
 
                     <td className="wrap-break-word px-2 py-3 text-right text-sm text-slate-600 dark:text-slate-300">
                       <div className="flex flex-col items-end">
-                        <span>{currentMetric.format(row.atual)}</span>
+                        <span className="tabular-nums">{currentMetric.format(row.atual)}</span>
 
                         {
                           canShowAnoAnterior && row.anoAnterior !== null && (
-                            <span className="mt-1 text-[11px] font-medium text-[#0B70F5]">
+                            <span className="mt-1 text-[11px] font-medium tabular-nums text-[#0B70F5]">
                               Ano Ant: {currentMetric.format(row.anoAnterior)}
                             </span>
                           )
                         }
 
                         {canShowProjection && row.projecao !== null && (
-                          <span className="mt-1 text-[11px] font-medium text-[#F50BB7]">
+                          <span className="mt-1 text-[11px] font-medium tabular-nums text-[#F50BB7]">
                             Proj.: {currentMetric.format(row.projecao)}
                           </span>
                         )}
                       </div>
                     </td>
 
-                    <td className="wrap-break-word px-2 py-3 text-right text-sm text-slate-600 dark:text-slate-300">
+                    <td className="wrap-break-word px-2 py-3 text-right text-sm tabular-nums text-slate-600 dark:text-slate-300">
                       {currentMetric.format(row.anterior)}
                     </td>
                   </tr>

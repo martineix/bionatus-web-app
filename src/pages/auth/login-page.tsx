@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { signInWithPassword } from "@/lib/auth"
 import { logger } from "@/lib/logger"
 import logoBionatus from "@/assets/logo-bionatus.svg"
+import loginBackground from "@/assets/login-background.webp"
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -40,8 +41,7 @@ export default function LoginPage() {
           <div
             className="absolute inset-0 bg-cover bg-center"
             style={{
-              backgroundImage:
-                "linear-gradient(rgba(0, 100, 38, 0.45), rgba(0, 100, 38, 0.78)), url('https://images.unsplash.com/photo-1761361413429-f9044b300694?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000')",
+              backgroundImage: `linear-gradient(rgba(0, 52, 26, 0.55), rgba(0, 100, 38, 0.82)), url(${loginBackground})`,
             }}
           />
 
@@ -93,6 +93,7 @@ export default function LoginPage() {
                   <Input
                     id="email"
                     type="email"
+                    autoComplete="email"
                     placeholder="seuemail@empresa.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -109,6 +110,7 @@ export default function LoginPage() {
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
+                      autoComplete="current-password"
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}

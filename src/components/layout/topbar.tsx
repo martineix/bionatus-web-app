@@ -17,7 +17,7 @@ type TopbarProps = {
 }
 
 const iconButtonClass =
-  "inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+  "inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
 
 const actionButtonClass = `${iconButtonClass} sm:w-auto sm:px-4`
 

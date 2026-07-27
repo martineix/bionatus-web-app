@@ -1,14 +1,16 @@
 // src/components/dashboard/simulation-form.tsx
 import type { Dispatch, SetStateAction } from "react"
-import { channelOptions } from "@/lib/dashboard/dashboard-constants"
+import { channelOptions, marketOptions } from "@/lib/dashboard/dashboard-constants"
 
 type SimulationFormProps = {
   simulationDate: string
+  simulationMarket: number | ""
   simulationChannel: number | ""
   simulationValue: string
   editingSimulationId: number | null
   savingSimulation: boolean
   setSimulationDate: Dispatch<SetStateAction<string>>
+  setSimulationMarket: Dispatch<SetStateAction<number | "">>
   setSimulationChannel: Dispatch<SetStateAction<number | "">>
   setSimulationValue: Dispatch<SetStateAction<string>>
   handleSubmitSimulation: () => void
@@ -17,11 +19,13 @@ type SimulationFormProps = {
 
 export function SimulationForm({
     simulationDate,
+    simulationMarket,
     simulationChannel,
     simulationValue,
     editingSimulationId,
     savingSimulation,
     setSimulationDate,
+    setSimulationMarket,
     setSimulationChannel,
     setSimulationValue,
     handleSubmitSimulation,
@@ -48,6 +52,26 @@ export function SimulationForm({
                         onChange={(e) => setSimulationDate(e.target.value)}
                         className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-[#006426] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                     />
+                </div>
+
+                <div>
+                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                        Mercado
+                    </label>
+                    <select
+                        value={simulationMarket}
+                        onChange={(e) =>
+                            setSimulationMarket(e.target.value ? Number(e.target.value) : "")
+                        }
+                        className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-[#006426] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    >
+                        <option value="">Selecione um mercado</option>
+                        {marketOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </select>
                 </div>
 
                 <div>
