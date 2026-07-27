@@ -69,20 +69,20 @@ export function useDashboardData({ filters, hasComparison, filtersReady}: UseDas
     loadYears()
   }, [])
 
-  useEffect(() => {
-    async function loadPendenteFaturamento() {
-      try {
-        const data = await getPendenteFaturamento()
-        setPendenteFaturamento(data)
-      } catch (error) {
-        logger.error("use-dashboard-data/loadPendenteFaturamento", error)
-      }
+  const loadPendenteFaturamento = useCallback(async () => {
+    try {
+      const data = await getPendenteFaturamento()
+      setPendenteFaturamento(data)
+    } catch (error) {
+      logger.error("use-dashboard-data/loadPendenteFaturamento", error)
     }
+  }, [])
 
+  useEffect(() => {
     loadPendenteFaturamento()
     const interval = setInterval(loadPendenteFaturamento, 15 * 60 * 1000)
     return () => clearInterval(interval)
-  }, [])
+  }, [loadPendenteFaturamento])
 
   useEffect(() => {
     async function loadMonths() {
@@ -195,6 +195,7 @@ export function useDashboardData({ filters, hasComparison, filtersReady}: UseDas
           previousMetricsPromise,
           lastYearMetricsPromise,
           projectionPromise,
+          loadPendenteFaturamento(),
         ])
 
         if (signal.aborted) return
@@ -219,7 +220,7 @@ export function useDashboardData({ filters, hasComparison, filtersReady}: UseDas
     },
     // contasKey representa contas (array) de forma estável
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [filtersReady, ano, mes, dataInicio, dataFim, idRepresentante, mercado, contasKey, isBionatus, hasComparison]
+    [filtersReady, ano, mes, dataInicio, dataFim, idRepresentante, mercado, contasKey, isBionatus, hasComparison, loadPendenteFaturamento]
   )
 
   useEffect(() => {
