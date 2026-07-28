@@ -49,7 +49,7 @@ export function DashboardKpisSection({
             accentBg={card.accentBg}
             badge={
               card.key === "faturamento" && pendenteFaturamento && pendenteFaturamento.venda > 0
-                ? `A faturar SANKHYA: ${formatCurrencyBRL(pendenteFaturamento.venda)}`
+                ? `A faturar: ${formatCurrencyBRL(pendenteFaturamento.venda)}`
                 : undefined
             }
             comparisons={
