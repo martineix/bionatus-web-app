@@ -86,8 +86,10 @@ ser self-service de verdade.
   ignora nesse caso).
 - **Provisionamento:** (1) levantar representantes ativos (`sankhya_vendedores.ativo='S'` +
   equivalente Nexus) cruzando com quem aparece em `vw_pedidos_v2` recentemente; (2) usuário fornece
-  e-mail de cada um; (3) criar conta via Supabase Auth + linha em `profiles` com
-  `role='representante'`; (4) inserir vínculo em `representante_contas`; (5) validar login de teste
+  e-mail de cada um; (3) criar conta via Supabase Auth com **senha temporária definida pelo
+  usuário** (não convite por e-mail) + linha em `profiles` com `role='representante'` — a senha
+  inicial é repassada por fora (WhatsApp, verbal, etc.), sem exigir troca obrigatória no primeiro
+  login (não solicitado); (4) inserir vínculo em `representante_contas`; (5) validar login de teste
   contra os números esperados daquele representante.
 
 ## Fora de escopo (YAGNI)
