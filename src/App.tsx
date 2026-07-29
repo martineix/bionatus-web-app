@@ -5,6 +5,7 @@ import ClientesPage from "@/pages/clientes/clientes-page"
 import ProdutosPage from "@/pages/produtos/produtos-page"
 import RemocoesPage from "@/pages/remocoes/remocoes-page"
 import ProtectedRoute from "@/routes/protected-route"
+import RoleProtectedRoute from "@/routes/role-protected-route"
 
 export default function App() {
   return (
@@ -42,7 +43,9 @@ export default function App() {
         path="/remocoes"
         element={
           <ProtectedRoute>
-            <RemocoesPage />
+            <RoleProtectedRoute>
+              <RemocoesPage />
+            </RoleProtectedRoute>
           </ProtectedRoute>
         }
       />
