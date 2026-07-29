@@ -4,6 +4,11 @@ import {
   LayoutDashboard,
   Package,
   Users,
+  Activity,
+  Repeat2,
+  PieChart,
+  Star,
+  CalendarPlus,
   Ban,
   ShieldCheck,
   FolderCog,
@@ -38,11 +43,19 @@ const topNavItems: NavItem[] = [
     label: "Dashboard",
     icon: LayoutDashboard,
   },
-  {
-    to: "/clientes",
-    label: "Clientes",
-    icon: Users,
-  },
+]
+
+const clientesNavItems: NavItem[] = [
+  { to: "/clientes/atividade", label: "Atividade", icon: Activity },
+  { to: "/clientes/frequencia", label: "Frequência", icon: Repeat2 },
+  { to: "/clientes/curva-abc", label: "Curva ABC", icon: PieChart },
+  { to: "/clientes/avaliacao", label: "Avaliação", icon: Star },
+  { to: "/clientes/aberturas", label: "Aberturas", icon: CalendarPlus },
+]
+
+const CLIENTES_PATHS = new Set(clientesNavItems.map((item) => item.to))
+
+const produtosNavItems: NavItem[] = [
   {
     to: "/produtos",
     label: "Produtos",
@@ -60,6 +73,11 @@ const cadastrosNavItems: NavItem[] = [
     to: "/permissoes",
     label: "Permissões",
     icon: ShieldCheck,
+  },
+  {
+    to: "/cadastros/avaliacao-clientes",
+    label: "Avaliação de Clientes",
+    icon: Star,
   },
 ]
 
@@ -79,12 +97,16 @@ export default function Sidebar({
   const [cadastrosOpen, setCadastrosOpen] = useState(() =>
     CADASTROS_PATHS.has(location.pathname)
   )
+  const [clientesOpen, setClientesOpen] = useState(() =>
+    CLIENTES_PATHS.has(location.pathname)
+  )
 
   const showLabels = mobileOpen || !collapsed
 
   const visibleCadastrosItems = cadastrosNavItems.filter((item) => {
     if (item.to === "/remocoes" && hideRemocoes) return false
     if (item.to === "/permissoes" && hideAdminItems) return false
+    if (item.to === "/cadastros/avaliacao-clientes" && hideAdminItems) return false
     return true
   })
 
@@ -109,6 +131,47 @@ export default function Sidebar({
         <Icon className="h-4 w-4 shrink-0" />
         {showLabels && <span>{item.label}</span>}
       </NavLink>
+    )
+  }
+
+  function renderAccordion(
+    label: string,
+    icon: LucideIcon,
+    items: NavItem[],
+    open: boolean,
+    setOpen: (value: boolean) => void
+  ) {
+    if (items.length === 0) return null
+
+    const Icon = icon
+
+    if (!showLabels) {
+      return items.map((item) => renderNavItem(item))
+    }
+
+    return (
+      <div>
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          aria-expanded={open}
+          className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+        >
+          <Icon className="h-4 w-4 shrink-0" />
+          <span className="flex-1 text-left">{label}</span>
+          {open ? (
+            <ChevronDown className="h-4 w-4 shrink-0" />
+          ) : (
+            <ChevronRight className="h-4 w-4 shrink-0" />
+          )}
+        </button>
+
+        {open && (
+          <div className="mt-2 space-y-2">
+            {items.map((item) => renderNavItem(item, true))}
+          </div>
+        )}
+      </div>
     )
   }
 
@@ -168,33 +231,11 @@ export default function Sidebar({
         <nav className="space-y-2" aria-label="Navegação principal">
           {topNavItems.map((item) => renderNavItem(item))}
 
-          {visibleCadastrosItems.length > 0 &&
-            (showLabels ? (
-              <div>
-                <button
-                  type="button"
-                  onClick={() => setCadastrosOpen((prev) => !prev)}
-                  aria-expanded={cadastrosOpen}
-                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-                >
-                  <FolderCog className="h-4 w-4 shrink-0" />
-                  <span className="flex-1 text-left">Cadastros</span>
-                  {cadastrosOpen ? (
-                    <ChevronDown className="h-4 w-4 shrink-0" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4 shrink-0" />
-                  )}
-                </button>
+          {renderAccordion("Clientes", Users, clientesNavItems, clientesOpen, setClientesOpen)}
 
-                {cadastrosOpen && (
-                  <div className="mt-2 space-y-2">
-                    {visibleCadastrosItems.map((item) => renderNavItem(item, true))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              visibleCadastrosItems.map((item) => renderNavItem(item))
-            ))}
+          {produtosNavItems.map((item) => renderNavItem(item))}
+
+          {renderAccordion("Cadastros", FolderCog, visibleCadastrosItems, cadastrosOpen, setCadastrosOpen)}
         </nav>
       </aside>
     </>

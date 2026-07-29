@@ -1,7 +1,11 @@
 import { Navigate, Route, Routes } from "react-router-dom"
 import LoginPage from "@/pages/auth/login-page"
 import DashboardPage from "@/pages/dashboard/dashboard-page"
-import ClientesPage from "@/pages/clientes/clientes-page"
+import AtividadePage from "@/pages/clientes/atividade-page"
+import FrequenciaPage from "@/pages/clientes/frequencia-page"
+import CurvaAbcPage from "@/pages/clientes/curva-abc-page"
+import AvaliacaoPage from "@/pages/clientes/avaliacao-page"
+import AberturasPage from "@/pages/clientes/aberturas-page"
 import ProdutosPage from "@/pages/produtos/produtos-page"
 import RemocoesPage from "@/pages/remocoes/remocoes-page"
 import PermissoesPage from "@/pages/permissoes/permissoes-page"
@@ -23,10 +27,46 @@ export default function App() {
       />
 
       <Route
-        path="/clientes"
+        path="/clientes/atividade"
         element={
           <ProtectedRoute>
-            <ClientesPage />
+            <AtividadePage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/clientes/frequencia"
+        element={
+          <ProtectedRoute>
+            <FrequenciaPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/clientes/curva-abc"
+        element={
+          <ProtectedRoute>
+            <CurvaAbcPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/clientes/avaliacao"
+        element={
+          <ProtectedRoute>
+            <AvaliacaoPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/clientes/aberturas"
+        element={
+          <ProtectedRoute>
+            <AberturasPage />
           </ProtectedRoute>
         }
       />
