@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import Sidebar from "./sidebar"
 import Topbar from "./topbar"
 import { getMyProfile } from "@/lib/profile"
+import { getMyPermissions, type Permissions } from "@/lib/permissions"
 
 type AppShellProps = {
   title: string
@@ -40,11 +41,20 @@ export default function AppShell({
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const wasMobileOpenRef = useRef(false)
   const [isRepresentanteView, setIsRepresentanteView] = useState(false)
+  const [permissions, setPermissions] = useState<Permissions>({
+    remocoes: true,
+    dashboardProjecaoCheckbox: true,
+    dashboardSimulacao: true,
+  })
 
   useEffect(() => {
     getMyProfile()
       .then((profile) => setIsRepresentanteView(profile.role === "representante"))
       .catch(() => setIsRepresentanteView(false))
+
+    getMyPermissions()
+      .then(setPermissions)
+      .catch(() => {})
   }, [])
 
   const handleToggleSidebar = useCallback(() => {
@@ -139,7 +149,8 @@ export default function AppShell({
         onCloseMobile={handleCloseMobileMenu}
         asideRef={asideRef}
         closeButtonRef={closeButtonRef}
-        hideRemocoes={isRepresentanteView}
+        hideRemocoes={!permissions.remocoes}
+        hideAdminItems={isRepresentanteView}
       />
 
       <div

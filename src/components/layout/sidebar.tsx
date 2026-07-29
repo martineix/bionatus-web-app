@@ -5,6 +5,7 @@ import {
   Package,
   Users,
   Ban,
+  ShieldCheck,
   X,
   PanelLeftClose,
   PanelLeftOpen,
@@ -19,6 +20,7 @@ type SidebarProps = {
   asideRef?: RefObject<HTMLElement | null>
   closeButtonRef?: RefObject<HTMLButtonElement | null>
   hideRemocoes?: boolean
+  hideAdminItems?: boolean
 }
 
 type NavItem = {
@@ -48,6 +50,11 @@ const navItems: NavItem[] = [
     label: "Remoções",
     icon: Ban,
   },
+  {
+    to: "/permissoes",
+    label: "Permissões",
+    icon: ShieldCheck,
+  },
 ]
 
 export default function Sidebar({
@@ -58,11 +65,14 @@ export default function Sidebar({
   asideRef,
   closeButtonRef,
   hideRemocoes = false,
+  hideAdminItems = false,
 }: SidebarProps) {
   const showLabels = mobileOpen || !collapsed
-  const visibleNavItems = hideRemocoes
-    ? navItems.filter((item) => item.to !== "/remocoes")
-    : navItems
+  const visibleNavItems = navItems.filter((item) => {
+    if (item.to === "/remocoes" && hideRemocoes) return false
+    if (item.to === "/permissoes" && hideAdminItems) return false
+    return true
+  })
 
   return (
     <>
