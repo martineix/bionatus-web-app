@@ -168,7 +168,7 @@ export default function AppShell({
           menuButtonRef={menuButtonRef}
         />
 
-        <main className="flex-1 px-4 pb-4 sm:px-6 sm:pb-6 lg:pt-4">
+        <main className="flex-1 px-4 pb-4 pt-4 sm:px-6 sm:pb-6">
           {children}
         </main>
       </div>
