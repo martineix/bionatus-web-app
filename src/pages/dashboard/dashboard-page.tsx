@@ -113,6 +113,7 @@ export default function DashboardPage() {
           loading={loading}
           chartPreferences={chartPreferences}
           setChartPreferences={setChartPreferences}
+          hideProjecao={isRepresentanteView}
         />
 
         <DashboardBreakdownSection

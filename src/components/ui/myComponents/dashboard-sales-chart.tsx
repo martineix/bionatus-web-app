@@ -31,6 +31,7 @@ type DashboardSalesChartProps = {
   dayMode: DayMode
   showAnoAnterior: boolean
   showProjecao: boolean
+  hideProjecao?: boolean
 
   onViewModeChange: (value: ViewMode) => void
   onMetricModeChange: (value: MetricMode) => void
@@ -397,6 +398,7 @@ function DashboardSalesChartComponent({
   dayMode,
   showAnoAnterior,
   showProjecao,
+  hideProjecao = false,
   onViewModeChange,
   onMetricModeChange,
   onDayModeChange,
@@ -407,7 +409,7 @@ function DashboardSalesChartComponent({
 
   const projecaoDisabled =
     viewMode !== "cumulative" || dayMode !== "business" || metricMode !== "faturamento"
-  const canShowProjection = showProjecao && !projecaoDisabled
+  const canShowProjection = !hideProjecao && showProjecao && !projecaoDisabled
 
   const canShowAnoAnterior = showAnoAnterior
 
@@ -773,23 +775,27 @@ function DashboardSalesChartComponent({
                   variant="button"
                 />
 
-                <ProjecaoToggle
-                  checked={showProjecao}
-                  disabled={projecaoDisabled}
-                  onChange={onShowProjecaoChange}
-                  variant="button"
-                />
+                {!hideProjecao && (
+                  <ProjecaoToggle
+                    checked={showProjecao}
+                    disabled={projecaoDisabled}
+                    onChange={onShowProjecaoChange}
+                    variant="button"
+                  />
+                )}
               </div>
             </div>
           </div>
 
           <div className="hidden md:flex md:flex-wrap md:items-center md:gap-3">
-            <ProjecaoToggle
-              checked={showProjecao}
-              disabled={projecaoDisabled}
-              onChange={onShowProjecaoChange}
-              variant="checkbox"
-            />
+            {!hideProjecao && (
+              <ProjecaoToggle
+                checked={showProjecao}
+                disabled={projecaoDisabled}
+                onChange={onShowProjecaoChange}
+                variant="checkbox"
+              />
+            )}
 
             <AnoAnteriorToggle
               checked={showAnoAnterior}

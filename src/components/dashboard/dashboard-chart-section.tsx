@@ -15,6 +15,7 @@ type DashboardChartSectionProps = {
   loading: boolean
   chartPreferences: DashboardChartPreferences
   setChartPreferences: Dispatch<SetStateAction<DashboardChartPreferences>>
+  hideProjecao?: boolean
 }
 
 export function DashboardChartSection({
@@ -25,6 +26,7 @@ export function DashboardChartSection({
     loading,
     chartPreferences,
     setChartPreferences,
+    hideProjecao = false,
 }: DashboardChartSectionProps) {
     return (
         <DashboardSalesChart
@@ -38,6 +40,7 @@ export function DashboardChartSection({
             dayMode={chartPreferences.dayMode}
             showAnoAnterior={chartPreferences.showAnoAnterior}
             showProjecao={chartPreferences.showProjecao}
+            hideProjecao={hideProjecao}
             onViewModeChange={(value) =>
                 setChartPreferences((prev) => ({ ...prev, viewMode: value }))
             }
