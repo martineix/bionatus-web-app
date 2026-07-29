@@ -103,7 +103,7 @@ export function RemovalTable({ removals, loading, handleDelete }: RemovalTablePr
       ) : (
         <>
           {/* Mobile */}
-          <div className="mt-5 space-y-3 sm:hidden">
+          <div className="mt-5 max-h-[70vh] space-y-3 overflow-y-auto sm:hidden">
             {removals.map((item) => (
               <div
                 key={item.id}
@@ -139,7 +139,7 @@ export function RemovalTable({ removals, loading, handleDelete }: RemovalTablePr
           </div>
 
           {/* Desktop / Tablet */}
-          <div className="mt-5 hidden overflow-x-auto sm:block">
+          <div className="mt-5 hidden max-h-[70vh] overflow-y-auto overflow-x-auto sm:block">
             <table className="w-full border-collapse text-sm">
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-800">
