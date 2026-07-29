@@ -122,7 +122,7 @@ export default function DashboardPage() {
           error={breakdownError}
         />
 
-        {canShowProjectionControls && <DashboardSimulationSection {...simulations} />}
+        {canShowProjectionControls && !isRepresentanteView && <DashboardSimulationSection {...simulations} />}
       </div>
     </AppShell>
   )
