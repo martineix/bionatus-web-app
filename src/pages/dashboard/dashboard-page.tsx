@@ -12,17 +12,27 @@ import { useDashboardData } from "@/hooks/dashboard/use-dashboard-data"
 import { useDashboardSimulations } from "@/hooks/dashboard/use-dashboard-simulations"
 import { useDashboardBreakdown } from "@/hooks/dashboard/use-dashboard-breakdown"
 import { getMyProfile } from "@/lib/profile"
+import { getMyPermissions, type Permissions } from "@/lib/permissions"
 
 export default function DashboardPage() {
   const { filters, setFilters, hasComparison, filtersReady } =
     useDashboardFilters()
 
   const [isRepresentanteView, setIsRepresentanteView] = useState(false)
+  const [permissions, setPermissions] = useState<Permissions>({
+    remocoes: true,
+    dashboardProjecaoCheckbox: true,
+    dashboardSimulacao: true,
+  })
 
   useEffect(() => {
     getMyProfile()
       .then((profile) => setIsRepresentanteView(profile.role === "representante"))
       .catch(() => setIsRepresentanteView(false))
+
+    getMyPermissions()
+      .then(setPermissions)
+      .catch(() => {})
   }, [])
 
   const { chartPreferences, setChartPreferences } =
@@ -113,7 +123,7 @@ export default function DashboardPage() {
           loading={loading}
           chartPreferences={chartPreferences}
           setChartPreferences={setChartPreferences}
-          hideProjecao={isRepresentanteView}
+          hideProjecao={!permissions.dashboardProjecaoCheckbox}
         />
 
         <DashboardBreakdownSection
@@ -123,7 +133,7 @@ export default function DashboardPage() {
           error={breakdownError}
         />
 
-        {canShowProjectionControls && !isRepresentanteView && <DashboardSimulationSection {...simulations} />}
+        {canShowProjectionControls && permissions.dashboardSimulacao && <DashboardSimulationSection {...simulations} />}
       </div>
     </AppShell>
   )
