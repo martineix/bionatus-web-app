@@ -43,7 +43,7 @@ export default function App() {
         path="/remocoes"
         element={
           <ProtectedRoute>
-            <RoleProtectedRoute>
+            <RoleProtectedRoute featureKey="remocoes">
               <RemocoesPage />
             </RoleProtectedRoute>
           </ProtectedRoute>
