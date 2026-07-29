@@ -18,6 +18,7 @@ type SidebarProps = {
   onCloseMobile: () => void
   asideRef?: RefObject<HTMLElement | null>
   closeButtonRef?: RefObject<HTMLButtonElement | null>
+  hideRemocoes?: boolean
 }
 
 type NavItem = {
@@ -56,8 +57,12 @@ export default function Sidebar({
   onCloseMobile,
   asideRef,
   closeButtonRef,
+  hideRemocoes = false,
 }: SidebarProps) {
   const showLabels = mobileOpen || !collapsed
+  const visibleNavItems = hideRemocoes
+    ? navItems.filter((item) => item.to !== "/remocoes")
+    : navItems
 
   return (
     <>
@@ -113,7 +118,7 @@ export default function Sidebar({
         </div>
 
         <nav className="space-y-2" aria-label="Navegação principal">
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const Icon = item.icon
 
             return (

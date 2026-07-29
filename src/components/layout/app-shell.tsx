@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import Sidebar from "./sidebar"
 import Topbar from "./topbar"
+import { getMyProfile } from "@/lib/profile"
 
 type AppShellProps = {
   title: string
@@ -38,6 +39,13 @@ export default function AppShell({
   const menuButtonRef = useRef<HTMLButtonElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const wasMobileOpenRef = useRef(false)
+  const [isRepresentanteView, setIsRepresentanteView] = useState(false)
+
+  useEffect(() => {
+    getMyProfile()
+      .then((profile) => setIsRepresentanteView(profile.role === "representante"))
+      .catch(() => setIsRepresentanteView(false))
+  }, [])
 
   const handleToggleSidebar = useCallback(() => {
     setCollapsed((prev) => !prev)
@@ -131,6 +139,7 @@ export default function AppShell({
         onCloseMobile={handleCloseMobileMenu}
         asideRef={asideRef}
         closeButtonRef={closeButtonRef}
+        hideRemocoes={isRepresentanteView}
       />
 
       <div
