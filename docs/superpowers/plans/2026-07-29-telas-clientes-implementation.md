@@ -1213,7 +1213,7 @@ as $function$
     order by a.cnpj;
 $function$;
 
-revoke all on function public.get_clientes_frequencia(bigint, integer, integer[], integer) from public;
+revoke all on function public.get_clientes_frequencia(bigint, integer, integer[], integer) from public, anon;
 grant execute on function public.get_clientes_frequencia(bigint, integer, integer[], integer) to authenticated;
 ```
 
@@ -1572,12 +1572,12 @@ begin
 end;
 $function$;
 
-revoke all on function public.list_parametros_avaliacao_faixas() from public;
-revoke all on function public.update_parametro_avaliacao_faixa(text, integer, numeric, numeric) from public;
-revoke all on function public.list_parametros_avaliacao_pesos() from public;
-revoke all on function public.update_parametro_avaliacao_peso(text, numeric) from public;
-revoke all on function public.list_parametros_curva_abc() from public;
-revoke all on function public.update_parametro_curva_abc(text, numeric) from public;
+revoke all on function public.list_parametros_avaliacao_faixas() from public, anon;
+revoke all on function public.update_parametro_avaliacao_faixa(text, integer, numeric, numeric) from public, anon;
+revoke all on function public.list_parametros_avaliacao_pesos() from public, anon;
+revoke all on function public.update_parametro_avaliacao_peso(text, numeric) from public, anon;
+revoke all on function public.list_parametros_curva_abc() from public, anon;
+revoke all on function public.update_parametro_curva_abc(text, numeric) from public, anon;
 
 grant execute on function public.list_parametros_avaliacao_faixas() to authenticated;
 grant execute on function public.update_parametro_avaliacao_faixa(text, integer, numeric, numeric) to authenticated;
@@ -2110,7 +2110,7 @@ as $function$
     order by r.pct_acumulado;
 $function$;
 
-revoke all on function public.get_clientes_curva_abc(bigint, integer, integer[], integer) from public;
+revoke all on function public.get_clientes_curva_abc(bigint, integer, integer[], integer) from public, anon;
 grant execute on function public.get_clientes_curva_abc(bigint, integer, integer[], integer) to authenticated;
 ```
 
@@ -2427,7 +2427,7 @@ as $function$
     order by nota_geral desc nulls last;
 $function$;
 
-revoke all on function public.get_clientes_avaliacao(bigint, integer, integer[], integer) from public;
+revoke all on function public.get_clientes_avaliacao(bigint, integer, integer[], integer) from public, anon;
 grant execute on function public.get_clientes_avaliacao(bigint, integer, integer[], integer) to authenticated;
 ```
 
@@ -2671,7 +2671,7 @@ as $function$
     order by ano_mes;
 $function$;
 
-revoke all on function public.get_clientes_aberturas(date, date, bigint, integer, integer[], integer) from public;
+revoke all on function public.get_clientes_aberturas(date, date, bigint, integer, integer[], integer) from public, anon;
 grant execute on function public.get_clientes_aberturas(date, date, bigint, integer, integer[], integer) to authenticated;
 ```
 
