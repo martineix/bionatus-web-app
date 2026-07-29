@@ -9,6 +9,7 @@ import AberturasPage from "@/pages/clientes/aberturas-page"
 import ProdutosPage from "@/pages/produtos/produtos-page"
 import RemocoesPage from "@/pages/remocoes/remocoes-page"
 import PermissoesPage from "@/pages/permissoes/permissoes-page"
+import AvaliacaoClientesPage from "@/pages/cadastros/avaliacao-clientes-page"
 import ProtectedRoute from "@/routes/protected-route"
 import RoleProtectedRoute from "@/routes/role-protected-route"
 
@@ -97,6 +98,17 @@ export default function App() {
           <ProtectedRoute>
             <RoleProtectedRoute>
               <PermissoesPage />
+            </RoleProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/cadastros/avaliacao-clientes"
+        element={
+          <ProtectedRoute>
+            <RoleProtectedRoute>
+              <AvaliacaoClientesPage />
             </RoleProtectedRoute>
           </ProtectedRoute>
         }
