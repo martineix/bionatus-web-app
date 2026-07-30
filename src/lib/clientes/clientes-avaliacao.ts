@@ -5,6 +5,7 @@ import type { ClientesFiltersInput } from "./clientes-filters-types"
 export type ClienteAvaliacaoRow = {
   cnpj: string
   nome: string
+  codigoCliente: string | null
   estrelasAtividade: number | null
   estrelasFrequencia: number | null
   estrelasTicketMedio: number | null
@@ -14,6 +15,7 @@ export type ClienteAvaliacaoRow = {
 type ClienteAvaliacaoRowRaw = {
   cnpj: string
   nome: string | null
+  codigo_cliente: string | null
   estrelas_atividade: number | string | null
   estrelas_frequencia: number | string | null
   estrelas_ticket_medio: number | string | null
@@ -24,6 +26,7 @@ function mapRow(row: ClienteAvaliacaoRowRaw): ClienteAvaliacaoRow {
   return {
     cnpj: row.cnpj,
     nome: row.nome ?? "Cliente sem nome cadastrado",
+    codigoCliente: row.codigo_cliente,
     estrelasAtividade: toNullableNumber(row.estrelas_atividade),
     estrelasFrequencia: toNullableNumber(row.estrelas_frequencia),
     estrelasTicketMedio: toNullableNumber(row.estrelas_ticket_medio),

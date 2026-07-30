@@ -1,6 +1,25 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react"
 import { ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
+import { formatCpfCnpj } from "@/lib/format"
+
+type ClienteNomeCellProps = {
+  nome: string
+  cnpj: string
+  codigoCliente?: string | null
+}
+
+export function ClienteNomeCell({ nome, cnpj, codigoCliente }: ClienteNomeCellProps) {
+  return (
+    <div className="flex flex-col">
+      <span>{nome}</span>
+      <span className="text-xs text-slate-500 dark:text-slate-400">
+        {formatCpfCnpj(cnpj)}
+        {codigoCliente ? ` · Cód. ${codigoCliente}` : ""}
+      </span>
+    </div>
+  )
+}
 
 export type ClientesTableColumn<T> = {
   key: string

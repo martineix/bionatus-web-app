@@ -1,12 +1,17 @@
 import AppShell from "@/components/layout/app-shell"
 import { ClientesFilters } from "@/components/clientes/clientes-filters"
-import { ClientesDataTable, type ClientesTableColumn } from "@/components/clientes/clientes-data-table"
+import { ClientesDataTable, ClienteNomeCell, type ClientesTableColumn } from "@/components/clientes/clientes-data-table"
 import { StarRating } from "@/components/clientes/star-rating"
 import { useClientesAvaliacao } from "@/hooks/clientes/use-clientes-avaliacao"
 import type { ClienteAvaliacaoRow } from "@/lib/clientes/clientes-avaliacao"
 
 const columns: ClientesTableColumn<ClienteAvaliacaoRow>[] = [
-  { key: "nome", header: "Cliente", render: (row) => row.nome, sortValue: (row) => row.nome },
+  {
+    key: "nome",
+    header: "Cliente",
+    render: (row) => <ClienteNomeCell nome={row.nome} cnpj={row.cnpj} codigoCliente={row.codigoCliente} />,
+    sortValue: (row) => row.nome,
+  },
   {
     key: "atividade",
     header: "Atividade",

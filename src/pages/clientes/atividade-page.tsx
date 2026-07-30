@@ -1,6 +1,6 @@
 import AppShell from "@/components/layout/app-shell"
 import { ClientesFilters } from "@/components/clientes/clientes-filters"
-import { ClientesDataTable, type ClientesTableColumn } from "@/components/clientes/clientes-data-table"
+import { ClientesDataTable, ClienteNomeCell, type ClientesTableColumn } from "@/components/clientes/clientes-data-table"
 import { useClientesAtividade } from "@/hooks/clientes/use-clientes-atividade"
 import { formatCurrencyBRL } from "@/lib/format"
 import type { ClienteAtividadeRow } from "@/lib/clientes/clientes-atividade"
@@ -11,7 +11,12 @@ function formatDateBR(value: string | null) {
 }
 
 const columns: ClientesTableColumn<ClienteAtividadeRow>[] = [
-  { key: "nome", header: "Cliente", render: (row) => row.nome, sortValue: (row) => row.nome },
+  {
+    key: "nome",
+    header: "Cliente",
+    render: (row) => <ClienteNomeCell nome={row.nome} cnpj={row.cnpj} codigoCliente={row.codigoCliente} />,
+    sortValue: (row) => row.nome,
+  },
   {
     key: "dias",
     header: "Dias sem comprar",

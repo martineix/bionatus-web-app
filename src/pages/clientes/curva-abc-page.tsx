@@ -1,7 +1,7 @@
 import { useState } from "react"
 import AppShell from "@/components/layout/app-shell"
 import { ClientesFilters } from "@/components/clientes/clientes-filters"
-import { ClientesDataTable, type ClientesTableColumn } from "@/components/clientes/clientes-data-table"
+import { ClientesDataTable, ClienteNomeCell, type ClientesTableColumn } from "@/components/clientes/clientes-data-table"
 import { useClientesCurvaAbc } from "@/hooks/clientes/use-clientes-curva-abc"
 import { formatCurrencyBRL, formatPercentBR } from "@/lib/format"
 import type { ClienteCurvaAbcRow } from "@/lib/clientes/clientes-curva-abc"
@@ -22,7 +22,12 @@ const CLASSE_OPTIONS: { value: ClasseFiltro; label: string }[] = [
 ]
 
 const columns: ClientesTableColumn<ClienteCurvaAbcRow>[] = [
-  { key: "nome", header: "Cliente", render: (row) => row.nome, sortValue: (row) => row.nome },
+  {
+    key: "nome",
+    header: "Cliente",
+    render: (row) => <ClienteNomeCell nome={row.nome} cnpj={row.cnpj} codigoCliente={row.codigoCliente} />,
+    sortValue: (row) => row.nome,
+  },
   {
     key: "valor",
     header: "Valor total (vida)",

@@ -5,6 +5,7 @@ import type { ClientesFiltersInput } from "./clientes-filters-types"
 export type ClienteAtividadeRow = {
   cnpj: string
   nome: string
+  codigoCliente: string | null
   diasDesdeUltimaCompra: number | null
   dataUltimaCompra: string | null
   valorUltimaCompra: number | null
@@ -16,6 +17,7 @@ export type ClienteAtividadeRow = {
 type ClienteAtividadeRowRaw = {
   cnpj: string
   nome: string | null
+  codigo_cliente: string | null
   dias_desde_ultima_compra: number | string | null
   data_ultima_compra: string | null
   valor_ultima_compra: number | string | null
@@ -28,6 +30,7 @@ function mapRow(row: ClienteAtividadeRowRaw): ClienteAtividadeRow {
   return {
     cnpj: row.cnpj,
     nome: row.nome ?? "Cliente sem nome cadastrado",
+    codigoCliente: row.codigo_cliente,
     diasDesdeUltimaCompra: toNullableNumber(row.dias_desde_ultima_compra),
     dataUltimaCompra: row.data_ultima_compra,
     valorUltimaCompra: toNullableNumber(row.valor_ultima_compra),

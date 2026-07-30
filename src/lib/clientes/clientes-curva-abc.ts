@@ -5,6 +5,7 @@ import type { ClientesFiltersInput } from "./clientes-filters-types"
 export type ClienteCurvaAbcRow = {
   cnpj: string
   nome: string
+  codigoCliente: string | null
   valorTotalLiquido: number
   pctParticipacao: number
   pctAcumulado: number
@@ -15,6 +16,7 @@ export type ClienteCurvaAbcRow = {
 type ClienteCurvaAbcRowRaw = {
   cnpj: string
   nome: string | null
+  codigo_cliente: string | null
   valor_total_liquido: number | string
   pct_participacao: number | string
   pct_acumulado: number | string
@@ -26,6 +28,7 @@ function mapRow(row: ClienteCurvaAbcRowRaw): ClienteCurvaAbcRow {
   return {
     cnpj: row.cnpj,
     nome: row.nome ?? "Cliente sem nome cadastrado",
+    codigoCliente: row.codigo_cliente,
     valorTotalLiquido: toNumber(row.valor_total_liquido),
     pctParticipacao: toNumber(row.pct_participacao),
     pctAcumulado: toNumber(row.pct_acumulado),
