@@ -60,6 +60,38 @@ const detalheColumns: ClientesTableColumn<ClienteAberturaDetalheRow>[] = [
     sortValue: (row) => row.qtdRecompras,
   },
   {
+    key: "visita",
+    header: "Visita",
+    align: "center",
+    render: (row) =>
+      row.qtdVisitas > 0 ? (
+        <span className="inline-flex items-center rounded-full bg-[#E4F1E8] px-2 py-0.5 text-xs font-semibold text-[#006426] dark:bg-slate-800 dark:text-[#7DD3A2]">
+          Sim · {row.qtdVisitas}x
+        </span>
+      ) : (
+        <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+          Não
+        </span>
+      ),
+    sortValue: (row) => row.qtdVisitas,
+  },
+  {
+    key: "atendimento",
+    header: "Atendimento",
+    align: "center",
+    render: (row) =>
+      row.qtdAtendimentos > 0 ? (
+        <span className="inline-flex items-center rounded-full bg-[#E4F1E8] px-2 py-0.5 text-xs font-semibold text-[#006426] dark:bg-slate-800 dark:text-[#7DD3A2]">
+          Sim · {row.qtdAtendimentos}x
+        </span>
+      ) : (
+        <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+          Não
+        </span>
+      ),
+    sortValue: (row) => row.qtdAtendimentos,
+  },
+  {
     key: "representante",
     header: "Quem abriu",
     render: (row) => row.representanteAbertura ?? "—",

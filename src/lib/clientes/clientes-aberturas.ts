@@ -41,6 +41,8 @@ export type ClienteAberturaDetalheRow = {
   dataAbertura: string
   representanteAbertura: string | null
   qtdRecompras: number
+  qtdVisitas: number
+  qtdAtendimentos: number
 }
 
 type ClienteAberturaDetalheRowRaw = {
@@ -50,6 +52,8 @@ type ClienteAberturaDetalheRowRaw = {
   data_abertura: string
   representante_abertura: string | null
   qtd_recompras: number | string
+  qtd_visitas: number | string
+  qtd_atendimentos: number | string
 }
 
 export async function getClientesAberturasDetalhe(
@@ -75,5 +79,7 @@ export async function getClientesAberturasDetalhe(
     dataAbertura: row.data_abertura,
     representanteAbertura: row.representante_abertura,
     qtdRecompras: toNumber(row.qtd_recompras),
+    qtdVisitas: toNumber(row.qtd_visitas),
+    qtdAtendimentos: toNumber(row.qtd_atendimentos),
   }))
 }
