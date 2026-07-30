@@ -33,3 +33,50 @@ export async function getClientesAberturas(
     qtdClientes: toNumber(row.qtd_clientes),
   }))
 }
+
+export type ClienteAberturaDetalheRow = {
+  cnpj: string
+  nome: string
+  codigoCliente: string | null
+  dataAbertura: string
+  representanteAbertura: string | null
+  teveRecompra: boolean
+  mesRecompra: string | null
+}
+
+type ClienteAberturaDetalheRowRaw = {
+  cnpj: string
+  nome: string | null
+  codigo_cliente: string | null
+  data_abertura: string
+  representante_abertura: string | null
+  teve_recompra: boolean
+  mes_recompra: string | null
+}
+
+export async function getClientesAberturasDetalhe(
+  filters: ClientesFiltersInput,
+  dataInicio: string,
+  dataFim: string
+): Promise<ClienteAberturaDetalheRow[]> {
+  const { data, error } = await supabase.rpc("get_clientes_aberturas_detalhe", {
+    p_data_inicio: dataInicio,
+    p_data_fim: dataFim,
+    p_id_representante: null,
+    p_mercado: filters.mercado,
+    p_contas: filters.contas.length ? filters.contas : null,
+    p_is_bionatus: filters.isBionatus,
+  })
+
+  if (error) throw error
+
+  return ((data ?? []) as ClienteAberturaDetalheRowRaw[]).map((row) => ({
+    cnpj: row.cnpj,
+    nome: row.nome ?? "Cliente sem nome cadastrado",
+    codigoCliente: row.codigo_cliente,
+    dataAbertura: row.data_abertura,
+    representanteAbertura: row.representante_abertura,
+    teveRecompra: row.teve_recompra,
+    mesRecompra: row.mes_recompra,
+  }))
+}

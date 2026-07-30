@@ -1,9 +1,60 @@
-import { useState } from "react"
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { useEffect, useState, type MouseEvent } from "react"
+import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import AppShell from "@/components/layout/app-shell"
 import { ClientesFilters } from "@/components/clientes/clientes-filters"
+import { ClientesDataTable, ClienteNomeCell, type ClientesTableColumn } from "@/components/clientes/clientes-data-table"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useClientesAberturas } from "@/hooks/clientes/use-clientes-aberturas"
+import type { ClienteAberturaDetalheRow } from "@/lib/clientes/clientes-aberturas"
+
+function formatDateBR(value: string | null) {
+  if (!value) return "—"
+  return new Date(value).toLocaleDateString("pt-BR")
+}
+
+function formatMesAno(value: string | null) {
+  if (!value) return null
+  const [ano, mes] = value.split("-")
+  return `${mes}/${ano}`
+}
+
+const detalheColumns: ClientesTableColumn<ClienteAberturaDetalheRow>[] = [
+  {
+    key: "nome",
+    header: "Cliente",
+    render: (row) => <ClienteNomeCell nome={row.nome} cnpj={row.cnpj} codigoCliente={row.codigoCliente} />,
+    sortValue: (row) => row.nome,
+  },
+  {
+    key: "data_abertura",
+    header: "Data de abertura",
+    align: "right",
+    render: (row) => formatDateBR(row.dataAbertura),
+    sortValue: (row) => new Date(row.dataAbertura).getTime(),
+  },
+  {
+    key: "recompra",
+    header: "Recompra",
+    align: "center",
+    render: (row) =>
+      row.teveRecompra ? (
+        <span className="inline-flex items-center rounded-full bg-[#E4F1E8] px-2 py-0.5 text-xs font-semibold text-[#006426] dark:bg-slate-800 dark:text-[#7DD3A2]">
+          Sim · {formatMesAno(row.mesRecompra)}
+        </span>
+      ) : (
+        <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+          Ainda não
+        </span>
+      ),
+    sortValue: (row) => (row.teveRecompra ? 1 : 0),
+  },
+  {
+    key: "representante",
+    header: "Quem abriu",
+    render: (row) => row.representanteAbertura ?? "—",
+    sortValue: (row) => row.representanteAbertura,
+  },
+]
 
 type PeriodoPreset = "3m" | "semestre" | "ano_atual" | "12m"
 
@@ -36,13 +87,38 @@ function computePresetRange(preset: PeriodoPreset) {
 }
 
 export default function AberturasPage() {
-  const { points, loading, filters, setFilters, range, setRange } = useClientesAberturas()
+  const {
+    points,
+    loading,
+    detalhe,
+    loadingDetalhe,
+    searchTerm,
+    setSearchTerm,
+    filters,
+    setFilters,
+    range,
+    setRange,
+  } = useClientesAberturas()
   const [activePreset, setActivePreset] = useState<PeriodoPreset | "custom">("12m")
+  const [selectedMonth, setSelectedMonth] = useState<string | null>(null)
 
   function handlePresetClick(preset: PeriodoPreset) {
     setActivePreset(preset)
     setRange(computePresetRange(preset))
+    setSelectedMonth(null)
   }
+
+  function handleBarClick(anoMes: string) {
+    setSelectedMonth((current) => (current === anoMes ? null : anoMes))
+  }
+
+  useEffect(() => {
+    setSelectedMonth(null)
+  }, [range, filters])
+
+  const detalheExibido = selectedMonth
+    ? detalhe.filter((row) => row.dataAbertura.slice(0, 7) === selectedMonth)
+    : detalhe
 
   return (
     <AppShell title="Aberturas de Clientes" subtitle="Novos clientes por mês (primeira compra)">
@@ -80,10 +156,10 @@ export default function AberturasPage() {
               />
             </div>
 
-            <div className="flex items-center gap-2 md:ml-auto">
-              <span className="text-[10px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            <div className="md:ml-auto">
+              <label className="mb-1 block text-[10px] font-medium uppercase text-slate-500 dark:text-slate-400">
                 Período
-              </span>
+              </label>
 
               <div className="flex overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
                 {PRESET_OPTIONS.map((option, index) => (
@@ -113,16 +189,63 @@ export default function AberturasPage() {
           ) : (
             <div className="h-72 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={points}>
+                <BarChart data={points} onClick={() => setSelectedMonth(null)}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-800" />
                   <XAxis dataKey="anoMes" tick={{ fontSize: 12 }} />
                   <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
                   <Tooltip />
-                  <Bar dataKey="qtdClientes" name="Clientes abertos" fill="#297B49" radius={[6, 6, 0, 0]} />
+                  <Bar
+                    dataKey="qtdClientes"
+                    name="Clientes abertos"
+                    radius={[6, 6, 0, 0]}
+                    cursor="pointer"
+                    onClick={(_data, index: number, event: MouseEvent) => {
+                      event.stopPropagation()
+                      const point = points[index]
+                      if (point) handleBarClick(point.anoMes)
+                    }}
+                  >
+                    {points.map((point) => (
+                      <Cell
+                        key={point.anoMes}
+                        fill={selectedMonth === point.anoMes ? "#006426" : "#297B49"}
+                      />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
           )}
+        </section>
+
+        <section className="rounded-2xl border border-[#D0D9D6] bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+              {selectedMonth
+                ? `Clientes abertos em ${formatMesAno(selectedMonth)}`
+                : "Clientes abertos no período selecionado"}
+            </h2>
+
+            {selectedMonth && (
+              <button
+                type="button"
+                onClick={() => setSelectedMonth(null)}
+                className="text-xs font-medium text-[#297B49] hover:underline dark:text-[#7DD3A2]"
+              >
+                Limpar seleção
+              </button>
+            )}
+          </div>
+
+          <ClientesDataTable
+            columns={detalheColumns}
+            rows={detalheExibido}
+            loading={loadingDetalhe}
+            getRowKey={(row) => row.cnpj}
+            searchTerm={searchTerm}
+            onSearchTermChange={setSearchTerm}
+            emptyMessage="Nenhum cliente aberto encontrado."
+          />
         </section>
       </div>
     </AppShell>

@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
-import { getClientesAberturas, type ClienteAberturaPoint } from "@/lib/clientes/clientes-aberturas"
+import {
+  getClientesAberturas,
+  getClientesAberturasDetalhe,
+  type ClienteAberturaDetalheRow,
+  type ClienteAberturaPoint,
+} from "@/lib/clientes/clientes-aberturas"
 import { useClientesFilters } from "./use-clientes-filters"
 import { logger } from "@/lib/logger"
 
@@ -20,7 +25,10 @@ export function useClientesAberturas() {
   const { filters, setFilters } = useClientesFilters()
   const [range, setRange] = useState(defaultRange)
   const [points, setPoints] = useState<ClienteAberturaPoint[]>([])
+  const [detalhe, setDetalhe] = useState<ClienteAberturaDetalheRow[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingDetalhe, setLoadingDetalhe] = useState(true)
+  const [searchTerm, setSearchTerm] = useState("")
 
   useEffect(() => {
     let mounted = true
@@ -43,5 +51,43 @@ export function useClientesAberturas() {
     }
   }, [filters, range])
 
-  return { points, loading, filters, setFilters, range, setRange }
+  useEffect(() => {
+    let mounted = true
+
+    setLoadingDetalhe(true)
+    getClientesAberturasDetalhe(filters, range.dataInicio, range.dataFim)
+      .then((data) => {
+        if (mounted) setDetalhe(data)
+      })
+      .catch((error) => {
+        logger.error("use-clientes-aberturas-detalhe", error)
+        toast.error("Não foi possível carregar o detalhe dos clientes abertos.")
+      })
+      .finally(() => {
+        if (mounted) setLoadingDetalhe(false)
+      })
+
+    return () => {
+      mounted = false
+    }
+  }, [filters, range])
+
+  const detalheFiltrado = detalhe.filter((row) => {
+    const term = searchTerm.trim().toLowerCase()
+    if (!term) return true
+    return row.nome.toLowerCase().includes(term) || row.cnpj.includes(term)
+  })
+
+  return {
+    points,
+    loading,
+    detalhe: detalheFiltrado,
+    loadingDetalhe,
+    searchTerm,
+    setSearchTerm,
+    filters,
+    setFilters,
+    range,
+    setRange,
+  }
 }
