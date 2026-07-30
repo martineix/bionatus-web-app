@@ -18,6 +18,17 @@ function formatMesAno(value: string | null) {
   return `${mes}/${ano}`
 }
 
+function getCurrentAnoMes() {
+  const hoje = new Date()
+  return `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`
+}
+
+function getBarColor(anoMes: string, selectedMonth: string | null, currentAnoMes: string) {
+  if (selectedMonth === anoMes) return "#006426"
+  if (anoMes === currentAnoMes) return "#297B49"
+  return "#94A3B8"
+}
+
 const detalheColumns: ClientesTableColumn<ClienteAberturaDetalheRow>[] = [
   {
     key: "nome",
@@ -37,16 +48,16 @@ const detalheColumns: ClientesTableColumn<ClienteAberturaDetalheRow>[] = [
     header: "Recompra",
     align: "center",
     render: (row) =>
-      row.teveRecompra ? (
+      row.qtdRecompras > 0 ? (
         <span className="inline-flex items-center rounded-full bg-[#E4F1E8] px-2 py-0.5 text-xs font-semibold text-[#006426] dark:bg-slate-800 dark:text-[#7DD3A2]">
-          Sim · {formatMesAno(row.mesRecompra)}
+          Sim · {row.qtdRecompras}x
         </span>
       ) : (
         <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
           Ainda não
         </span>
       ),
-    sortValue: (row) => (row.teveRecompra ? 1 : 0),
+    sortValue: (row) => row.qtdRecompras,
   },
   {
     key: "representante",
@@ -56,9 +67,10 @@ const detalheColumns: ClientesTableColumn<ClienteAberturaDetalheRow>[] = [
   },
 ]
 
-type PeriodoPreset = "3m" | "semestre" | "ano_atual" | "12m"
+type PeriodoPreset = "mes_atual" | "3m" | "semestre" | "ano_atual" | "12m"
 
 const PRESET_OPTIONS: { value: PeriodoPreset; label: string }[] = [
+  { value: "mes_atual", label: "Mês atual" },
   { value: "3m", label: "Últimos 3 meses" },
   { value: "semestre", label: "Último semestre" },
   { value: "ano_atual", label: "Ano atual" },
@@ -78,10 +90,8 @@ function computePresetRange(preset: PeriodoPreset) {
     return { dataInicio: toDateInputValue(inicio), dataFim }
   }
 
-  const mesesAntes = preset === "3m" ? 2 : preset === "semestre" ? 5 : 11
-  const inicio = new Date(hoje)
-  inicio.setMonth(inicio.getMonth() - mesesAntes)
-  inicio.setDate(1)
+  const mesesAntes = preset === "mes_atual" ? 0 : preset === "3m" ? 2 : preset === "semestre" ? 5 : 11
+  const inicio = new Date(hoje.getFullYear(), hoje.getMonth() - mesesAntes, 1)
 
   return { dataInicio: toDateInputValue(inicio), dataFim }
 }
@@ -101,6 +111,7 @@ export default function AberturasPage() {
   } = useClientesAberturas()
   const [activePreset, setActivePreset] = useState<PeriodoPreset | "custom">("12m")
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null)
+  const currentAnoMes = getCurrentAnoMes()
 
   function handlePresetClick(preset: PeriodoPreset) {
     setActivePreset(preset)
@@ -208,7 +219,7 @@ export default function AberturasPage() {
                     {points.map((point) => (
                       <Cell
                         key={point.anoMes}
-                        fill={selectedMonth === point.anoMes ? "#006426" : "#297B49"}
+                        fill={getBarColor(point.anoMes, selectedMonth, currentAnoMes)}
                       />
                     ))}
                   </Bar>

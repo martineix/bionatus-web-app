@@ -40,8 +40,7 @@ export type ClienteAberturaDetalheRow = {
   codigoCliente: string | null
   dataAbertura: string
   representanteAbertura: string | null
-  teveRecompra: boolean
-  mesRecompra: string | null
+  qtdRecompras: number
 }
 
 type ClienteAberturaDetalheRowRaw = {
@@ -50,8 +49,7 @@ type ClienteAberturaDetalheRowRaw = {
   codigo_cliente: string | null
   data_abertura: string
   representante_abertura: string | null
-  teve_recompra: boolean
-  mes_recompra: string | null
+  qtd_recompras: number | string
 }
 
 export async function getClientesAberturasDetalhe(
@@ -76,7 +74,6 @@ export async function getClientesAberturasDetalhe(
     codigoCliente: row.codigo_cliente,
     dataAbertura: row.data_abertura,
     representanteAbertura: row.representante_abertura,
-    teveRecompra: row.teve_recompra,
-    mesRecompra: row.mes_recompra,
+    qtdRecompras: toNumber(row.qtd_recompras),
   }))
 }

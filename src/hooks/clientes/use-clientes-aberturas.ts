@@ -11,9 +11,7 @@ import { logger } from "@/lib/logger"
 
 function defaultRange() {
   const hoje = new Date()
-  const inicio = new Date(hoje)
-  inicio.setMonth(inicio.getMonth() - 11)
-  inicio.setDate(1)
+  const inicio = new Date(hoje.getFullYear(), hoje.getMonth() - 11, 1)
 
   return {
     dataInicio: inicio.toISOString().slice(0, 10),
