@@ -54,7 +54,7 @@ Escala real observada, do menor pro maior (esta é a resposta direta ao "as bord
 
 ## 3. Tipografia
 
-- **Fonte:** Geist Variable (`@fontsource-variable/geist`), única família usada no app inteiro.
+- **Fonte:** Inter Variable (`@fontsource-variable/inter`), única família usada no app inteiro. Trocado de Geist Variable em 2026-07-29 — Inter foi escolhida por ser o padrão de fato em dashboards SaaS densos (Linear, Vercel, Stripe), com x-height alto e números tabulares muito legíveis, importante dado o volume de colunas de valor/data nas telas de Clientes.
 - **Escala de tamanho** (do mais usado ao menos usado): `text-sm` (padrão de corpo/tabela) → `text-xs` (labels uppercase, badges, texto auxiliar) → `text-base` → `text-lg` → `text-xl`/`text-2xl`/`text-3xl` (só títulos de KPI/hero, raro).
 - **Peso:** `font-medium` para labels/botões, `font-semibold` para títulos de card e cabeçalhos de tabela, `font-bold` só em números de destaque (KPIs).
 - **Labels de campo:** sempre `text-[10px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400`, posicionados acima do controle.
