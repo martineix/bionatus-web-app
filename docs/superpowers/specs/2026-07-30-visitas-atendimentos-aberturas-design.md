@@ -1,5 +1,7 @@
 # Visitas e Atendimentos em Aberturas de Clientes — Design
 
+> **Errata (2026-07-30, pós-implementação):** o schema de `AD_LIGACOESVI` assumido abaixo (idêntico a `AD_ADVISITASQUESTIONARIO`: codigovisita/cidade/datavisita/questionario/pergunta/resposta) estava **incorreto** — o print original mostrava a tabela errada. O schema real, confirmado via `ALL_TAB_COLUMNS` no Sankhya, é: `id, idatendimento, usuario, clienterazaosocial, cnpj, datainicio, datafim, pedidonumero, pedidovalor, pedidostatus, motivo, observacoes, hashunico, origem` — e cada linha já é 1 atendimento completo (4.707 linhas = 4.707 IDs únicos, sem fragmentação em pergunta/resposta como em Visitas). A contagem de atendimentos em `get_clientes_aberturas_detalhe` usa `count(*)` por CNPJ (não `count(distinct codigovisita)`, que não existe nessa tabela). Tabela, RPC de upsert e serviço de sync foram corrigidos para o schema real; a tela de Aberturas (Task 4) não precisou de nenhuma mudança, pois só consome `qtd_atendimentos` como número. Sincronização inicial rodada manualmente: 4.707 registros, 1.399 CNPJs distintos.
+
 ## Objetivo
 
 Trazer visibilidade sobre contato pós-abertura: na tela de Aberturas de Clientes (`src/pages/clientes/aberturas-page.tsx`), depois da coluna "Recompra", mostrar se o cliente recebeu visita (representante) e/ou atendimento (televendas) desde a data de abertura. Isso permite distinguir um cliente sem recompra mas acompanhado ("Visita: Sim · 2x") de um cliente totalmente abandonado (sem recompra e sem contato algum).
