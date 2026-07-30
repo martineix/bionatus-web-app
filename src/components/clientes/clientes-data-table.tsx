@@ -66,7 +66,7 @@ export function ClientesDataTable<T>({
   searchTerm,
   onSearchTermChange,
   emptyMessage = "Nenhum cliente encontrado.",
-  searchPlaceholder = "Buscar por cliente ou CNPJ...",
+  searchPlaceholder = "Buscar por cliente, CNPJ ou código...",
 }: ClientesDataTableProps<T>) {
   const [sortKey, setSortKey] = useState<string | null>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc")

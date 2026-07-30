@@ -34,7 +34,11 @@ export function useClientesAvaliacao() {
   const filteredRows = rows.filter((row) => {
     const term = searchTerm.trim().toLowerCase()
     if (!term) return true
-    return row.nome.toLowerCase().includes(term) || row.cnpj.includes(term)
+    return (
+      row.nome.toLowerCase().includes(term) ||
+      row.cnpj.includes(term) ||
+      (row.codigoCliente?.includes(term) ?? false)
+    )
   })
 
   return { rows: filteredRows, loading, searchTerm, setSearchTerm, filters, setFilters }
