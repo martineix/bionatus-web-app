@@ -50,8 +50,37 @@ export default function AberturasPage() {
         <ClientesFilters filters={filters} onChange={setFilters} />
 
         <section className="rounded-2xl border border-[#D0D9D6] bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
-          <div className="space-y-3">
-            <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-end gap-4">
+            <div>
+              <label className="mb-1 block text-[10px] font-medium uppercase text-slate-500 dark:text-slate-400">
+                De
+              </label>
+              <input
+                type="date"
+                value={range.dataInicio}
+                onChange={(e) => {
+                  setActivePreset("custom")
+                  setRange((prev) => ({ ...prev, dataInicio: e.target.value }))
+                }}
+                className="h-10 rounded-xl border border-slate-200 px-3 text-sm dark:border-slate-700 dark:bg-slate-900"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-[10px] font-medium uppercase text-slate-500 dark:text-slate-400">
+                Até
+              </label>
+              <input
+                type="date"
+                value={range.dataFim}
+                onChange={(e) => {
+                  setActivePreset("custom")
+                  setRange((prev) => ({ ...prev, dataFim: e.target.value }))
+                }}
+                className="h-10 rounded-xl border border-slate-200 px-3 text-sm dark:border-slate-700 dark:bg-slate-900"
+              />
+            </div>
+
+            <div className="flex items-center gap-2 md:ml-auto">
               <span className="text-[10px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 Período
               </span>
@@ -73,37 +102,6 @@ export default function AberturasPage() {
                     {option.label}
                   </button>
                 ))}
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-end gap-3">
-              <div>
-                <label className="mb-1 block text-[10px] font-medium uppercase text-slate-500 dark:text-slate-400">
-                  De
-                </label>
-                <input
-                  type="date"
-                  value={range.dataInicio}
-                  onChange={(e) => {
-                    setActivePreset("custom")
-                    setRange((prev) => ({ ...prev, dataInicio: e.target.value }))
-                  }}
-                  className="h-10 rounded-xl border border-slate-200 px-3 text-sm dark:border-slate-700 dark:bg-slate-900"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-[10px] font-medium uppercase text-slate-500 dark:text-slate-400">
-                  Até
-                </label>
-                <input
-                  type="date"
-                  value={range.dataFim}
-                  onChange={(e) => {
-                    setActivePreset("custom")
-                    setRange((prev) => ({ ...prev, dataFim: e.target.value }))
-                  }}
-                  className="h-10 rounded-xl border border-slate-200 px-3 text-sm dark:border-slate-700 dark:bg-slate-900"
-                />
               </div>
             </div>
           </div>
