@@ -6,11 +6,35 @@ import { useClientesAvaliacao } from "@/hooks/clientes/use-clientes-avaliacao"
 import type { ClienteAvaliacaoRow } from "@/lib/clientes/clientes-avaliacao"
 
 const columns: ClientesTableColumn<ClienteAvaliacaoRow>[] = [
-  { key: "nome", header: "Cliente", render: (row) => row.nome },
-  { key: "atividade", header: "Atividade", align: "center", render: (row) => <StarRating value={row.estrelasAtividade} /> },
-  { key: "frequencia", header: "Frequência", align: "center", render: (row) => <StarRating value={row.estrelasFrequencia} /> },
-  { key: "ticket", header: "Ticket Médio", align: "center", render: (row) => <StarRating value={row.estrelasTicketMedio} /> },
-  { key: "geral", header: "Nota Geral", align: "center", render: (row) => <StarRating value={row.notaGeral} /> },
+  { key: "nome", header: "Cliente", render: (row) => row.nome, sortValue: (row) => row.nome },
+  {
+    key: "atividade",
+    header: "Atividade",
+    align: "center",
+    render: (row) => <StarRating value={row.estrelasAtividade} />,
+    sortValue: (row) => row.estrelasAtividade,
+  },
+  {
+    key: "frequencia",
+    header: "Frequência",
+    align: "center",
+    render: (row) => <StarRating value={row.estrelasFrequencia} />,
+    sortValue: (row) => row.estrelasFrequencia,
+  },
+  {
+    key: "ticket",
+    header: "Ticket Médio",
+    align: "center",
+    render: (row) => <StarRating value={row.estrelasTicketMedio} />,
+    sortValue: (row) => row.estrelasTicketMedio,
+  },
+  {
+    key: "geral",
+    header: "Nota Geral",
+    align: "center",
+    render: (row) => <StarRating value={row.notaGeral} />,
+    sortValue: (row) => row.notaGeral,
+  },
 ]
 
 export default function AvaliacaoPage() {

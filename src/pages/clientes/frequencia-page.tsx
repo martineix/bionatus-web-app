@@ -10,24 +10,27 @@ function formatDateBR(value: string | null) {
 }
 
 const columns: ClientesTableColumn<ClienteFrequenciaRow>[] = [
-  { key: "nome", header: "Cliente", render: (row) => row.nome },
+  { key: "nome", header: "Cliente", render: (row) => row.nome, sortValue: (row) => row.nome },
   {
     key: "intervalo",
     header: "Intervalo médio (dias)",
     align: "right",
     render: (row) => (row.intervaloMedioDias === null ? "Sem histórico suficiente" : row.intervaloMedioDias),
+    sortValue: (row) => row.intervaloMedioDias,
   },
   {
     key: "ultima",
     header: "Última compra",
     align: "right",
     render: (row) => formatDateBR(row.dataUltimaCompra),
+    sortValue: (row) => (row.dataUltimaCompra ? new Date(row.dataUltimaCompra).getTime() : null),
   },
   {
     key: "previsao",
     header: "Previsão próxima compra",
     align: "right",
     render: (row) => (row.previsaoProximaCompra === null ? "—" : formatDateBR(row.previsaoProximaCompra)),
+    sortValue: (row) => (row.previsaoProximaCompra ? new Date(row.previsaoProximaCompra).getTime() : null),
   },
 ]
 

@@ -11,37 +11,48 @@ function formatDateBR(value: string | null) {
 }
 
 const columns: ClientesTableColumn<ClienteAtividadeRow>[] = [
-  { key: "nome", header: "Cliente", render: (row) => row.nome },
+  { key: "nome", header: "Cliente", render: (row) => row.nome, sortValue: (row) => row.nome },
   {
     key: "dias",
     header: "Dias sem comprar",
     align: "right",
     render: (row) => (row.diasDesdeUltimaCompra === null ? "—" : row.diasDesdeUltimaCompra),
+    sortValue: (row) => row.diasDesdeUltimaCompra,
   },
   {
     key: "data_ultima",
     header: "Última compra",
     align: "right",
     render: (row) => formatDateBR(row.dataUltimaCompra),
+    sortValue: (row) => (row.dataUltimaCompra ? new Date(row.dataUltimaCompra).getTime() : null),
   },
   {
     key: "valor_ultima",
     header: "Valor última compra",
     align: "right",
     render: (row) => (row.valorUltimaCompra === null ? "—" : formatCurrencyBRL(row.valorUltimaCompra)),
+    sortValue: (row) => row.valorUltimaCompra,
   },
   {
     key: "total",
     header: "Total comprado (vida)",
     align: "right",
     render: (row) => formatCurrencyBRL(row.valorTotalLiquido),
+    sortValue: (row) => row.valorTotalLiquido,
   },
-  { key: "qtd", header: "Qtd. pedidos", align: "right", render: (row) => row.qtdPedidos },
+  {
+    key: "qtd",
+    header: "Qtd. pedidos",
+    align: "right",
+    render: (row) => row.qtdPedidos,
+    sortValue: (row) => row.qtdPedidos,
+  },
   {
     key: "ticket",
     header: "Ticket médio",
     align: "right",
     render: (row) => (row.ticketMedio === null ? "—" : formatCurrencyBRL(row.ticketMedio)),
+    sortValue: (row) => row.ticketMedio,
   },
 ]
 

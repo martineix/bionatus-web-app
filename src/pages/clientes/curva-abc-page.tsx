@@ -12,24 +12,27 @@ const CLASSE_BADGE: Record<ClienteCurvaAbcRow["classe"], string> = {
 }
 
 const columns: ClientesTableColumn<ClienteCurvaAbcRow>[] = [
-  { key: "nome", header: "Cliente", render: (row) => row.nome },
+  { key: "nome", header: "Cliente", render: (row) => row.nome, sortValue: (row) => row.nome },
   {
     key: "valor",
     header: "Valor total (vida)",
     align: "right",
     render: (row) => formatCurrencyBRL(row.valorTotalLiquido),
+    sortValue: (row) => row.valorTotalLiquido,
   },
   {
     key: "participacao",
     header: "% Participação",
     align: "right",
     render: (row) => formatPercentBR(row.pctParticipacao),
+    sortValue: (row) => row.pctParticipacao,
   },
   {
     key: "acumulado",
     header: "% Acumulado",
     align: "right",
     render: (row) => formatPercentBR(row.pctAcumulado),
+    sortValue: (row) => row.pctAcumulado,
   },
   {
     key: "classe",
@@ -40,12 +43,14 @@ const columns: ClientesTableColumn<ClienteCurvaAbcRow>[] = [
         {row.classe}
       </span>
     ),
+    sortValue: (row) => row.classe,
   },
   {
     key: "intervalo",
     header: "Intervalo médio (dias)",
     align: "right",
     render: (row) => (row.intervaloMedioDias === null ? "—" : row.intervaloMedioDias),
+    sortValue: (row) => row.intervaloMedioDias,
   },
 ]
 
