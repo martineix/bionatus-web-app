@@ -79,7 +79,9 @@ export function useClientesHistoricoCompras() {
         }
       })
       .finally(() => {
-        if (mountedRef.current) setLoadingItens(false)
+        if (mountedRef.current && clienteSelecionadoRef.current?.cnpj === cnpjFetched) {
+          setLoadingItens(false)
+        }
       })
   }
 

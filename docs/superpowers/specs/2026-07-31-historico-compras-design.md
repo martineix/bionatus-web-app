@@ -39,6 +39,10 @@ Retorna, por item de pedido, ordenado por data decrescente: `data_pedido, pedido
 
 **Tabela de itens — colunas:** Data, Produto (nome + marca, mesmo padrão visual de `ClienteNomeCell`), Quantidade, Valor unitário, Valor total, Tipo (badge: verde "Venda", azul "Bonificação", vermelho "Devolução"), Representante.
 
+## Nota — débito técnico arquitetural
+
+`get_cliente_historico_compras` reimplementa manualmente a lógica de exclusão/classificação de `vw_pedidos_v2` (faixa de `id_cliente`/pescod do nexus, faixa de `codparc` do sankhya, blocklist de CNPJs internos hardcoded, classificação venda/bonificação/devolução) em vez de compartilhar uma única fonte de verdade, porque `vw_pedidos_v2` não expõe `vlrunit` nem descrição/marca do produto. Essa duplicação já causou o bug de exclusão indevida de `FUNCIONARIOS` corrigido nesta mesma rodada de revisão — a RPC replicava por engano uma regra de `vw_pedidos_v2` que não se aplica a ela (a exclusão de `FUNCIONARIOS` é uma regra da camada de *identificação* de clientes, não de histórico de item por CNPJ já identificado). Mudanças futuras nas exclusões de `vw_pedidos_v2` não se propagam automaticamente para esta RPC. Fica como follow-up conhecido: considerar estender `vw_pedidos_v2` (expondo os campos que faltam) ou criar uma view irmã no grão de item que compartilhe a mesma lógica de exclusão via CTE/função comum.
+
 ## Fora de escopo (confirmado com o usuário)
 
 - Filtro por tipo de movimento (venda/bonificação/devolução) ou por período — mostra tudo, sem filtro adicional nesta versão.

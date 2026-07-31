@@ -13,7 +13,7 @@ import type { ClienteHistoricoItemRow, ClienteHistoricoItemTipo } from "@/lib/cl
 
 function formatDateBR(value: string | null) {
   if (!value) return "—"
-  return new Date(value).toLocaleDateString("pt-BR")
+  return new Date(`${value}T00:00:00`).toLocaleDateString("pt-BR")
 }
 
 function ProdutoCell({ produto, marca }: { produto: string | null; marca: string | null }) {
@@ -28,20 +28,20 @@ function ProdutoCell({ produto, marca }: { produto: string | null; marca: string
 function TipoBadge({ tipo }: { tipo: ClienteHistoricoItemTipo }) {
   if (tipo === "devolucao") {
     return (
-      <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700 dark:bg-slate-800 dark:text-red-300">
+      <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700 dark:bg-red-950/40 dark:text-red-300">
         Devolução
       </span>
     )
   }
   if (tipo === "bonificacao") {
     return (
-      <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-slate-800 dark:text-blue-300">
+      <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
         Bonificação
       </span>
     )
   }
   return (
-    <span className="inline-flex items-center rounded-full bg-[#E4F1E8] px-2 py-0.5 text-xs font-semibold text-[#006426] dark:bg-slate-800 dark:text-[#7DD3A2]">
+    <span className="inline-flex items-center rounded-full bg-[#E4F1E8] px-2 py-0.5 text-xs font-semibold text-[#006426] dark:bg-emerald-950/40 dark:text-[#7DD3A2]">
       Venda
     </span>
   )
@@ -110,17 +110,21 @@ export default function HistoricoComprasPage() {
   } = useClientesHistoricoCompras()
   const [itemSearchTerm, setItemSearchTerm] = useState("")
 
-  const itensFiltrados = itens.filter((item) => {
-    const term = itemSearchTerm.trim().toLowerCase()
-    if (!term) return true
-    return (
-      (item.produto?.toLowerCase().includes(term) ?? false) ||
-      (item.marca?.toLowerCase().includes(term) ?? false)
-    )
-  })
+  const itensFiltrados = useMemo(() => {
+    return itens.filter((item) => {
+      const term = itemSearchTerm.trim().toLowerCase()
+      if (!term) return true
+      return (
+        (item.produto?.toLowerCase().includes(term) ?? false) ||
+        (item.marca?.toLowerCase().includes(term) ?? false)
+      )
+    })
+  }, [itens, itemSearchTerm])
 
   const resumo = useMemo(() => {
-    const totalGasto = itens.filter((i) => i.tipo === "venda").reduce((soma, i) => soma + i.valorTotal, 0)
+    const totalGasto = itens
+      .filter((i) => i.tipo !== "bonificacao")
+      .reduce((soma, i) => soma + i.valorTotal, 0)
     const qtdPedidos = new Set(itens.map((i) => i.pedido)).size
     return { totalGasto, qtdPedidos, qtdItens: itens.length }
   }, [itens])
