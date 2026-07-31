@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import {
   buscarClientesHistorico,
@@ -15,6 +15,19 @@ export function useClientesHistoricoCompras() {
   const [clienteSelecionado, setClienteSelecionado] = useState<ClienteHistoricoBusca | null>(null)
   const [itens, setItens] = useState<ClienteHistoricoItemRow[]>([])
   const [loadingItens, setLoadingItens] = useState(false)
+
+  const mountedRef = useRef(true)
+  const clienteSelecionadoRef = useRef<ClienteHistoricoBusca | null>(null)
+
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
+
+  useEffect(() => {
+    clienteSelecionadoRef.current = clienteSelecionado
+  }, [clienteSelecionado])
 
   useEffect(() => {
     if (clienteSelecionado) return
@@ -50,13 +63,24 @@ export function useClientesHistoricoCompras() {
   function selecionarCliente(cliente: ClienteHistoricoBusca) {
     setClienteSelecionado(cliente)
     setLoadingItens(true)
-    getClienteHistoricoCompras(cliente.cnpj)
-      .then(setItens)
-      .catch((error) => {
-        logger.error("use-clientes-historico-compras-itens", error)
-        toast.error("Não foi possível carregar o histórico de compras.")
+
+    const cnpjFetched = cliente.cnpj
+
+    getClienteHistoricoCompras(cnpjFetched)
+      .then((data) => {
+        if (mountedRef.current && clienteSelecionadoRef.current?.cnpj === cnpjFetched) {
+          setItens(data)
+        }
       })
-      .finally(() => setLoadingItens(false))
+      .catch((error) => {
+        if (mountedRef.current) {
+          logger.error("use-clientes-historico-compras-itens", error)
+          toast.error("Não foi possível carregar o histórico de compras.")
+        }
+      })
+      .finally(() => {
+        if (mountedRef.current) setLoadingItens(false)
+      })
   }
 
   function limparSelecao() {
