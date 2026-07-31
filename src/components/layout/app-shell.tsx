@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import Sidebar from "./sidebar"
 import Topbar from "./topbar"
+import ScrollToTopButton from "./scroll-to-top-button"
 import { getMyProfile } from "@/lib/profile"
 import { getMyPermissions, type Permissions } from "@/lib/permissions"
 
@@ -172,6 +173,8 @@ export default function AppShell({
           {children}
         </main>
       </div>
+
+      <ScrollToTopButton />
     </div>
   )
 }
