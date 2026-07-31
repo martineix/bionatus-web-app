@@ -1,7 +1,7 @@
 import { useState, type RefObject } from "react"
 import { NavLink, useLocation } from "react-router-dom"
 import {
-  LayoutDashboard,
+  Gauge,
   Package,
   Users,
   Activity,
@@ -9,6 +9,7 @@ import {
   PieChart,
   Star,
   CalendarPlus,
+  CalendarClock,
   Ban,
   ShieldCheck,
   FolderCog,
@@ -41,7 +42,7 @@ const topNavItems: NavItem[] = [
   {
     to: "/dashboard",
     label: "Dashboard",
-    icon: LayoutDashboard,
+    icon: Gauge,
   },
 ]
 
@@ -51,6 +52,7 @@ const clientesNavItems: NavItem[] = [
   { to: "/clientes/curva-abc", label: "Curva ABC", icon: PieChart },
   { to: "/clientes/avaliacao", label: "Avaliação", icon: Star },
   { to: "/clientes/aberturas", label: "Aberturas", icon: CalendarPlus },
+  { to: "/clientes/agenda", label: "Agenda", icon: CalendarClock },
 ]
 
 const CLIENTES_PATHS = new Set(clientesNavItems.map((item) => item.to))
@@ -128,7 +130,7 @@ export default function Sidebar({
         }
         title={!showLabels ? item.label : undefined}
       >
-        <Icon className="h-4 w-4 shrink-0" />
+        <Icon className="h-5 w-5 shrink-0" />
         {showLabels && <span>{item.label}</span>}
       </NavLink>
     )
@@ -157,7 +159,7 @@ export default function Sidebar({
           aria-expanded={open}
           className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
         >
-          <Icon className="h-4 w-4 shrink-0" />
+          <Icon className="h-5 w-5 shrink-0" />
           <span className="flex-1 text-left">{label}</span>
           {open ? (
             <ChevronDown className="h-4 w-4 shrink-0" />

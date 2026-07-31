@@ -6,6 +6,7 @@ import FrequenciaPage from "@/pages/clientes/frequencia-page"
 import CurvaAbcPage from "@/pages/clientes/curva-abc-page"
 import AvaliacaoPage from "@/pages/clientes/avaliacao-page"
 import AberturasPage from "@/pages/clientes/aberturas-page"
+import AgendaPage from "@/pages/clientes/agenda-page"
 import ProdutosPage from "@/pages/produtos/produtos-page"
 import RemocoesPage from "@/pages/remocoes/remocoes-page"
 import PermissoesPage from "@/pages/permissoes/permissoes-page"
@@ -68,6 +69,15 @@ export default function App() {
         element={
           <ProtectedRoute>
             <AberturasPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/clientes/agenda"
+        element={
+          <ProtectedRoute>
+            <AgendaPage />
           </ProtectedRoute>
         }
       />
