@@ -2,6 +2,7 @@ import type { DashboardFiltersInput } from "@/lib/dashboard"
 
 export const FILTERS_STORAGE_KEY = "dashboard-filters"
 export const CHART_PREFERENCES_STORAGE_KEY = "dashboard-chart-preferences"
+export const FILTERS_PANEL_OPEN_STORAGE_KEY = "dashboard-filters-panel-open"
 
 export const defaultFilters: DashboardFiltersInput = {
   ano: null,

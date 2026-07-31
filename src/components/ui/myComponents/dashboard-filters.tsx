@@ -1,5 +1,5 @@
-import { useMemo } from "react"
-import { Check, ChevronDown, Filter } from "lucide-react"
+import { useMemo, useState } from "react"
+import { Check, ChevronDown, ChevronRight, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -11,7 +11,10 @@ import type {
   DashboardFiltersInput,
   DashboardMonthOption,
 } from "@/lib/dashboard"
-import { channelOptions as canalOptions } from "@/lib/dashboard/dashboard-constants"
+import {
+  channelOptions as canalOptions,
+  FILTERS_PANEL_OPEN_STORAGE_KEY,
+} from "@/lib/dashboard/dashboard-constants"
 
 type DashboardFiltersProps = {
   filters: DashboardFiltersInput
@@ -74,6 +77,18 @@ export default function DashboardFilters({
   availableYears,
   availableMonths,
 }: DashboardFiltersProps) {
+  const [open, setOpen] = useState(
+    () => localStorage.getItem(FILTERS_PANEL_OPEN_STORAGE_KEY) !== "false"
+  )
+
+  function toggleOpen() {
+    setOpen((prev) => {
+      const next = !prev
+      localStorage.setItem(FILTERS_PANEL_OPEN_STORAGE_KEY, String(next))
+      return next
+    })
+  }
+
   function updateFilter<K extends keyof DashboardFiltersInput>(
     key: K,
     value: DashboardFiltersInput[K]
@@ -142,7 +157,12 @@ export default function DashboardFilters({
   return (
     <section className="rounded-2xl border border-[#D0D9D6] bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 lg:p-4">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-5">
-        <div className="flex align-items items-start gap-3 lg:min-w-55 lg:shrink-0">
+        <button
+          type="button"
+          onClick={toggleOpen}
+          aria-expanded={open}
+          className="flex align-items items-start gap-3 text-left lg:min-w-55 lg:shrink-0"
+        >
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#F0F0F0] text-[#006426] dark:bg-slate-800 dark:text-[#7DD3A2]">
             <Filter className="h-4 w-4" />
           </div>
@@ -158,14 +178,21 @@ export default function DashboardFilters({
                   {activeFiltersCount} ativo{activeFiltersCount > 1 ? "s" : ""}
                 </span>
               )}
+
+              {open ? (
+                <ChevronDown className="h-4 w-4 shrink-0 text-slate-400" />
+              ) : (
+                <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" />
+              )}
             </div>
 
             <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
               Refine a visualização dos indicadores
             </p>
           </div>
-        </div>
+        </button>
 
+        {open && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:flex-wrap lg:justify-end lg:items-end lg:gap-3">
           <div className="lg:w-27.5 lg:min-w-27.5">
             <InlineSelectField
@@ -321,6 +348,7 @@ export default function DashboardFilters({
             </InlineSelectField>
           </div>
         </div>
+        )}
       </div>
     </section>
   )

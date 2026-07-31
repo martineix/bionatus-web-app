@@ -95,12 +95,6 @@ export default function DashboardPage() {
       lastUpdated={lastUpdated}
     >
       <div className="space-y-6">
-        {isRepresentanteView && (
-          <div className="mb-4 rounded-xl border border-[#D0D9D6] bg-[#F0F7F2] px-4 py-2 text-sm text-[#006426]">
-            Você está vendo seus próprios números de desempenho.
-          </div>
-        )}
-
         <DashboardFilters
           filters={filters}
           onChange={setFilters}
