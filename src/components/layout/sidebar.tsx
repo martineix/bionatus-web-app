@@ -10,6 +10,7 @@ import {
   Star,
   CalendarPlus,
   CalendarClock,
+  History,
   Ban,
   ShieldCheck,
   FolderCog,
@@ -47,12 +48,13 @@ const topNavItems: NavItem[] = [
 ]
 
 const clientesNavItems: NavItem[] = [
-  { to: "/clientes/atividade", label: "Atividade", icon: Activity },
-  { to: "/clientes/frequencia", label: "Frequência", icon: Repeat2 },
-  { to: "/clientes/curva-abc", label: "Curva ABC", icon: PieChart },
-  { to: "/clientes/avaliacao", label: "Avaliação", icon: Star },
   { to: "/clientes/aberturas", label: "Aberturas", icon: CalendarPlus },
   { to: "/clientes/agenda", label: "Agenda", icon: CalendarClock },
+  { to: "/clientes/atividade", label: "Atividade", icon: Activity },
+  { to: "/clientes/avaliacao", label: "Avaliação", icon: Star },
+  { to: "/clientes/curva-abc", label: "Curva ABC", icon: PieChart },
+  { to: "/clientes/frequencia", label: "Frequência", icon: Repeat2 },
+  { to: "/clientes/historico-compras", label: "Histórico de Compras", icon: History },
 ]
 
 const CLIENTES_PATHS = new Set(clientesNavItems.map((item) => item.to))

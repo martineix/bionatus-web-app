@@ -7,6 +7,7 @@ import CurvaAbcPage from "@/pages/clientes/curva-abc-page"
 import AvaliacaoPage from "@/pages/clientes/avaliacao-page"
 import AberturasPage from "@/pages/clientes/aberturas-page"
 import AgendaPage from "@/pages/clientes/agenda-page"
+import HistoricoComprasPage from "@/pages/clientes/historico-compras-page"
 import ProdutosPage from "@/pages/produtos/produtos-page"
 import RemocoesPage from "@/pages/remocoes/remocoes-page"
 import PermissoesPage from "@/pages/permissoes/permissoes-page"
@@ -78,6 +79,15 @@ export default function App() {
         element={
           <ProtectedRoute>
             <AgendaPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/clientes/historico-compras"
+        element={
+          <ProtectedRoute>
+            <HistoricoComprasPage />
           </ProtectedRoute>
         }
       />
