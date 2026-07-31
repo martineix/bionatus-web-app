@@ -20,6 +20,7 @@ export function useClientesHistoricoCompras() {
   const clienteSelecionadoRef = useRef<ClienteHistoricoBusca | null>(null)
 
   useEffect(() => {
+    mountedRef.current = true
     return () => {
       mountedRef.current = false
     }
