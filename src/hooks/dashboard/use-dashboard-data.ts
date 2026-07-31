@@ -9,6 +9,7 @@ import {
   getDashboardMetricsDaily,
   getDashboardProjectionDaily,
   getPendenteFaturamento,
+  getMetaRepresentante,
   type DashboardFiltersInput,
   type DashboardKpis,
   type DashboardKpisComparison,
@@ -23,9 +24,10 @@ type UseDashboardDataParams = {
   filters: DashboardFiltersInput
   hasComparison: boolean
   filtersReady?: boolean
+  isRepresentanteView: boolean
 }
 
-export function useDashboardData({ filters, hasComparison, filtersReady}: UseDashboardDataParams) {
+export function useDashboardData({ filters, hasComparison, filtersReady, isRepresentanteView }: UseDashboardDataParams) {
   const { ano, mes, dataInicio, dataFim, idRepresentante, mercado, contas, isBionatus } = filters
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -40,6 +42,7 @@ export function useDashboardData({ filters, hasComparison, filtersReady}: UseDas
   const [metricsLastYearDaily, setMetricsLastYearDaily] = useState<DashboardMetricDailyPoint[]>([])
   const [projectionDaily, setProjectionDaily] = useState<DashboardProjectionDailyPoint[]>([])
   const [pendenteFaturamento, setPendenteFaturamento] = useState<PendenteFaturamento | null>(null)
+  const [metaRepresentante, setMetaRepresentante] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
@@ -71,7 +74,7 @@ export function useDashboardData({ filters, hasComparison, filtersReady}: UseDas
 
   const loadPendenteFaturamento = useCallback(async () => {
     try {
-      const data = await getPendenteFaturamento()
+      const data = await getPendenteFaturamento(null)
       setPendenteFaturamento(data)
     } catch (error) {
       logger.error("use-dashboard-data/loadPendenteFaturamento", error)
@@ -83,6 +86,24 @@ export function useDashboardData({ filters, hasComparison, filtersReady}: UseDas
     const interval = setInterval(loadPendenteFaturamento, 15 * 60 * 1000)
     return () => clearInterval(interval)
   }, [loadPendenteFaturamento])
+
+  const loadMetaRepresentante = useCallback(async () => {
+    if (!isRepresentanteView || !ano || !mes) {
+      setMetaRepresentante(null)
+      return
+    }
+
+    try {
+      const data = await getMetaRepresentante(ano, mes, 1)
+      setMetaRepresentante(data)
+    } catch (error) {
+      logger.error("use-dashboard-data/loadMetaRepresentante", error)
+    }
+  }, [isRepresentanteView, ano, mes])
+
+  useEffect(() => {
+    loadMetaRepresentante()
+  }, [loadMetaRepresentante])
 
   useEffect(() => {
     async function loadMonths() {
@@ -196,6 +217,7 @@ export function useDashboardData({ filters, hasComparison, filtersReady}: UseDas
           lastYearMetricsPromise,
           projectionPromise,
           loadPendenteFaturamento(),
+          loadMetaRepresentante(),
         ])
 
         if (signal.aborted) return
@@ -220,7 +242,7 @@ export function useDashboardData({ filters, hasComparison, filtersReady}: UseDas
     },
     // contasKey representa contas (array) de forma estável
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [filtersReady, ano, mes, dataInicio, dataFim, idRepresentante, mercado, contasKey, isBionatus, hasComparison, loadPendenteFaturamento]
+    [filtersReady, ano, mes, dataInicio, dataFim, idRepresentante, mercado, contasKey, isBionatus, hasComparison, loadPendenteFaturamento, loadMetaRepresentante]
   )
 
   useEffect(() => {
@@ -245,6 +267,7 @@ export function useDashboardData({ filters, hasComparison, filtersReady}: UseDas
     metricsLastYearDaily,
     projectionDaily,
     pendenteFaturamento,
+    metaRepresentante,
     loading,
     refreshing,
     lastUpdated,

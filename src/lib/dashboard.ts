@@ -93,8 +93,12 @@ export async function getDashboardKpis(
   }
 }
 
-export async function getPendenteFaturamento(): Promise<PendenteFaturamento | null> {
-  const { data, error } = await supabase.rpc("get_sankhya_pendente_faturamento")
+export async function getPendenteFaturamento(
+  idRepresentante: number | null
+): Promise<PendenteFaturamento | null> {
+  const { data, error } = await supabase.rpc("get_sankhya_pendente_faturamento", {
+    p_id_representante: idRepresentante,
+  })
 
   if (error) {
     throw error
@@ -113,6 +117,28 @@ export async function getPendenteFaturamento(): Promise<PendenteFaturamento | nu
     bonus: Number(row.bonus ?? 0),
     updatedAt: row.updated_at,
   }
+}
+
+export async function getMetaRepresentante(
+  ano: number,
+  mes: number,
+  idRepresentante: number | null
+): Promise<number | null> {
+  if (idRepresentante === null) {
+    return null
+  }
+
+  const { data, error } = await supabase.rpc("get_meta_representante", {
+    p_ano: ano,
+    p_mes: mes,
+    p_id_representante: idRepresentante,
+  })
+
+  if (error) {
+    throw error
+  }
+
+  return data === null ? null : Number(data)
 }
 
 export async function getDashboardAvailableYears(): Promise<number[]> {
