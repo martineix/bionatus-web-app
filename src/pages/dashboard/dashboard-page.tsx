@@ -48,11 +48,12 @@ export default function DashboardPage() {
     metricsLastYearDaily,
     projectionDaily,
     pendenteFaturamento,
+    metaRepresentante,
     loading,
     refreshing,
     lastUpdated,
     loadDashboardData,
-  } = useDashboardData({ filters, hasComparison, filtersReady })
+  } = useDashboardData({ filters, hasComparison, filtersReady, isRepresentanteView })
 
   const {
     breakdownByConta,
@@ -113,6 +114,7 @@ export default function DashboardPage() {
           kpis={kpis}
           kpisComparison={kpisComparison}
           pendenteFaturamento={pendenteFaturamento}
+          metaRepresentante={metaRepresentante}
         />
 
         <DashboardChartSection

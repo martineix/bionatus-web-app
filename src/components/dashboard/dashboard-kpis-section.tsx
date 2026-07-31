@@ -1,5 +1,6 @@
 // src/components/dashboard/dashboard-kpis-section.tsx
 import KpiCard from "@/components/ui/myComponents/kpi-card"
+import BulletGraph from "@/components/ui/myComponents/bullet-graph"
 import {
   formatCurrencyBRL,
   formatNumberBR,
@@ -15,6 +16,7 @@ type DashboardKpisSectionProps = {
   kpis: DashboardKpis | null
   kpisComparison: DashboardKpisComparison | null
   pendenteFaturamento: PendenteFaturamento | null
+  metaRepresentante: number | null
 }
 
 export function DashboardKpisSection({
@@ -23,6 +25,7 @@ export function DashboardKpisSection({
   kpis,
   kpisComparison,
   pendenteFaturamento,
+  metaRepresentante,
 }: DashboardKpisSectionProps) {
   return (
     <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
@@ -50,6 +53,11 @@ export function DashboardKpisSection({
             badge={
               card.key === "faturamento" && pendenteFaturamento && pendenteFaturamento.venda > 0
                 ? `A faturar: ${formatCurrencyBRL(pendenteFaturamento.venda)}`
+                : undefined
+            }
+            extra={
+              card.key === "faturamento" && metaRepresentante !== null
+                ? <BulletGraph valor={currentValue} meta={metaRepresentante} />
                 : undefined
             }
             comparisons={

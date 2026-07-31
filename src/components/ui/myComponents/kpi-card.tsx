@@ -17,6 +17,7 @@ type KpiCardProps = {
   comparisons?: ComparisonItem[]
   loading?: boolean
   badge?: string
+  extra?: ReactNode
 }
 
 export default function KpiCard({
@@ -28,6 +29,7 @@ export default function KpiCard({
   comparisons = [],
   loading = false,
   badge,
+  extra,
 }: KpiCardProps) {
   return (
     <div className="rounded-2xl border border-[#D0D9D6] bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 sm:p-6">
@@ -62,6 +64,8 @@ export default function KpiCard({
           {value}
         </h3>
       )}
+
+      {extra && !loading && extra}
 
       <div className="mt-4 space-y-2">
         {comparisons.map((item) => (
