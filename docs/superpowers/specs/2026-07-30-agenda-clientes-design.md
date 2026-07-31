@@ -8,6 +8,12 @@ Nova aba "Agenda" dentro do accordion Clientes, mostrando um calendário do mês
 
 Não é um modelo de probabilidade novo — reaproveita o cálculo que já existe na tela de Frequência de Compra (`get_clientes_frequencia`): para cada cliente, `previsao_proxima_compra = data_ultima_compra + intervalo_medio_dias` (intervalo médio entre todas as compras distintas do cliente). Cada cliente cai em **um único dia exato** do calendário — não há faixa/janela de dias. Clientes com uma só compra (sem intervalo calculável) não aparecem, pois não têm previsão.
 
+## RLS — obrigatório
+
+Esta tela é visível para usuários com role `representante` (não só admin), então a mesma regra de visibilidade por representante já usada em todas as RPCs de Clientes (`_dashboard_rep_visible`) é **obrigatória** em `get_clientes_agenda`, aplicada dentro da CTE base, exatamente como em `get_clientes_frequencia`/`get_clientes_aberturas_detalhe`. Um representante logado só pode ver, no calendário e no modal do dia, clientes que ele teria visibilidade em qualquer outra tela de Clientes — nunca a carteira completa.
+
+Isso já causou um bug real nesta mesma sessão: `get_representantes_abertura()` foi criada sem essa checagem e expôs a lista completa de representantes pra um usuário rep. Antes de considerar a Task de backend concluída, o plano de implementação deve incluir um teste explícito simulando `(sistema, id_representante)` de um representante (via `representante_contas`) e confirmando que `get_clientes_agenda` retorna só os clientes esperados — não a base inteira.
+
 ## Backend — nova RPC
 
 `get_clientes_agenda(p_ano int, p_mes int, p_id_representante bigint default null, p_mercado integer default null, p_contas integer[] default null, p_is_bionatus integer default null, p_representante_nome text default null)`
