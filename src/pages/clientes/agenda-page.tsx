@@ -96,6 +96,12 @@ export default function AgendaPage() {
               <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                 {MESES_LABEL[mes - 1]} de {ano}
               </h2>
+
+              {!loading && (
+                <span className="inline-flex items-center rounded-full bg-[#E4F1E8] px-3 py-1 text-sm font-semibold text-[#006426] dark:bg-slate-800 dark:text-[#7DD3A2]">
+                  {rows.length} cliente{rows.length === 1 ? "" : "s"} no mês
+                </span>
+              )}
             </div>
 
             <button
