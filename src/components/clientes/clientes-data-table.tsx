@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react"
-import { ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react"
+import { ArrowDownAZ, ArrowUpAZ, ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatCpfCnpj } from "@/lib/format"
+import { useIsMobile } from "@/hooks/use-is-mobile"
 
 type ClienteNomeCellProps = {
   nome: string
@@ -43,6 +44,7 @@ type ClientesDataTableProps<T> = {
 }
 
 const PAGE_SIZE = 50
+const MOBILE_PAGE_SIZE = 5
 
 function alignClass(align: ClientesTableColumn<unknown>["align"]) {
   if (align === "right") return "text-right"
@@ -71,10 +73,11 @@ export function ClientesDataTable<T>({
   const [sortKey, setSortKey] = useState<string | null>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
   const [pageIndex, setPageIndex] = useState(0)
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     setPageIndex(0)
-  }, [rows])
+  }, [rows, isMobile])
 
   const sortedRows = useMemo(() => {
     if (!sortKey) return rows
@@ -88,11 +91,14 @@ export function ClientesDataTable<T>({
     })
   }, [rows, sortKey, sortDirection, columns])
 
-  const pageCount = Math.max(1, Math.ceil(sortedRows.length / PAGE_SIZE))
+  const sortableColumns = useMemo(() => columns.filter((c) => c.sortValue), [columns])
+
+  const pageSize = isMobile ? MOBILE_PAGE_SIZE : PAGE_SIZE
+  const pageCount = Math.max(1, Math.ceil(sortedRows.length / pageSize))
   const clampedPageIndex = Math.min(pageIndex, pageCount - 1)
   const pageRows = sortedRows.slice(
-    clampedPageIndex * PAGE_SIZE,
-    clampedPageIndex * PAGE_SIZE + PAGE_SIZE
+    clampedPageIndex * pageSize,
+    clampedPageIndex * pageSize + pageSize
   )
 
   function handleSortClick(column: ClientesTableColumn<T>) {
@@ -118,7 +124,7 @@ export function ClientesDataTable<T>({
         value={searchTerm}
         onChange={(e) => onSearchTermChange(e.target.value)}
         placeholder={searchPlaceholder}
-        className="mb-4 h-10 w-full max-w-sm rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-[#297B49] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+        className="mb-4 h-10 w-full sm:max-w-sm rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-[#297B49] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
       />
 
       {loading ? (
@@ -133,67 +139,133 @@ export function ClientesDataTable<T>({
         </div>
       ) : (
         <>
-          <div className="max-h-[70vh] overflow-auto rounded-xl">
-            <table className="w-full border-collapse text-sm">
-              <thead>
-                <tr className="border-b border-slate-200 dark:border-slate-800">
-                  {columns.map((col) => {
-                    const sortable = !!col.sortValue
-                    const isActive = sortKey === col.key
+          {isMobile ? (
+            <div className="space-y-3">
+              {sortableColumns.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium text-slate-500 dark:text-slate-400">Ordenar por</label>
+                  <select
+                    value={sortKey ?? ""}
+                    onChange={(e) => {
+                      const column = columns.find((c) => c.key === e.target.value)
+                      if (column) handleSortClick(column)
+                      else {
+                        setSortKey(null)
+                        setPageIndex(0)
+                      }
+                    }}
+                    className="h-9 flex-1 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-[#297B49] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                  >
+                    <option value="">Padrão</option>
+                    {sortableColumns.map((col) => (
+                      <option key={col.key} value={col.key}>
+                        {col.header}
+                      </option>
+                    ))}
+                  </select>
+                  {sortKey && (
+                    <button
+                      type="button"
+                      onClick={() => setSortDirection((d) => (d === "asc" ? "desc" : "asc"))}
+                      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-600 dark:border-slate-700 dark:text-slate-300"
+                      aria-label={sortDirection === "asc" ? "Ordem crescente" : "Ordem decrescente"}
+                    >
+                      {sortDirection === "asc" ? (
+                        <ArrowUpAZ className="h-4 w-4" />
+                      ) : (
+                        <ArrowDownAZ className="h-4 w-4" />
+                      )}
+                    </button>
+                  )}
+                </div>
+              )}
 
-                    return (
-                      <th
-                        key={col.key}
-                        onClick={() => handleSortClick(col)}
-                        className={`sticky top-0 z-10 bg-white px-3 py-2 font-semibold text-slate-600 dark:bg-slate-950 dark:text-slate-300 ${alignClass(col.align)} ${
-                          sortable ? "cursor-pointer select-none hover:text-slate-900 dark:hover:text-slate-100" : ""
-                        }`}
-                      >
-                        <span
-                          className={`inline-flex items-center gap-1 ${
-                            col.align === "right" ? "flex-row-reverse" : ""
+              {pageRows.map((row) => {
+                const [titleColumn, ...restColumns] = columns
+                return (
+                  <div
+                    key={getRowKey(row)}
+                    className="rounded-xl border border-slate-200 p-3 dark:border-slate-800"
+                  >
+                    <div className="mb-2 text-sm font-medium text-slate-900 dark:text-slate-100">
+                      {titleColumn.render(row)}
+                    </div>
+
+                    <div className="space-y-1.5">
+                      {restColumns.map((col) => (
+                        <div key={col.key} className="flex items-center justify-between gap-3 text-sm">
+                          <span className="text-slate-500 dark:text-slate-400">{col.header}</span>
+                          <span className="text-right text-slate-700 dark:text-slate-200">{col.render(row)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="max-h-[70vh] overflow-auto rounded-xl">
+              <table className="w-full border-collapse text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200 dark:border-slate-800">
+                    {columns.map((col) => {
+                      const sortable = !!col.sortValue
+                      const isActive = sortKey === col.key
+
+                      return (
+                        <th
+                          key={col.key}
+                          onClick={() => handleSortClick(col)}
+                          className={`sticky top-0 z-10 bg-white px-3 py-2 font-semibold text-slate-600 dark:bg-slate-950 dark:text-slate-300 ${alignClass(col.align)} ${
+                            sortable ? "cursor-pointer select-none hover:text-slate-900 dark:hover:text-slate-100" : ""
                           }`}
                         >
-                          {col.header}
-                          {sortable &&
-                            (isActive ? (
-                              sortDirection === "asc" ? (
-                                <ChevronUp className="h-3.5 w-3.5" />
+                          <span
+                            className={`inline-flex items-center gap-1 ${
+                              col.align === "right" ? "flex-row-reverse" : ""
+                            }`}
+                          >
+                            {col.header}
+                            {sortable &&
+                              (isActive ? (
+                                sortDirection === "asc" ? (
+                                  <ChevronUp className="h-3.5 w-3.5" />
+                                ) : (
+                                  <ChevronDown className="h-3.5 w-3.5" />
+                                )
                               ) : (
-                                <ChevronDown className="h-3.5 w-3.5" />
-                              )
-                            ) : (
-                              <ChevronsUpDown className="h-3.5 w-3.5 opacity-40" />
-                            ))}
-                        </span>
-                      </th>
-                    )
-                  })}
-                </tr>
-              </thead>
-              <tbody>
-                {pageRows.map((row, index) => (
-                  <tr
-                    key={getRowKey(row)}
-                    className={`border-b border-slate-100 hover:bg-slate-100 dark:border-slate-900 dark:hover:bg-slate-800 ${
-                      index % 2 === 1 ? "bg-slate-50/50 dark:bg-slate-900/30" : ""
-                    }`}
-                  >
-                    {columns.map((col) => (
-                      <td
-                        key={col.key}
-                        className={`px-3 py-3 text-slate-700 dark:text-slate-200 ${alignClass(col.align)} ${
-                          col.align === "right" ? "tabular-nums" : ""
-                        }`}
-                      >
-                        {col.render(row)}
-                      </td>
-                    ))}
+                                <ChevronsUpDown className="h-3.5 w-3.5 opacity-40" />
+                              ))}
+                          </span>
+                        </th>
+                      )
+                    })}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {pageRows.map((row, index) => (
+                    <tr
+                      key={getRowKey(row)}
+                      className={`border-b border-slate-100 hover:bg-slate-100 dark:border-slate-900 dark:hover:bg-slate-800 ${
+                        index % 2 === 1 ? "bg-slate-50/50 dark:bg-slate-900/30" : ""
+                      }`}
+                    >
+                      {columns.map((col) => (
+                        <td
+                          key={col.key}
+                          className={`px-3 py-3 text-slate-700 dark:text-slate-200 ${alignClass(col.align)} ${
+                            col.align === "right" ? "tabular-nums" : ""
+                          }`}
+                        >
+                          {col.render(row)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
           <div className="mt-4 flex items-center justify-between text-sm text-slate-600 dark:text-slate-400">
             <span>

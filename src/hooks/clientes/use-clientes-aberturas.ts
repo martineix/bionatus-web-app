@@ -3,6 +3,7 @@ import { toast } from "sonner"
 import {
   getClientesAberturas,
   getClientesAberturasDetalhe,
+  getRepresentantesAbertura,
   type ClienteAberturaDetalheRow,
   type ClienteAberturaPoint,
 } from "@/lib/clientes/clientes-aberturas"
@@ -11,7 +12,7 @@ import { logger } from "@/lib/logger"
 
 function defaultRange() {
   const hoje = new Date()
-  const inicio = new Date(hoje.getFullYear(), hoje.getMonth() - 11, 1)
+  const inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1)
 
   return {
     dataInicio: inicio.toISOString().slice(0, 10),
@@ -27,12 +28,22 @@ export function useClientesAberturas() {
   const [loading, setLoading] = useState(true)
   const [loadingDetalhe, setLoadingDetalhe] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [representanteAbertura, setRepresentanteAbertura] = useState<string | null>(null)
+  const [representantesOptions, setRepresentantesOptions] = useState<string[]>([])
+
+  useEffect(() => {
+    getRepresentantesAbertura()
+      .then(setRepresentantesOptions)
+      .catch((error) => {
+        logger.error("use-clientes-aberturas-representantes", error)
+      })
+  }, [])
 
   useEffect(() => {
     let mounted = true
 
     setLoading(true)
-    getClientesAberturas(filters, range.dataInicio, range.dataFim)
+    getClientesAberturas(filters, range.dataInicio, range.dataFim, representanteAbertura)
       .then((data) => {
         if (mounted) setPoints(data)
       })
@@ -47,13 +58,13 @@ export function useClientesAberturas() {
     return () => {
       mounted = false
     }
-  }, [filters, range])
+  }, [filters, range, representanteAbertura])
 
   useEffect(() => {
     let mounted = true
 
     setLoadingDetalhe(true)
-    getClientesAberturasDetalhe(filters, range.dataInicio, range.dataFim)
+    getClientesAberturasDetalhe(filters, range.dataInicio, range.dataFim, representanteAbertura)
       .then((data) => {
         if (mounted) setDetalhe(data)
       })
@@ -68,7 +79,7 @@ export function useClientesAberturas() {
     return () => {
       mounted = false
     }
-  }, [filters, range])
+  }, [filters, range, representanteAbertura])
 
   const detalheFiltrado = detalhe.filter((row) => {
     const term = searchTerm.trim().toLowerCase()
@@ -91,5 +102,8 @@ export function useClientesAberturas() {
     setFilters,
     range,
     setRange,
+    representanteAbertura,
+    setRepresentanteAbertura,
+    representantesOptions,
   }
 }
