@@ -21,7 +21,7 @@ export async function toggleFavorito(produtoId: string, favoritado: boolean): Pr
   if (favoritado) {
     const { error } = await supabase
       .from("materiais_favoritos")
-      .insert({ profile_id: userData.user.id, produto_id: produtoId })
+      .upsert({ profile_id: userData.user.id, produto_id: produtoId })
 
     if (error) throw error
   } else {

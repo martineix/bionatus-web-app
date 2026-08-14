@@ -14,7 +14,11 @@ export type MaterialProduto = {
   arquivos: MaterialArquivo[]
 }
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL as string
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
+
+if (!BACKEND_URL) {
+  throw new Error("VITE_BACKEND_URL não está configurada. Verifique o arquivo .env.")
+}
 
 async function getAccessToken(): Promise<string> {
   const { data, error } = await supabase.auth.getSession()

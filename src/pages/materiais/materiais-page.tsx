@@ -59,7 +59,7 @@ export default function MateriaisPage() {
 
         {!loading && (
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            {produtos.length} de {totalProdutos} produto{totalProdutos === 1 ? "" : "s"} encontrado{produtos.length === 1 ? "" : "s"}
+            {produtos.length} de {totalProdutos} produto{totalProdutos === 1 ? "" : "s"} encontrado{totalProdutos === 1 ? "" : "s"}
           </p>
         )}
 
