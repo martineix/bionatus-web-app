@@ -20,11 +20,13 @@ export function ProdutoMateriaisModal({ produto, onOpenChange }: ProdutoMateriai
   const [carregandoId, setCarregandoId] = useState<string | null>(null)
 
   async function visualizar(fileId: string) {
+    const novaAba = window.open("", "_blank")
     setCarregandoId(fileId)
     try {
       const url = await getArquivoUrl(fileId, false)
-      window.open(url, "_blank")
+      if (novaAba) novaAba.location.href = url
     } catch (error) {
+      novaAba?.close()
       logger.error("materiais-visualizar", error)
       toast.error("Não foi possível abrir o arquivo.")
     } finally {
@@ -33,11 +35,13 @@ export function ProdutoMateriaisModal({ produto, onOpenChange }: ProdutoMateriai
   }
 
   async function baixar(fileId: string) {
+    const novaAba = window.open("", "_blank")
     setCarregandoId(fileId)
     try {
       const url = await getArquivoUrl(fileId, true)
-      window.open(url, "_blank")
+      if (novaAba) novaAba.location.href = url
     } catch (error) {
+      novaAba?.close()
       logger.error("materiais-baixar", error)
       toast.error("Não foi possível baixar o arquivo.")
     } finally {
