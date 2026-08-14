@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Search } from "lucide-react"
+import { ChevronDown, Search } from "lucide-react"
 import AppShell from "@/components/layout/app-shell"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ProdutoCard } from "@/components/materiais/produto-card"
@@ -39,7 +39,7 @@ export default function MateriaisPage() {
             />
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-4 hidden flex-wrap gap-2 sm:flex">
             {CATEGORIAS_FILTRO.map((opcao) => (
               <button
                 key={opcao}
@@ -54,6 +54,21 @@ export default function MateriaisPage() {
                 {CATEGORIA_LABELS[opcao]}
               </button>
             ))}
+          </div>
+
+          <div className="relative mt-4 sm:hidden">
+            <select
+              value={categoria}
+              onChange={(e) => setCategoria(e.target.value as typeof categoria)}
+              className="h-11 w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm text-slate-700 outline-none focus:border-[#297B49] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+            >
+              {CATEGORIAS_FILTRO.map((opcao) => (
+                <option key={opcao} value={opcao}>
+                  {CATEGORIA_LABELS[opcao]}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500 opacity-60 dark:text-slate-400" />
           </div>
         </section>
 
