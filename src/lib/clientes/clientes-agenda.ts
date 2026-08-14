@@ -10,6 +10,7 @@ export type ClienteAgendaRow = {
   dataUltimaCompra: string
   intervaloMedioDias: number
   previsaoProximaCompra: string
+  cidade: string | null
 }
 
 type ClienteAgendaRowRaw = {
@@ -20,19 +21,22 @@ type ClienteAgendaRowRaw = {
   data_ultima_compra: string
   intervalo_medio_dias: number | string
   previsao_proxima_compra: string
+  cidade: string | null
 }
 
 export async function getClientesAgenda(
   ano: number,
   mes: number,
   filters: ClientesFiltersInput,
-  representanteNome: string | null
+  representanteNome: string | null,
+  cidade: string | null
 ): Promise<ClienteAgendaRow[]> {
   const { data, error } = await supabase.rpc("get_clientes_agenda", {
     p_ano: ano,
     p_mes: mes,
     ...buildClientesRpcFilters(filters),
     p_representante_nome: representanteNome,
+    p_cidade: cidade,
   })
 
   if (error) throw error
@@ -45,5 +49,14 @@ export async function getClientesAgenda(
     dataUltimaCompra: row.data_ultima_compra,
     intervaloMedioDias: toNumber(row.intervalo_medio_dias),
     previsaoProximaCompra: row.previsao_proxima_compra,
+    cidade: row.cidade,
   }))
+}
+
+export async function getCidadesClientes(): Promise<string[]> {
+  const { data, error } = await supabase.rpc("get_cidades_clientes")
+
+  if (error) throw error
+
+  return ((data ?? []) as { cidade: string }[]).map((row) => row.cidade)
 }

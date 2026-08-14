@@ -30,6 +30,9 @@ export default function AgendaPage() {
     representanteNome,
     setRepresentanteNome,
     representantesOptions,
+    cidade,
+    setCidade,
+    cidadesOptions,
     goToPreviousMonth,
     goToNextMonth,
     goToCurrentMonth,
@@ -68,6 +71,22 @@ export default function AgendaPage() {
               {representantesOptions.map((nome) => (
                 <option key={nome} value={nome}>
                   {nome}
+                </option>
+              ))}
+            </InlineSelectField>
+          </div>
+
+          <div className="lg:w-50 lg:min-w-40">
+            <InlineSelectField
+              label="Cidade"
+              value={cidade ?? ""}
+              onChange={(value) => setCidade(value === "" ? null : value)}
+              className={cidade !== null ? activeControlClass : defaultControlClass}
+            >
+              <option value="">Todas</option>
+              {cidadesOptions.map((nomeCidade) => (
+                <option key={nomeCidade} value={nomeCidade}>
+                  {nomeCidade}
                 </option>
               ))}
             </InlineSelectField>

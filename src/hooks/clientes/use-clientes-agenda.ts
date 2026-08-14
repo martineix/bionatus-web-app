@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
-import { getClientesAgenda, type ClienteAgendaRow } from "@/lib/clientes/clientes-agenda"
+import {
+  getClientesAgenda,
+  getCidadesClientes,
+  type ClienteAgendaRow,
+} from "@/lib/clientes/clientes-agenda"
 import { getRepresentantesAbertura } from "@/lib/clientes/clientes-aberturas"
 import { useClientesFilters } from "./use-clientes-filters"
 import { logger } from "@/lib/logger"
@@ -15,6 +19,8 @@ export function useClientesAgenda() {
   const [{ ano, mes }, setAnoMes] = useState(anoMesAtual)
   const [representanteNome, setRepresentanteNome] = useState<string | null>(null)
   const [representantesOptions, setRepresentantesOptions] = useState<string[]>([])
+  const [cidade, setCidade] = useState<string | null>(null)
+  const [cidadesOptions, setCidadesOptions] = useState<string[]>([])
   const [rows, setRows] = useState<ClienteAgendaRow[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -24,13 +30,19 @@ export function useClientesAgenda() {
       .catch((error) => {
         logger.error("use-clientes-agenda-representantes", error)
       })
+
+    getCidadesClientes()
+      .then(setCidadesOptions)
+      .catch((error) => {
+        logger.error("use-clientes-agenda-cidades", error)
+      })
   }, [])
 
   useEffect(() => {
     let mounted = true
 
     setLoading(true)
-    getClientesAgenda(ano, mes, filters, representanteNome)
+    getClientesAgenda(ano, mes, filters, representanteNome, cidade)
       .then((data) => {
         if (mounted) setRows(data)
       })
@@ -45,7 +57,7 @@ export function useClientesAgenda() {
     return () => {
       mounted = false
     }
-  }, [ano, mes, filters, representanteNome])
+  }, [ano, mes, filters, representanteNome, cidade])
 
   function goToPreviousMonth() {
     setAnoMes((atual) =>
@@ -73,6 +85,9 @@ export function useClientesAgenda() {
     representanteNome,
     setRepresentanteNome,
     representantesOptions,
+    cidade,
+    setCidade,
+    cidadesOptions,
     goToPreviousMonth,
     goToNextMonth,
     goToCurrentMonth,
