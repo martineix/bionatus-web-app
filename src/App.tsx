@@ -9,6 +9,7 @@ import AberturasPage from "@/pages/clientes/aberturas-page"
 import AgendaPage from "@/pages/clientes/agenda-page"
 import HistoricoComprasPage from "@/pages/clientes/historico-compras-page"
 import ProdutosPage from "@/pages/produtos/produtos-page"
+import MateriaisPage from "@/pages/materiais/materiais-page"
 import RemocoesPage from "@/pages/remocoes/remocoes-page"
 import PermissoesPage from "@/pages/permissoes/permissoes-page"
 import AvaliacaoClientesPage from "@/pages/cadastros/avaliacao-clientes-page"
@@ -88,6 +89,15 @@ export default function App() {
         element={
           <ProtectedRoute>
             <HistoricoComprasPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/materiais"
+        element={
+          <ProtectedRoute>
+            <MateriaisPage />
           </ProtectedRoute>
         }
       />

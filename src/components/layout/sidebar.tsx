@@ -14,6 +14,7 @@ import {
   Ban,
   ShieldCheck,
   FolderCog,
+  FolderOpen,
   ChevronDown,
   ChevronRight,
   X,
@@ -64,6 +65,14 @@ const produtosNavItems: NavItem[] = [
     to: "/produtos",
     label: "Produtos",
     icon: Package,
+  },
+]
+
+const materiaisNavItems: NavItem[] = [
+  {
+    to: "/materiais",
+    label: "Materiais",
+    icon: FolderOpen,
   },
 ]
 
@@ -238,6 +247,8 @@ export default function Sidebar({
           {renderAccordion("Clientes", Users, clientesNavItems, clientesOpen, setClientesOpen)}
 
           {produtosNavItems.map((item) => renderNavItem(item))}
+
+          {materiaisNavItems.map((item) => renderNavItem(item))}
 
           {renderAccordion("Cadastros", FolderCog, visibleCadastrosItems, cadastrosOpen, setCadastrosOpen)}
         </nav>
