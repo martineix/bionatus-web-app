@@ -3,6 +3,7 @@ import { Search } from "lucide-react"
 import AppShell from "@/components/layout/app-shell"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ProdutoCard } from "@/components/materiais/produto-card"
+import { ProdutoMateriaisModal } from "@/components/materiais/produto-materiais-modal"
 import { useMateriais, CATEGORIAS_FILTRO, CATEGORIA_LABELS } from "@/hooks/materiais/use-materiais"
 import type { MaterialProduto } from "@/lib/materiais/materiais-api"
 
@@ -87,7 +88,12 @@ export default function MateriaisPage() {
         )}
       </div>
 
-      {/* Task 6 adiciona aqui o modal de arquivos, controlado por produtoAberto/setProdutoAberto */}
+      <ProdutoMateriaisModal
+        produto={produtoAberto}
+        onOpenChange={(open) => {
+          if (!open) setProdutoAberto(null)
+        }}
+      />
     </AppShell>
   )
 }
