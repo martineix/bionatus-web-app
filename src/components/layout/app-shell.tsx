@@ -2,8 +2,14 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import Sidebar from "./sidebar"
 import Topbar from "./topbar"
 import ScrollToTopButton from "./scroll-to-top-button"
-import { getMyProfile } from "@/lib/profile"
-import { getMyPermissions, type Permissions } from "@/lib/permissions"
+import { getMyProfile, getCachedProfile } from "@/lib/profile"
+import { getMyPermissions, getCachedPermissions, type Permissions } from "@/lib/permissions"
+
+const DEFAULT_PERMISSIONS: Permissions = {
+  remocoes: true,
+  dashboardProjecaoCheckbox: true,
+  dashboardSimulacao: true,
+}
 
 type AppShellProps = {
   title: string
@@ -41,12 +47,12 @@ export default function AppShell({
   const menuButtonRef = useRef<HTMLButtonElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const wasMobileOpenRef = useRef(false)
-  const [isRepresentanteView, setIsRepresentanteView] = useState(false)
-  const [permissions, setPermissions] = useState<Permissions>({
-    remocoes: true,
-    dashboardProjecaoCheckbox: true,
-    dashboardSimulacao: true,
-  })
+  const [isRepresentanteView, setIsRepresentanteView] = useState(
+    () => getCachedProfile()?.role === "representante"
+  )
+  const [permissions, setPermissions] = useState<Permissions>(
+    () => getCachedPermissions() ?? DEFAULT_PERMISSIONS
+  )
 
   useEffect(() => {
     getMyProfile()

@@ -12,7 +12,22 @@ export type RolePermissionRow = {
   allowed: boolean
 }
 
-export async function getMyPermissions(): Promise<Permissions> {
+let cachedPermissions: Permissions | null = null
+let inFlight: Promise<Permissions> | null = null
+
+// Mesmo motivo do getCachedProfile em lib/profile.ts: permite ler o valor já
+// conhecido de forma síncrona ao montar o layout, evitando o "flash" de itens
+// restritos (ex: Remoções) a cada navegação.
+export function getCachedPermissions() {
+  return cachedPermissions
+}
+
+export function clearPermissionsCache() {
+  cachedPermissions = null
+  inFlight = null
+}
+
+async function fetchMyPermissions(): Promise<Permissions> {
   const { data, error } = await supabase.rpc("get_my_permissions")
 
   if (error) {
@@ -27,6 +42,19 @@ export async function getMyPermissions(): Promise<Permissions> {
     dashboardProjecaoCheckbox: byKey.get("dashboard_projecao_checkbox") ?? true,
     dashboardSimulacao: byKey.get("dashboard_simulacao") ?? true,
   }
+}
+
+export async function getMyPermissions(): Promise<Permissions> {
+  if (cachedPermissions) return cachedPermissions
+
+  if (!inFlight) {
+    inFlight = fetchMyPermissions().finally(() => {
+      inFlight = null
+    })
+  }
+
+  cachedPermissions = await inFlight
+  return cachedPermissions
 }
 
 export async function listRolePermissions(): Promise<RolePermissionRow[]> {
