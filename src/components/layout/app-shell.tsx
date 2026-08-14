@@ -5,10 +5,15 @@ import ScrollToTopButton from "./scroll-to-top-button"
 import { getMyProfile, getCachedProfile } from "@/lib/profile"
 import { getMyPermissions, getCachedPermissions, type Permissions } from "@/lib/permissions"
 
-const DEFAULT_PERMISSIONS: Permissions = {
-  remocoes: true,
-  dashboardProjecaoCheckbox: true,
-  dashboardSimulacao: true,
+// Enquanto o perfil/permissões reais ainda não carregaram, assume o estado
+// mais restrito (nada de admin, nada de itens condicionados a permissão) —
+// evita mostrar por um instante algo que o usuário não deveria ver. Um admin
+// pode ver esses itens "aparecerem" com um pequeno atraso; um representante
+// nunca vê o que não deveria, nem por um frame.
+const RESTRICTED_PERMISSIONS: Permissions = {
+  remocoes: false,
+  dashboardProjecaoCheckbox: false,
+  dashboardSimulacao: false,
 }
 
 type AppShellProps = {
@@ -47,11 +52,12 @@ export default function AppShell({
   const menuButtonRef = useRef<HTMLButtonElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const wasMobileOpenRef = useRef(false)
-  const [isRepresentanteView, setIsRepresentanteView] = useState(
-    () => getCachedProfile()?.role === "representante"
-  )
+  const [isRepresentanteView, setIsRepresentanteView] = useState(() => {
+    const cached = getCachedProfile()
+    return cached ? cached.role === "representante" : true
+  })
   const [permissions, setPermissions] = useState<Permissions>(
-    () => getCachedPermissions() ?? DEFAULT_PERMISSIONS
+    () => getCachedPermissions() ?? RESTRICTED_PERMISSIONS
   )
 
   useEffect(() => {
