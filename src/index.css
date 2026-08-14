@@ -135,3 +135,15 @@
   transition: none !important;
   animation: none !important;
 }
+
+/* Safari no iOS aplica zoom automático na página ao focar um campo com
+   font-size menor que 16px — é esse zoom "sozinho" que precisa ajustar de
+   volta toda hora. Forçamos 16px só em telas pequenas, sem mudar o visual
+   (text-sm) no desktop. */
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
