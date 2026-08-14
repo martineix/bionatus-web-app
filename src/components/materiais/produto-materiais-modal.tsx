@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog"
-import { getArquivoUrl, type MaterialProduto } from "@/lib/materiais/materiais-api"
+import { getArquivoUrl, getLinkCompartilhado, type MaterialProduto } from "@/lib/materiais/materiais-api"
 import { logger } from "@/lib/logger"
 
 type ProdutoMateriaisModalProps = {
@@ -52,7 +52,7 @@ export function ProdutoMateriaisModal({ produto, onOpenChange }: ProdutoMateriai
   async function enviar(fileId: string) {
     setCarregandoId(fileId)
     try {
-      const url = await getArquivoUrl(fileId, false)
+      const url = await getLinkCompartilhado(fileId)
       await navigator.clipboard.writeText(url)
       toast.success("Link copiado para a área de transferência.")
     } catch (error) {

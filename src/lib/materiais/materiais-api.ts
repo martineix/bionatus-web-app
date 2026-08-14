@@ -52,3 +52,18 @@ export async function getArquivoUrl(fileId: string, download: boolean): Promise<
 
   return `${BACKEND_URL}/materiais/arquivo/${fileId}?${params.toString()}`
 }
+
+export async function getLinkCompartilhado(fileId: string): Promise<string> {
+  const token = await getAccessToken()
+
+  const response = await fetch(`${BACKEND_URL}/materiais/arquivo/${fileId}/compartilhar`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+
+  if (!response.ok) {
+    throw new Error("Não foi possível gerar o link de compartilhamento.")
+  }
+
+  const json = await response.json()
+  return `${BACKEND_URL}/materiais/arquivo/${fileId}?share=${json.token}`
+}
