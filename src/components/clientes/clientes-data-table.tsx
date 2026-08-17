@@ -75,9 +75,12 @@ export function ClientesDataTable<T>({
   const [pageIndex, setPageIndex] = useState(0)
   const isMobile = useIsMobile()
 
+  // Reseta a página quando a quantidade de linhas muda (nova busca/filtro) —
+  // deliberadamente não depende de `rows` em si, pra não voltar pra página 1
+  // quando uma linha é só editada no lugar (mesma quantidade, conteúdo novo).
   useEffect(() => {
     setPageIndex(0)
-  }, [rows, isMobile])
+  }, [rows.length, isMobile])
 
   const sortedRows = useMemo(() => {
     if (!sortKey) return rows

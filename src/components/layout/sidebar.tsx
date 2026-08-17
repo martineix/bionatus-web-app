@@ -13,6 +13,7 @@ import {
   History,
   Ban,
   ShieldCheck,
+  Tags,
   FolderCog,
   FolderOpen,
   ChevronDown,
@@ -92,6 +93,11 @@ const cadastrosNavItems: NavItem[] = [
     label: "Avaliação de Clientes",
     icon: Star,
   },
+  {
+    to: "/cadastros/produtos-categoria",
+    label: "Categoria de Produtos",
+    icon: Tags,
+  },
 ]
 
 const CADASTROS_PATHS = new Set(cadastrosNavItems.map((item) => item.to))
@@ -120,6 +126,7 @@ export default function Sidebar({
     if (item.to === "/remocoes" && hideRemocoes) return false
     if (item.to === "/permissoes" && hideAdminItems) return false
     if (item.to === "/cadastros/avaliacao-clientes" && hideAdminItems) return false
+    if (item.to === "/cadastros/produtos-categoria" && hideAdminItems) return false
     return true
   })
 
