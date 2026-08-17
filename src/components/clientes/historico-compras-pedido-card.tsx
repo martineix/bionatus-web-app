@@ -71,25 +71,22 @@ export function HistoricoPedidoCard({ pedido, itens, isOpen, onToggle }: Histori
       {isOpen && (
         <div className="divide-y divide-slate-100 bg-white px-4 dark:divide-slate-800 dark:bg-slate-950">
           {itens.map((item) => (
-            <div key={item.itemId} className="flex items-center gap-3 py-3">
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm text-slate-800 dark:text-slate-200">
+            <div key={item.itemId} className="py-3">
+              <div className="flex items-start justify-between gap-3">
+                <p className="min-w-0 flex-1 truncate text-sm font-medium text-slate-800 dark:text-slate-200">
                   {item.produto ?? "Produto sem descrição"}
                 </p>
-                {item.marca && (
-                  <p className="text-xs text-slate-500 dark:text-slate-400">{item.marca}</p>
-                )}
+                <p className="shrink-0 text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  {formatCurrencyBRL(item.valorTotal)}
+                </p>
               </div>
-              <TipoBadge tipo={item.tipo} />
-              <p className="w-14 shrink-0 text-right text-sm text-slate-600 dark:text-slate-300">
-                {formatNumberBR(item.quantidade)}
-              </p>
-              <p className="hidden w-20 shrink-0 text-right text-sm text-slate-600 dark:text-slate-300 sm:block">
-                {formatCurrencyBRL(item.valorUnitario)}
-              </p>
-              <p className="w-24 shrink-0 text-right text-sm font-medium text-slate-900 dark:text-slate-100">
-                {formatCurrencyBRL(item.valorTotal)}
-              </p>
+              <div className="mt-1 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                {item.marca && <span className="truncate">{item.marca}</span>}
+                <TipoBadge tipo={item.tipo} />
+                <span className="shrink-0">
+                  {formatNumberBR(item.quantidade)} und{item.quantidade === 1 ? "" : "s"}
+                </span>
+              </div>
             </div>
           ))}
         </div>
