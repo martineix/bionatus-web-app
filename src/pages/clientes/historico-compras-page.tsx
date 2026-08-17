@@ -1,100 +1,17 @@
 import { useMemo, useState } from "react"
 import { ArrowLeft, Search } from "lucide-react"
 import AppShell from "@/components/layout/app-shell"
-import {
-  ClientesDataTable,
-  ClienteNomeCell,
-  type ClientesTableColumn,
-} from "@/components/clientes/clientes-data-table"
+import { ClienteNomeCell } from "@/components/clientes/clientes-data-table"
+import { HistoricoPedidoCard } from "@/components/clientes/historico-compras-pedido-card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useClientesHistoricoCompras } from "@/hooks/clientes/use-clientes-historico-compras"
-import { formatCurrencyBRL, formatNumberBR } from "@/lib/format"
-import type { ClienteHistoricoItemRow, ClienteHistoricoItemTipo } from "@/lib/clientes/clientes-historico-compras"
+import { formatCurrencyBRL } from "@/lib/format"
 
-function formatDateBR(value: string | null) {
-  if (!value) return "—"
-  return new Date(`${value}T00:00:00`).toLocaleDateString("pt-BR")
+function tamanhoFonteValor(valorFormatado: string) {
+  if (valorFormatado.length <= 9) return "text-lg"
+  if (valorFormatado.length <= 13) return "text-base"
+  return "text-sm"
 }
-
-function ProdutoCell({ produto, marca }: { produto: string | null; marca: string | null }) {
-  return (
-    <div className="flex flex-col">
-      <span>{produto ?? "Produto sem descrição"}</span>
-      {marca && <span className="text-xs text-slate-500 dark:text-slate-400">{marca}</span>}
-    </div>
-  )
-}
-
-function TipoBadge({ tipo }: { tipo: ClienteHistoricoItemTipo }) {
-  if (tipo === "devolucao") {
-    return (
-      <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700 dark:bg-red-950/40 dark:text-red-300">
-        Devolução
-      </span>
-    )
-  }
-  if (tipo === "bonificacao") {
-    return (
-      <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
-        Bonificação
-      </span>
-    )
-  }
-  return (
-    <span className="inline-flex items-center rounded-full bg-[#E4F1E8] px-2 py-0.5 text-xs font-semibold text-[#006426] dark:bg-emerald-950/40 dark:text-[#7DD3A2]">
-      Venda
-    </span>
-  )
-}
-
-const historicoColumns: ClientesTableColumn<ClienteHistoricoItemRow>[] = [
-  {
-    key: "data",
-    header: "Data",
-    render: (row) => formatDateBR(row.dataPedido),
-    sortValue: (row) => new Date(row.dataPedido).getTime(),
-  },
-  {
-    key: "produto",
-    header: "Produto",
-    render: (row) => <ProdutoCell produto={row.produto} marca={row.marca} />,
-    sortValue: (row) => row.produto,
-  },
-  {
-    key: "quantidade",
-    header: "Qtd.",
-    align: "right",
-    render: (row) => formatNumberBR(row.quantidade),
-    sortValue: (row) => row.quantidade,
-  },
-  {
-    key: "valor_unitario",
-    header: "Valor unit.",
-    align: "right",
-    render: (row) => formatCurrencyBRL(row.valorUnitario),
-    sortValue: (row) => row.valorUnitario,
-  },
-  {
-    key: "valor_total",
-    header: "Valor total",
-    align: "right",
-    render: (row) => formatCurrencyBRL(row.valorTotal),
-    sortValue: (row) => row.valorTotal,
-  },
-  {
-    key: "tipo",
-    header: "Tipo",
-    align: "center",
-    render: (row) => <TipoBadge tipo={row.tipo} />,
-    sortValue: (row) => row.tipo,
-  },
-  {
-    key: "representante",
-    header: "Representante",
-    render: (row) => row.representante ?? "—",
-    sortValue: (row) => row.representante,
-  },
-]
 
 export default function HistoricoComprasPage() {
   const {
@@ -109,6 +26,7 @@ export default function HistoricoComprasPage() {
     limparSelecao,
   } = useClientesHistoricoCompras()
   const [itemSearchTerm, setItemSearchTerm] = useState("")
+  const [pedidosAbertos, setPedidosAbertos] = useState<Set<string>>(new Set())
 
   const itensFiltrados = useMemo(() => {
     return itens.filter((item) => {
@@ -116,10 +34,25 @@ export default function HistoricoComprasPage() {
       if (!term) return true
       return (
         (item.produto?.toLowerCase().includes(term) ?? false) ||
-        (item.marca?.toLowerCase().includes(term) ?? false)
+        (item.marca?.toLowerCase().includes(term) ?? false) ||
+        (item.codigoProduto?.toLowerCase().includes(term) ?? false) ||
+        (item.ean?.toLowerCase().includes(term) ?? false)
       )
     })
   }, [itens, itemSearchTerm])
+
+  const pedidosAgrupados = useMemo(() => {
+    const grupos = new Map<string, typeof itensFiltrados>()
+    for (const item of itensFiltrados) {
+      const lista = grupos.get(item.pedido) ?? []
+      lista.push(item)
+      grupos.set(item.pedido, lista)
+    }
+    return Array.from(grupos.entries()).map(([pedido, itensDoPedido]) => ({
+      pedido,
+      itens: itensDoPedido,
+    }))
+  }, [itensFiltrados])
 
   const resumo = useMemo(() => {
     const totalGasto = itens
@@ -198,44 +131,76 @@ export default function HistoricoComprasPage() {
                 codigoCliente={clienteSelecionado.codigoCliente}
               />
 
-              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <div className="rounded-xl bg-slate-50 p-3 dark:bg-slate-900">
-                  <p className="text-[10px] font-medium uppercase text-slate-500 dark:text-slate-400">
-                    Total gasto (vendas)
+              <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
+                <div className="min-w-0 rounded-xl bg-slate-50 p-3 dark:bg-slate-900">
+                  <p className="truncate text-[10px] font-medium uppercase text-slate-500 dark:text-slate-400">
+                    $ Compras
                   </p>
-                  <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">
+                  <p
+                    className={`mt-1 truncate font-semibold text-slate-900 dark:text-slate-100 ${tamanhoFonteValor(formatCurrencyBRL(resumo.totalGasto))}`}
+                  >
                     {formatCurrencyBRL(resumo.totalGasto)}
                   </p>
                 </div>
-                <div className="rounded-xl bg-slate-50 p-3 dark:bg-slate-900">
-                  <p className="text-[10px] font-medium uppercase text-slate-500 dark:text-slate-400">
-                    Pedidos
+                <div className="min-w-0 rounded-xl bg-slate-50 p-3 dark:bg-slate-900">
+                  <p className="truncate text-[10px] font-medium uppercase text-slate-500 dark:text-slate-400">
+                    # Pedidos
                   </p>
-                  <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">
+                  <p className="mt-1 truncate text-lg font-semibold text-slate-900 dark:text-slate-100">
                     {resumo.qtdPedidos}
                   </p>
                 </div>
-                <div className="rounded-xl bg-slate-50 p-3 dark:bg-slate-900">
-                  <p className="text-[10px] font-medium uppercase text-slate-500 dark:text-slate-400">
-                    Itens
+                <div className="min-w-0 rounded-xl bg-slate-50 p-3 dark:bg-slate-900">
+                  <p className="truncate text-[10px] font-medium uppercase text-slate-500 dark:text-slate-400">
+                    # Itens
                   </p>
-                  <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">
+                  <p className="mt-1 truncate text-lg font-semibold text-slate-900 dark:text-slate-100">
                     {resumo.qtdItens}
                   </p>
                 </div>
               </div>
             </section>
 
-            <ClientesDataTable
-              columns={historicoColumns}
-              rows={itensFiltrados}
-              loading={loadingItens}
-              getRowKey={(row) => row.itemId}
-              searchTerm={itemSearchTerm}
-              onSearchTermChange={setItemSearchTerm}
-              searchPlaceholder="Buscar por produto ou marca..."
-              emptyMessage="Nenhum item encontrado para este cliente."
-            />
+            <section className="rounded-2xl border border-[#D0D9D6] bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+              <input
+                type="text"
+                value={itemSearchTerm}
+                onChange={(e) => setItemSearchTerm(e.target.value)}
+                placeholder="Buscar por produto, marca, código ou EAN..."
+                className="mb-4 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-[#297B49] sm:max-w-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+              />
+
+              {loadingItens ? (
+                <div className="space-y-3">
+                  {Array.from({ length: 4 }).map((_, index) => (
+                    <Skeleton key={index} className="h-14 w-full rounded-2xl" />
+                  ))}
+                </div>
+              ) : pedidosAgrupados.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-slate-300 px-4 py-10 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                  Nenhum item encontrado para este cliente.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {pedidosAgrupados.map((grupo) => (
+                    <HistoricoPedidoCard
+                      key={grupo.pedido}
+                      pedido={grupo.pedido}
+                      itens={grupo.itens}
+                      isOpen={pedidosAbertos.has(grupo.pedido)}
+                      onToggle={() =>
+                        setPedidosAbertos((prev) => {
+                          const proximo = new Set(prev)
+                          if (proximo.has(grupo.pedido)) proximo.delete(grupo.pedido)
+                          else proximo.add(grupo.pedido)
+                          return proximo
+                        })
+                      }
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
           </>
         )}
       </div>

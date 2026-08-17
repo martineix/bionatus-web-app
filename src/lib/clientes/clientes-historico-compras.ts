@@ -16,6 +16,8 @@ export type ClienteHistoricoItemRow = {
   tipo: ClienteHistoricoItemTipo
   produto: string | null
   marca: string | null
+  codigoProduto: string | null
+  ean: string | null
   quantidade: number
   valorUnitario: number
   valorTotal: number
@@ -35,6 +37,8 @@ type ClienteHistoricoItemRowRaw = {
   tipo: string
   produto: string | null
   marca: string | null
+  codigo_produto: string | null
+  ean: string | null
   quantidade: number | string
   valor_unitario: number | string
   valor_total: number | string
@@ -65,6 +69,8 @@ export async function getClienteHistoricoCompras(cnpj: string): Promise<ClienteH
     tipo: row.tipo as ClienteHistoricoItemTipo,
     produto: row.produto,
     marca: row.marca,
+    codigoProduto: row.codigo_produto,
+    ean: row.ean,
     quantidade: toNumber(row.quantidade),
     valorUnitario: toNumber(row.valor_unitario),
     valorTotal: toNumber(row.valor_total),
