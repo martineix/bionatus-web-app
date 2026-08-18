@@ -118,6 +118,10 @@ function SalesChartTooltip({
 }: TooltipContentProps) {
   if (!active || !payload?.length) return null
 
+  const anteriorValue = Number(
+    payload.find((entry) => entry.dataKey === "anterior")?.value ?? 0
+  )
+
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-lg dark:border-slate-700 dark:bg-slate-900">
       <p className="mb-2 text-xs font-semibold text-slate-900 dark:text-slate-100">
@@ -134,6 +138,12 @@ function SalesChartTooltip({
                 ? "Ano anterior"
                 : "Projeção"
 
+        const valorAtual = Number(entry.value ?? 0)
+        const percentual =
+          entry.dataKey === "atual" && anteriorValue !== 0
+            ? ((valorAtual - anteriorValue) / anteriorValue) * 100
+            : null
+
         return (
           <div
             key={`${entry.dataKey ?? "item"}-${index}`}
@@ -142,11 +152,25 @@ function SalesChartTooltip({
             <span style={{ color: entry.color }} className="text-sm font-medium">
               {legend}
             </span>
-            <span
-              style={{ color: entry.color }}
-              className="text-sm font-semibold tabular-nums"
-            >
-              {formatter(Number(entry.value ?? 0))}
+            <span className="flex items-center gap-1.5">
+              <span
+                style={{ color: entry.color }}
+                className="text-sm font-semibold tabular-nums"
+              >
+                {formatter(valorAtual)}
+              </span>
+              {percentual !== null && (
+                <span
+                  className={`text-xs font-semibold tabular-nums ${
+                    percentual >= 0
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : "text-red-600 dark:text-red-400"
+                  }`}
+                >
+                  ({percentual >= 0 ? "+" : ""}
+                  {percentual.toFixed(1).replace(".", ",")}%)
+                </span>
+              )}
             </span>
           </div>
         )
